@@ -40,6 +40,7 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
+{{include reference="Diagram.MigrationScriptMacros"/}}
 
 {{velocity output="false"}}
 #macro (diagramLiveTable)
@@ -63,16 +64,15 @@
 {{/velocity}}
 
 {{velocity}}
-#set ($diagramClassReference = $services.model.createDocumentReference('', 'Diagram', 'DiagramClass'))
-#if ($services.licensing.licensor.hasLicensureForEntity($diagramClassReference))
-  #includeMacros('Diagram.MigrationScriptMacros')
-  #selectDiagramsRequiringMigration
+#checkLicensureForDiagramApplication()
+#if ($hasLicensureForDiagramApplication)
+  #selectDiagramsRequiringMigration()
   #if ($toBeMigratedEntries &amp;&amp; $toBeMigratedEntries.size() &gt; 0)
+    #if ($toBeMigratedEntries.size() &gt; 1)#set ($diagramLabel = 'diagrams')#else#set ($diagramLabel = 'diagram')#end
     {{warning}}
-    You have $toBeMigratedEntries.size() diagrams to be migrated. Please click [[here&gt;&gt;MigrationScript]] to proceed.
+    $toBeMigratedEntries.size() $diagramLabel requires a migration. Please click [[here&gt;&gt;MigrationScript]] to proceed.
     {{/warning}}
   #end
-
   #diagramLiveTable
 #else
   {{error}}#getMissingLicenseMessage('diagram.extension.name'){{/error}}

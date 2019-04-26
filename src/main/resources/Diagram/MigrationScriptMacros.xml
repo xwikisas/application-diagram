@@ -40,6 +40,10 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
+#macro (checkLicensureForDiagramApplication)
+  #set ($diagramClassReference = $services.model.createDocumentReference('', 'Diagram', 'DiagramClass'))
+  #set ($hasLicensureForDiagramApplication = $services.licensing.licensor.hasLicensureForEntity($diagramClassReference))
+#end
 #macro (selectDiagramsRequiringMigration)
   #set ($repository = $services.extension.getRepository('installed'))
   #set ($extension = $services.extension.installed.getInstalledExtension('org.xwiki.contrib:draw.io', "wiki:$xcontext.database"))

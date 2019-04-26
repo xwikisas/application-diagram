@@ -34,37 +34,29 @@
   <date>1549541642000</date>
   <contentUpdateDate>1549541592000</contentUpdateDate>
   <version>1.1</version>
-  <title>MigrationScript</title>
+  <title>Diagram Migration Utility</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{include reference="Diagram.MigrationScriptMacros"/}}
+  <content>{{include reference="Licenses.Code.VelocityMacros"/}}
+{{include reference="Diagram.MigrationScriptMacros"/}}
 
 {{velocity}}
-
-{{info}}
-  This page contains a script for migrating diagram pages after an upgrade of the diagram application. It will update the paths containing the version of the draw.io library with the version currently used by the application. The script is a temporary solution until the bug //[[Paths to images inserted into diagrams become invalid at upgrade&gt;&gt;https://github.com/xwikisas/application-diagram/issues/11]]// gets fixed.
-  {{html clean="false"}}
-    &lt;form action="" method="post"&gt;
-    &lt;input class="btn btn-default" type="submit" name="execute" value="Execute"/&gt;
-    &lt;input type="hidden" name="form_token" value="$!{services.csrf.token}" /&gt;
-    &lt;/form&gt;
-{{/html}}
-
-{{/info}}
+#checkLicensureForDiagramApplication()
+#if ($hasLicensureForDiagramApplication)
+  #selectDiagramsRequiringMigration()
+  {{info}}
+  This page contains a script for migrating diagram pages after an upgrade of the Diagram Application Pro, or an upgrade from the non-pro version to the pro one. It will update the paths containing the version of the draw.io library with the version currently used by the application. The script is a temporary solution until the bug //[[Paths to images inserted into diagrams become invalid at upgrade&gt;&gt;https://github.com/xwikisas/application-diagram/issues/11]]// gets fixed.
+  {{/info}}
 
   == Diagrams requiring a migration ==
 
-  {{info}}
   #if (!$targetVersion)
-   No version of draw.io was found, please make sure that the Diagram Application is installed (either [[pro&gt;&gt;https://store.xwiki.com/xwiki/bin/view/Extension/DiagramApplication]] or [[non-pro&gt;&gt;https://extensions.xwiki.org/xwiki/bin/view/Extension/Diagram%20Application]] version).
+    {{warning}}
+     No version of draw.io was found, please make sure that [[Diagram Application Pro&gt;&gt;https://store.xwiki.com/xwiki/bin/view/Extension/DiagramApplication]] is installed.
+    {{/warning}}
   #else
-    The target draw.io version found is : $targetVersion.
-  #end
-{{/info}}
-
-  #if ($targetVersion)
     #set ($columnsProperties = {
       'doc.location': {"type":"text","size":20,"html":true},
       'doc.date': {"type":"text","size":10},
@@ -82,8 +74,8 @@
     #set ($columns = ['doc.location', 'doc.date', 'doc.author', '_actions'])
     #livetable('diagrams-to-be-migrated' $columns $columnsProperties $options)
 
-    #if (("$!request.execute" != '') &amp;&amp; $services.csrf.isTokenValid($request.getParameter("form_token")))
-      == Migration ==
+    #if (("$!request.action" == 'migrate') &amp;&amp; $services.csrf.isTokenValid($request.getParameter("form_token")))
+      == Migration results ==
 
      |=Diagram|=Migration note
       #foreach ($entry in $toBeMigratedEntries)
@@ -94,7 +86,17 @@
         #set ($discard = $page.save("Migration to draw.io $targetVersion"))
         |[[$entry]]|Diagram was migrated to draw.io $targetVersion.
       #end
+    #elseif ($toBeMigratedEntries &amp;&amp; $toBeMigratedEntries.size() &gt; 0)
+      {{html clean="false"}}
+      &lt;form action="" method="post"&gt;
+        &lt;button class="btn btn-default" type="submit" name="action" value="migrate"&gt;Proceed with the migration&lt;/button&gt;
+        &lt;input type="hidden" name="form_token" value="$!{services.csrf.token}" /&gt;
+      &lt;/form&gt;
+      {{/html}}
     #end
   #end
+#else
+  {{error}}#getMissingLicenseMessage('diagram.extension.name'){{/error}}
+#end
 {{/velocity}}</content>
 </xwikidoc>
