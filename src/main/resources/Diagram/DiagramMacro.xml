@@ -242,7 +242,7 @@
   #executeDiagramMacro
 #else
   {{error}}
-    {{translation key="diagram.app.noValidLicense" /}}
+    #getMissingLicenseMessage('diagram.extension.name')
   {{/error}}
 #end
 {{/velocity}}</code>
