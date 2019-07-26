@@ -43,10 +43,7 @@
 {{include reference="Diagram.MigrationScriptMacros"/}}
 
 {{velocity}}
-#checkLicensureForDiagramApplication()
-#if ($hasLicensureForDiagramApplication)
-  #selectDiagramsRequiringMigration()
-  #gridresultwithfilter("$!request.classname" $request.collist.split(',') '' "${migrationIsRequiredClause}" $params)
-#end
+#selectDiagramsRequiringMigration()
+#gridresultwithfilter("$!request.classname" $request.collist.split(',') '' "${migrationIsRequiredClause}" $params)
 {{/velocity}}</content>
 </xwikidoc>
