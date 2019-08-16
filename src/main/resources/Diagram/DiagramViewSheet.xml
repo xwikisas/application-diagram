@@ -40,7 +40,7 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
-#if ($doc.getObject('Diagram.DiagramClass') || $request.export != '')
+#if ($doc.getObject('Diagram.DiagramClass') || "$!request.export" != '')
   #if ($xcontext.action == 'get' &amp;&amp; $request.data == 'svg')
     #set ($svg = $doc.getValue('svg'))
     #if ("$!svg" == '')
@@ -68,7 +68,7 @@
     #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
     {{html clean="false"}}
     ## Check if the query contains the parameter for getting the diagram from URL.
-    &lt;div class="diagram loading" #if ($request.export == '') data-model="$escapetool.xml($tdoc.content)" #end&gt;&lt;/div&gt;
+    &lt;div class="diagram loading" #if ("$!request.export" == '') data-model="$escapetool.xml($tdoc.content)" #end&gt;&lt;/div&gt;
     {{/html}}
   #end
 #end
@@ -308,7 +308,7 @@ define('pako-global', ['pako'], function(pako) {
       lightbox: false
     }, options);
     return this.each(function() {
-      var graphViewer = new GraphViewer(this,  getXMLDiagram($).documentElement, options);
+      var graphViewer = new GraphViewer(this,  getDiagramXML($(this)).documentElement, options);
       graphViewer.fitGraph();
     }).removeClass('loading');
   };
@@ -325,24 +325,27 @@ define('pako-global', ['pako'], function(pako) {
     diagramViewerDeferred.reject();
   });
 
-  // Return rawDiagram (non-XML) if is any diagram in URL
-  function getDiagramFromURL() {
+  // Return a diagram in XML format if is any present in URL
+  function getDiagramXMLFromURL() {
     if (window.location.hash !== '') {
-      // We need to exlude first 2 letters from hash (#R).
-      let decodedData = decodeURIComponent(window.location.hash.substring(2));
-      var graph = new Graph();
-      let rawDiagram = graph.decompress(decodedData);
-      return rawDiagram;
+      if (window.location.hash.substring(0, 2) == '#R') {
+        // We need to exlude first 2 letters from hash (#R).
+        let decodedData = decodeURIComponent(window.location.hash.substring(2));
+        var graph = new Graph();
+        let rawDiagram = graph.decompress(decodedData);
+        return mxUtils.parseXml(rawDiagram);
+      }
     }
     return null;
   };
 
-  function getXMLDiagram($) {
-    let rawDiagram = getDiagramFromURL();
-    if (null === rawDiagram) {
-      rawDiagram = $(this).data('model');
+  function getDiagramXML(container) {
+    var xmlDiagramFromURL = getDiagramXMLFromURL();
+    if (null === xmlDiagramFromURL) {
+      rawDiagram = container.data('model');
+      return mxUtils.parseXml(rawDiagram);
     }
-    return mxUtils.parseXml(rawDiagram);
+    return xmlDiagramFromURL;
   }
 
   return diagramViewerDeferred.promise();
