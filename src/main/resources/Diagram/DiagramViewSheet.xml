@@ -327,8 +327,8 @@ define('pako-global', ['pako'], function(pako) {
 
   // Return a diagram in XML format if is any present in URL
   function getDiagramXMLFromURL() {
-    if (window.location.hash.substring(0, 2) == '#R') {
-        // We need to exlude first 2 letters from hash (#R).
+    if (window.location.hash.substring(0, 2) === '#R') {
+        // We need to exclude first 2 letters from hash (#R).
         let decodedData = decodeURIComponent(window.location.hash.substring(2));
         let graph = new Graph();
         let rawDiagram = graph.decompress(decodedData);
@@ -338,11 +338,7 @@ define('pako-global', ['pako'], function(pako) {
   };
 
   function getDiagramXML(container) {
-    let rawDiagram = getDiagramXMLFromURL();
-    if (null === rawDiagram) {
-      rawDiagram = container.data('model');
-    }
-    return rawDiagram;
+    return getDiagramXMLFromURL() || container.data('model');
   }
 
   return diagramViewerDeferred.promise();
