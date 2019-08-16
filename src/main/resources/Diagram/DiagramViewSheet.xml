@@ -40,7 +40,7 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
-#if ($doc.getObject('Diagram.DiagramClass') || "$!request.export" != '')
+#if ($doc.getObject('Diagram.DiagramClass') || "$!request.source" != '')
   #if ($xcontext.action == 'get' &amp;&amp; $request.data == 'svg')
     #set ($svg = $doc.getValue('svg'))
     #if ("$!svg" == '')
@@ -49,7 +49,7 @@
     #set ($discard = $response.setContentType('image/svg+xml'))
     #set ($discard = $response.setContentLength($svg.length()))
     #set ($discard = $response.writer.write($svg))
-  #elseif ($xcontext.action == 'export')
+  #elseif ($xcontext.action == 'source')
     #set ($fileName = $doc.name)
     #if ($fileName == 'WebHome')
       #set ($fileName = $doc.documentReference.lastSpaceReference.name)
@@ -68,7 +68,7 @@
     #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
     {{html clean="false"}}
     ## Check if the query contains the parameter for getting the diagram from URL.
-    &lt;div class="diagram loading" #if ("$!request.export" == '') data-model="$escapetool.xml($tdoc.content)" #end&gt;&lt;/div&gt;
+    &lt;div class="diagram loading" #if ("$!request.source" == '') data-model="$escapetool.xml($tdoc.content)" #end&gt;&lt;/div&gt;
     {{/html}}
   #end
 #end

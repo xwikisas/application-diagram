@@ -726,7 +726,7 @@ define('diagramStore', ['jquery', 'xwiki-meta', 'draw.io', 'xwiki-events-bridge'
     let index = actualURL.indexOf('#R');
     if (index &gt; -1) {
       // Add a parameter in query to be checked in DiagramViewSheet.
-      actualURL = [actualURL.slice(0, index), (actualURL.indexOf('?') &gt; -1) ? '&amp;export=url' : '?export=url',
+      actualURL = [actualURL.slice(0, index), (actualURL.indexOf('?') &gt; -1) ? '&amp;source=url' : '?source=url',
                   actualURL.slice(index)].join('');
       return actualURL;
     }
