@@ -49,7 +49,7 @@
     #set ($discard = $response.setContentType('image/svg+xml'))
     #set ($discard = $response.setContentLength($svg.length()))
     #set ($discard = $response.writer.write($svg))
-  #elseif ($xcontext.action == 'source')
+  #elseif ($xcontext.action == 'export')
     #set ($fileName = $doc.name)
     #if ($fileName == 'WebHome')
       #set ($fileName = $doc.documentReference.lastSpaceReference.name)
@@ -308,7 +308,7 @@ define('pako-global', ['pako'], function(pako) {
       lightbox: false
     }, options);
     return this.each(function() {
-      var graphViewer = new GraphViewer(this,  getDiagramXML($(this)).documentElement, options);
+      var graphViewer = new GraphViewer(this, mxUtils.parseXml(getDiagramXML($(this))).documentElement, options);
       graphViewer.fitGraph();
     }).removeClass('loading');
   };
@@ -327,25 +327,22 @@ define('pako-global', ['pako'], function(pako) {
 
   // Return a diagram in XML format if is any present in URL
   function getDiagramXMLFromURL() {
-    if (window.location.hash !== '') {
-      if (window.location.hash.substring(0, 2) == '#R') {
+    if (window.location.hash.substring(0, 2) == '#R') {
         // We need to exlude first 2 letters from hash (#R).
         let decodedData = decodeURIComponent(window.location.hash.substring(2));
-        var graph = new Graph();
+        let graph = new Graph();
         let rawDiagram = graph.decompress(decodedData);
-        return mxUtils.parseXml(rawDiagram);
-      }
+        return rawDiagram;
     }
     return null;
   };
 
   function getDiagramXML(container) {
-    var xmlDiagramFromURL = getDiagramXMLFromURL();
-    if (null === xmlDiagramFromURL) {
+    let rawDiagram = getDiagramXMLFromURL();
+    if (null === rawDiagram) {
       rawDiagram = container.data('model');
-      return mxUtils.parseXml(rawDiagram);
     }
-    return xmlDiagramFromURL;
+    return rawDiagram;
   }
 
   return diagramViewerDeferred.promise();
