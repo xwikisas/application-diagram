@@ -325,7 +325,7 @@ define('pako-global', ['pako'], function(pako) {
     diagramViewerDeferred.reject();
   });
 
-  // Return a diagram in XML format if is any present in URL
+  // Return a diagram in XML format if is present in the URL.
   function getDiagramXMLFromURL() {
     if (window.location.hash.substring(0, 2) === '#R') {
         // We need to exclude first 2 letters from hash (#R).
