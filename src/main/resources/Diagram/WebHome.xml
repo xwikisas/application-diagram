@@ -69,7 +69,8 @@
 {{/velocity}}
 
 {{velocity}}
-#if ($services.licensing.licensor.hasLicensureForEntity($services.model.createDocumentReference('', 'Diagram', 'DiagramClass')))
+#if ($services.licensing.licensor.hasLicensureForEntity(
+    $services.model.createDocumentReference('', 'Diagram', 'DiagramClass')))
   #selectDiagramsRequiringMigration()
   #if ($toBeMigratedEntries &amp;&amp; $toBeMigratedEntries.size() &gt; 0)
     #if ($toBeMigratedEntries.size() &gt; 1)#set ($label = 'diagrams require')#else#set ($label = 'diagram requires')#end
