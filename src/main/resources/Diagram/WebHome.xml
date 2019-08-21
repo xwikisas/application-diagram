@@ -41,7 +41,8 @@
   <hidden>false</hidden>
   <content>{{include reference="Licenses.Code.VelocityMacros"/}}
 {{velocity}}
-#if ($services.licensing.licensor.hasLicensureForEntity($services.model.createDocumentReference('', 'Diagram', 'DiagramClass')))
+#if ($services.licensing.licensor.hasLicensureForEntity(
+    $services.model.createDocumentReference('', 'Diagram', 'DiagramClass')))
   {{include reference="Diagram.MigrationScriptMacros"/}}
 #end
 {{/velocity}}
