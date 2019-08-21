@@ -68,5 +68,8 @@ diagram.macro.createNotAllowed=Vous n'êtes pas autorisé(e) à créer ce diagra
 diagram.macro.edit=Modifier le diagramme
 diagram.macro.invalidReference=La page spécifiée n'est pas un diagramme.
 diagram.macro.view=Voir le diagramme
-diagram.macro.viewNotAllowed=Vous n'êtes pas autorisé(e) à voir ce diagramme.</content>
+diagram.macro.viewNotAllowed=Vous n'êtes pas autorisé(e) à voir ce diagramme.
+
+# Diagram editor
+diagram.editor.saveAsImageAttachmentError=Erreur à l'enregistrement du diagramme comme un attachement.</content>
 </xwikidoc>
