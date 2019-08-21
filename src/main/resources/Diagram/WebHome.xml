@@ -75,7 +75,9 @@
   #if ($toBeMigratedEntries &amp;&amp; $toBeMigratedEntries.size() &gt; 0)
     #if ($toBeMigratedEntries.size() &gt; 1)#set ($label = 'diagrams require')#else#set ($label = 'diagram requires')#end
     {{warning}}
-    $toBeMigratedEntries.size() $label a migration. Please click [[here&gt;&gt;MigrationScript]] to proceed.
+    {{html clean="false"}}
+    $services.localization.render("diagram.migration.warning", [$toBeMigratedEntries.size(), "&lt;a href='$xwiki.getURL('Diagram.MigrationScript')'&gt;", '&lt;/a&gt;'])
+    {{/html}}
     {{/warning}}
   #end
   #diagramLiveTable
