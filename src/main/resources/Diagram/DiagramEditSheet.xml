@@ -822,6 +822,36 @@ define('diagramStore', ['jquery', 'xwiki-meta', 'xwiki-utils', 'draw.io', 'xwiki
     oldShowTooltip.apply(this, arguments);
   };
 
+  var originalLoadUrl = EditorUi.prototype.loadUrl;
+  EditorUi.prototype.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix) {
+    let proxyIndex = url.indexOf(PROXY_URL);
+    // Use indexOf since URLSearchParams is not supported by IE.
+    let urlParamIndex = url.indexOf('url=');
+    if (proxyIndex &gt; -1 &amp;&amp; urlParamIndex &gt; -1) {
+      // Get the value for url parameter.
+      let originalUrl = unescape(url.substring(urlParamIndex+4));
+      let decodedUrl = decodeURIComponent(originalUrl);
+      let diagramXML = getDiagramXMLFromUrl(decodedUrl);
+      if (diagramXML) {
+        success(diagramXML);
+      }
+    } else {
+      originalLoadUrl.apply(this, arguments);
+    }
+  };
+
+  function getDiagramXMLFromUrl(url) {
+    let hashIndex = url.indexOf('#');
+    if (hashIndex &gt; -1) {
+      // Exclude first 2 letters from hash (#R).
+      let decodedData = url.substring(hashIndex+2);
+      let graph = new Graph();
+      let rawDiagram = graph.decompress(decodedData);
+      return rawDiagram;
+    }
+    return null;
+  };
+
   //
   // Overwrite the Keyboard Shortcuts action because it uses the wrong URL.
   //
