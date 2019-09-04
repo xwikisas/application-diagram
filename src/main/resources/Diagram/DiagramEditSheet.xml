@@ -204,7 +204,7 @@ require.config({
     'spin': diagramEditorBasePath + 'js/spin/spin.min',
     'jszip': diagramEditorBasePath + 'js/jszip/jszip.min',
     'draw.io': diagramEditorBasePath + 'js/draw.io.min',
-    'diagram-utils' : new XWiki.Document('DiagramSheet', 'Diagram', '').getURL('jsx', 'param=1')
+    'diagram-utils': new XWiki.Document('DiagramSheet', 'Diagram').getURL('jsx', 'param=1')
   },
   shim: {
     'mxgraph-client': {
@@ -217,9 +217,9 @@ require.config({
       deps: ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip']
     }
   },
-  map : {
-    'diagram-utils' : {
-      'mxgraph-common' : 'mxgraph-editor'
+  map: {
+    'diagram-utils': {
+      'mxgraph-common': 'mxgraph-editor'
     }
   }
 })
@@ -774,16 +774,30 @@ define('diagramStore', ['jquery', 'xwiki-meta', 'xwiki-utils', 'draw.io', 'xwiki
     oldImportFiles.apply(this, newArgs);
   }
 
+  $.urlParam = function(name, url) {
+    var results = new RegExp('[\?&amp;]' + name + '=([^&amp;#]*)').exec(url);
+    if (results === null) {
+       return null;
+    }
+    return decodeURIComponent(results[1]);
+  }
+
   var originalLoadUrl = EditorUi.prototype.loadUrl;
   EditorUi.prototype.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix) {
-    let proxyIndex = url.indexOf(PROXY_URL);
-    // Use indexOf since URLSearchParams is not supported by IE.
-    let urlParamIndex = url.indexOf('url=');
-    if (proxyIndex &gt; -1 &amp;&amp; urlParamIndex &gt; -1) {
-      // Get the value of url parameter
-      let originalUrl = unescape(url.substring(urlParamIndex+4));
-      let decodedUrl = decodeURIComponent(originalUrl);
-      let diagramXML = diagramUtils.getDiagramXMLFromUrl(decodedUrl);
+    let exportedUrl = '';
+    // URLSearchParams is not available in IE.
+    if ('URLSearchParams' in window) {
+      let rawUrl = new URL (url, window.location.href);
+      let searchParams = new URLSearchParams(rawUrl.search);
+      if (searchParams.has('url')) {
+        exportedUrl = new URL(searchParams.get('url'));
+      }
+    } else {
+      exportedUrl = new URL($.urlParam('url', url));
+    }
+    if (exportedUrl !== '') {
+      let decodedUrl = decodeURIComponent(exportedUrl.hash);
+      let diagramXML = diagramUtils.getDiagramXMLFromURL(decodedUrl);
       if (diagramXML) {
         success(diagramXML);
       }

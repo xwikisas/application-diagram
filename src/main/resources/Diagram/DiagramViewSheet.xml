@@ -178,7 +178,7 @@ require.config({
     'mxgraph-viewer': mxGraphViewerBasePath + 'mxGraphViewer.min',
     'draw.io.viewer': diagramViewerBasePath + 'js/draw.io.viewer.min',
     'pako': diagramViewerBasePath + 'js/deflate/pako.min',
-    'diagram-utils' : new XWiki.Document('DiagramSheet', 'Diagram', '').getURL('jsx', 'param=1')
+    'diagram-utils': new XWiki.Document('DiagramSheet', 'Diagram').getURL('jsx', 'param=1')
   },
   shim: {
     'mxgraph-viewer': {
@@ -188,9 +188,9 @@ require.config({
       deps: ['mxgraph-viewer', 'pako-global']
     }
   },
-  map : {
-    'diagram-utils' : {
-      'mxgraph-common' : 'mxgraph-viewer'
+  map: {
+    'diagram-utils': {
+      'mxgraph-common': 'mxgraph-viewer'
     }
   }
 });
@@ -333,8 +333,8 @@ define('pako-global', ['pako'], function(pako) {
   });
 
   function getDiagramXML(url, container) {
-    let unescapedUrl = unescape(url);
-    return diagramUtils.getDiagramXMLFromUrl(unescapedUrl) || container.data('model');
+    let decodedUrl = decodeURIComponent(url);
+    return diagramUtils.getDiagramXMLFromURL(decodedUrl) || container.data('model');
   }
 
   return diagramViewerDeferred.promise();
