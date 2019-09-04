@@ -64,11 +64,8 @@
       <validationScript/>
       <cache>
         <cache>0</cache>
-        <defaultValue>long</defaultValue>
         <disabled>0</disabled>
         <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
         <multiSelect>0</multiSelect>
         <name>cache</name>
         <number>5</number>
@@ -116,8 +113,6 @@
         <cache>0</cache>
         <disabled>0</disabled>
         <displayType>select</displayType>
-        <freeText>forbidden</freeText>
-        <largeStorage>0</largeStorage>
         <multiSelect>0</multiSelect>
         <name>use</name>
         <number>3</number>
@@ -139,7 +134,7 @@
  * Used in view &amp; edit sheets
  */
 define ('diagram-utils', ['mxgraph-common'], function() {
-  function getDiagramXMLFromUrl(url) {
+  function getDiagramXMLFromURL(url) {
     let hashIndex = url.indexOf('#');
     if (hashIndex &gt; -1) {
       // Exclude first 2 letters from hash (#R).
@@ -152,7 +147,7 @@ define ('diagram-utils', ['mxgraph-common'], function() {
   };
 
   return {
-    getDiagramXMLFromUrl : getDiagramXMLFromUrl
+    getDiagramXMLFromURL : getDiagramXMLFromURL
   };
 });</code>
     </property>
@@ -160,7 +155,7 @@ define ('diagram-utils', ['mxgraph-common'], function() {
       <name>Diagram utils</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>
