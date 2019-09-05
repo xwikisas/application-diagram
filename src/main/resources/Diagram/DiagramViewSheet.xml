@@ -334,7 +334,7 @@ define('pako-global', ['pako'], function(pako) {
 
   function getDiagramXML(url, container) {
     let decodedUrl = decodeURIComponent(url);
-    return diagramUtils.getDiagramXMLFromURL(decodedUrl) || container.data('model');
+    return diagramUtils.getParameterValueFromURL(decodedUrl) || container.data('model');
   }
 
   return diagramViewerDeferred.promise();

@@ -774,30 +774,12 @@ define('diagramStore', ['jquery', 'xwiki-meta', 'xwiki-utils', 'draw.io', 'xwiki
     oldImportFiles.apply(this, newArgs);
   }
 
-  $.urlParam = function(name, url) {
-    var results = new RegExp('[\?&amp;]' + name + '=([^&amp;#]*)').exec(url);
-    if (results === null) {
-       return null;
-    }
-    return decodeURIComponent(results[1]);
-  }
-
   var originalLoadUrl = EditorUi.prototype.loadUrl;
   EditorUi.prototype.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix) {
-    let exportedUrl = '';
-    // URLSearchParams is not available in IE.
-    if ('URLSearchParams' in window) {
-      let rawUrl = new URL (url, window.location.href);
-      let searchParams = new URLSearchParams(rawUrl.search);
-      if (searchParams.has('url')) {
-        exportedUrl = new URL(searchParams.get('url'));
-      }
-    } else {
-      exportedUrl = new URL($.urlParam('url', url));
-    }
-    if (exportedUrl !== '') {
-      let decodedUrl = decodeURIComponent(exportedUrl.hash);
-      let diagramXML = diagramUtils.getDiagramXMLFromURL(decodedUrl);
+    let exportedUrl = diagramUtils.getParameterValueFromURL('url', url);
+    if (exportedUrl) {
+      let decodedUrl = decodeURIComponent(exportedUrl);
+      let diagramXML = diagramUtils.getDiagramXMLFromHash(decodedUrl);
       if (diagramXML) {
         success(diagramXML);
       }

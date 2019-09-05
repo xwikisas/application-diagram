@@ -133,12 +133,12 @@
       <code>/*
  * Used in view &amp; edit sheets
  */
-define ('diagram-utils', ['mxgraph-common'], function() {
-  function getDiagramXMLFromURL(url) {
-    let hashIndex = url.indexOf('#');
+define ('diagram-utils', ['jquery', 'mxgraph-common'], function($) {
+  function getDiagramXMLFromHash(hash) {
+    let hashIndex = hash.indexOf('#');
     if (hashIndex &gt; -1) {
       // Exclude first 2 letters from hash (#R).
-      let decodedData = url.substring(hashIndex+2);
+      let decodedData = hash.substring(hashIndex+2);
       let graph = new Graph();
       let rawDiagram = graph.decompress(decodedData);
       return rawDiagram;
@@ -146,8 +146,29 @@ define ('diagram-utils', ['mxgraph-common'], function() {
     return null;
   };
 
+  $.urlParam = function(parameter, url) {
+    var results = new RegExp('[\?&amp;]' + parameter + '=([^&amp;#]*)').exec(url);
+    if (results === null) {
+       return null;
+    }
+    return decodeURIComponent(results[1]);
+  }
+
+  function getParameterValueFromURL(parameter, url) {
+    if (typeof URLSearchParams === 'function') {
+      let rawUrl = new URL (url, window.location.href);
+      let searchParams = new URLSearchParams(rawUrl.search);
+      if (searchParams.has(parameter)) {
+        return searchParams.get(parameter);
+      }
+    }
+    // IE will get here since it's not supporting URLSearchParams
+    return $.urlParam(parameter, url);
+  }
+
   return {
-    getDiagramXMLFromURL : getDiagramXMLFromURL
+    getDiagramXMLFromHash: getDiagramXMLFromHash,
+    getParameterValueFromURL: getParameterValueFromURL
   };
 });</code>
     </property>
