@@ -332,9 +332,8 @@ define('pako-global', ['pako'], function(pako) {
     diagramViewerDeferred.reject();
   });
 
-  function getDiagramXML(url, container) {
-    let decodedUrl = decodeURIComponent(url);
-    return diagramUtils.getParameterValueFromURL(decodedUrl) || container.data('model');
+  function getDiagramXML(hash, container) {
+    return diagramUtils.getDiagramXMLFromHash(hash) || container.data('model');
   }
 
   return diagramViewerDeferred.promise();

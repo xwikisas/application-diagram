@@ -778,8 +778,7 @@ define('diagramStore', ['jquery', 'xwiki-meta', 'xwiki-utils', 'draw.io', 'xwiki
   EditorUi.prototype.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix) {
     let exportedUrl = diagramUtils.getParameterValueFromURL('url', url);
     if (exportedUrl) {
-      let decodedUrl = decodeURIComponent(exportedUrl);
-      let diagramXML = diagramUtils.getDiagramXMLFromHash(decodedUrl);
+      let diagramXML = diagramUtils.getDiagramXMLFromHash(exportedUrl);
       if (diagramXML) {
         success(diagramXML);
       }
