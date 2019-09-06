@@ -130,10 +130,14 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>/*
- * Used in view &amp; edit sheets
- */
+      <code>//
+// Used in view &amp; edit sheets
+//
 define ('diagram-utils', ['mxgraph-common'], function() {
+  //
+  // Get a XML diagram from hash.
+  // The hash begins with 'R' &amp; continues with the encoded diagram.
+  //
   function getDiagramXMLFromHash(hash) {
     let decodedHash = decodeURIComponent(hash);
     let hashIndex = decodedHash.indexOf('#');
@@ -161,7 +165,7 @@ define ('diagram-utils', ['mxgraph-common'], function() {
       let searchParams = new URLSearchParams(rawUrl.search);
       return searchParams.get(parameter);
     }
-    // IE will get here since it's not supporting URLSearchParams
+    // IE will get here since it's not supporting URLSearchParams.
     return urlParam(parameter, url);
   }
 
