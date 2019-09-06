@@ -138,12 +138,12 @@ define ('diagram-utils', ['mxgraph-common'], function() {
   // Get a XML diagram from hash.
   // The hash begins with 'R' &amp; continues with the encoded diagram.
   //
-  function getDiagramXMLFromHash(hash) {
-    let decodedHash = decodeURIComponent(hash);
-    let hashIndex = decodedHash.indexOf('#');
+  function getDiagramXMLFromURL(url) {;
+    let hashIndex = url.indexOf('#');
     if (hashIndex &gt; -1) {
       // Exclude first 2 letters from hash (#R).
-      let decodedData = decodedHash.substring(hashIndex+2);
+      let hash = url.substring(hashIndex+2);
+      let decodedData = decodeURIComponent(hash);
       let graph = new Graph();
       let rawDiagram = graph.decompress(decodedData);
       return rawDiagram;
@@ -170,7 +170,7 @@ define ('diagram-utils', ['mxgraph-common'], function() {
   }
 
   return {
-    getDiagramXMLFromHash: getDiagramXMLFromHash,
+    getDiagramXMLFromURL: getDiagramXMLFromURL,
     getParameterValueFromURL: getParameterValueFromURL
   };
 });</code>

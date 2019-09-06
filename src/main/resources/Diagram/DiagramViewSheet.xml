@@ -315,7 +315,7 @@ define('pako-global', ['pako'], function(pako) {
     }, options);
     return this.each(function() {
       var graphViewer = new GraphViewer(this, mxUtils.parseXml(getDiagramXML(
-        window.location.hash, $(this))).documentElement, options);
+        window.location.href, $(this))).documentElement, options);
       graphViewer.fitGraph();
     }).removeClass('loading');
   };
@@ -332,8 +332,8 @@ define('pako-global', ['pako'], function(pako) {
     diagramViewerDeferred.reject();
   });
 
-  function getDiagramXML(hash, container) {
-    return diagramUtils.getDiagramXMLFromHash(hash) || container.data('model');
+  function getDiagramXML(url, container) {
+    return diagramUtils.getDiagramXMLFromURL(url) || container.data('model');
   }
 
   return diagramViewerDeferred.promise();
