@@ -780,11 +780,10 @@ define('diagramStore', ['jquery', 'xwiki-meta', 'xwiki-utils', 'draw.io', 'xwiki
     if (exportedUrl) {
       let diagramXML = diagramUtils.getDiagramXMLFromURL(exportedUrl);
       if (diagramXML) {
-        success(diagramXML);
+        return success(diagramXML);
       }
-    } else {
-      originalLoadUrl.apply(this, arguments);
     }
+    return originalLoadUrl.apply(this, arguments);
   };
 
   //
