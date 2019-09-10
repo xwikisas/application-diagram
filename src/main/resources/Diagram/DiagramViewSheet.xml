@@ -54,7 +54,7 @@
     #if ($fileName == 'WebHome')
       #set ($fileName = $doc.documentReference.lastSpaceReference.name)
     #end
-    #set ($fileName = "${fileName}.thumbnail.png")
+    #set ($fileName = "${fileName}.thumbnail.svg")
     #set ($diagramURL = $doc.getAttachmentURL($fileName, 'download', "v=$!doc.version"))
     ## Use the svg for export in case the attachment does not exists.
     #if (!$doc.getAttachment($fileName))
