@@ -149,7 +149,7 @@ define ('diagram-utils', ['jquery', 'mxgraph-common'], function($) {
         let rawDiagram = graph.decompress(decodedData);
         return rawDiagram;
       }
-      catch (e) {
+      } catch (e) {
         console.error (e.stack)
       }
     }
