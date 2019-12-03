@@ -494,7 +494,16 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   };
 
   var findLinkNodes = function(node) {
-    return $(node).find('UserObject[link]');
+    var nodes = $([])
+    nodes.push.apply(nodes, $(node).find('UserObject[link]'));
+    $(node).find('mxCell').each(function() {
+      var value = $(this).attr('value');
+      // The value attribute might contain an 'a' tag with the link.
+      if (value != undefined &amp;&amp; value.match(/&lt;a\shref.*&gt;/g)) {
+        nodes.push($(this)[0]);
+      }
+    });
+    return nodes;
   };
 
   // Convert the draw.io WebJar paths to draw.io WAR paths (e.g. remove the draw.io version from the path).
@@ -634,15 +643,32 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   };
 
   // Replace custom internal links with absolute URLs (but keep some metadata to indicate the entity reference).
+  // Consider both the cases when the node is UserObject or mxCell.
   var onExportLink = function(node) {
-    var link = $(node).attr('link');
+    var tagName = node.tagName.toLowerCase();
+    var value = $(node).attr('value');
+    if (value) {
+      var valueInsideTag = value.match(/&lt;a\shref=".*"&gt;/g)[0];
+    }
+    var link = tagName == 'userobject' ? $(node).attr('link') : $(valueInsideTag).attr('href');
     if (diagramLinkHandler.isXWikiCustomLink(link)) {
       var url = diagramLinkHandler.getURLFromCustomLink(link);
-      var absoluteURL = $('&lt;a/&gt;').attr('href', url).prop('href');
-      $(node).attr({
-        link: absoluteURL,
+      var absoluteURL = $('&lt;a/&gt;').attr('href', url);
+      var attributesMap = {
+        'link': absoluteURL.prop('href'),
         'data-link': link
-      });
+      };
+      if (tagName != 'userobject') {
+        // Rebuild the value attribute, that might not contain just the link, with the new url.
+        var absoluteURLValue = value
+          .replace(/(&lt;a\shref=")(data:.*)("&gt;)/g, "$1$absoluteURL$3")
+          .replace('$absoluteURL', absoluteURL[0]);
+        attributesMap = {
+          'value': absoluteURLValue,
+          'data-link': link
+        };
+      }
+      $(node).attr(attributesMap);
     }
   };
 
