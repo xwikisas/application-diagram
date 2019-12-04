@@ -496,13 +496,7 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   var findLinkNodes = function(node) {
     var nodes = $([])
     nodes.push.apply(nodes, $(node).find('UserObject[link]'));
-    $(node).find('mxCell').each(function() {
-      var value = $(this).attr('value');
-      // The value attribute might contain an 'a' tag with the link.
-      if (value != undefined &amp;&amp; value.match(/&lt;a\shref.*&gt;/g)) {
-        nodes.push($(this)[0]);
-      }
-    });
+    nodes.push.apply(nodes, $(node).find('mxCell[value*="&lt;a href"]'));
     return nodes;
   };
 
