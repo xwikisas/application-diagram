@@ -496,7 +496,7 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   var findLinkNodes = function(node) {
     var nodes = $([])
     nodes.push.apply(nodes, $(node).find('UserObject[link]'));
-    nodes.push.apply(nodes, $(node).find('mxCell[value*="&lt;a href"]'));
+    nodes.push.apply(nodes, $(node).find('mxCell[value*="\\&lt;a href"]'));
     return nodes;
   };
 
