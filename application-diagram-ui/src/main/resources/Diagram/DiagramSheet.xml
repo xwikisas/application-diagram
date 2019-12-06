@@ -639,9 +639,9 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
     var tagName = node.tagName.toLowerCase();
     var value = $(node).attr('value');
     if (value) {
-      var valueInsideTag = value.match(/&lt;a\shref=".*"&gt;/g)[0];
+      var href = $('&lt;div&gt;&lt;/div&gt;').append(value).find('a[href]').attr('href');
     }
-    var link = tagName == 'userobject' ? $(node).attr('link') : $(valueInsideTag).attr('href');
+    var link = tagName == 'userobject' ? $(node).attr('link') : href;
     if (diagramLinkHandler.isXWikiCustomLink(link)) {
       var url = diagramLinkHandler.getURLFromCustomLink(link);
       var absoluteURL = $('&lt;a/&gt;').attr('href', url);
@@ -651,9 +651,7 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
       };
       if (tagName != 'userobject') {
         // Rebuild the value attribute, that might not contain just the link, with the new url.
-        var absoluteURLValue = value
-          .replace(/(&lt;a\shref=")(data:.*)("&gt;)/g, "$1$absoluteURL$3")
-          .replace('$absoluteURL', absoluteURL[0]);
+        var absoluteURLValue = value.replace(href, absoluteURL.prop('href'));
         attributesMap = {
           'value': absoluteURLValue,
           'data-link': link
