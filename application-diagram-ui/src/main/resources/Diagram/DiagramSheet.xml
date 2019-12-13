@@ -638,9 +638,7 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   var onExportLink = function(node) {
     var tagName = node.tagName.toLowerCase();
     var value = $(node).attr('value');
-    if (value) {
-      var href = $('&lt;div&gt;&lt;/div&gt;').append(value).find('a[href]').attr('href');
-    }
+    var href = $('&lt;div&gt;&lt;/div&gt;').html(value).find('a[href]').attr('href');
     var link = tagName == 'userobject' ? $(node).attr('link') : href;
     if (diagramLinkHandler.isXWikiCustomLink(link)) {
       var url = diagramLinkHandler.getURLFromCustomLink(link);
@@ -654,23 +652,17 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
     var link = $(node).attr('data-link');
     if (diagramLinkHandler.isXWikiCustomLink(link)) {
       var value = $(node).attr('value');
-      if (value) {
-        var href = $('&lt;div&gt;&lt;/div&gt;').append(value).find('a[href]').attr('href');
-      }
+      var href = $('&lt;div&gt;&lt;/div&gt;').html(value).find('a[href]').attr('href');
       updateLinkAttributes(node, value, href, link);
     }
   };
 
   var updateLinkAttributes = function(node, value, oldURL, newURL) {
-    var attributesMap = {
-      'link': newURL,
-      'data-link': null
-    };
-    if (node.tagName.toLowerCase() != 'userobject') {
-      attributesMap = {
-        'value': value.replace(oldURL, newURL),
-        'data-link': null
-      };
+    var attributesMap = {'data-link': null};
+    if (node.tagName.toLowerCase() == 'userobject') {
+      attributesMap.link = newURL;
+    } else {
+      attributesMap.value = value.replace(oldURL, newURL);
     }
     $(node).attr(attributesMap);
   };
