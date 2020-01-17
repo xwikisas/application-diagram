@@ -421,10 +421,186 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       <cache>long</cache>
     </property>
     <property>
-      <code>/**
+      <code>define('svg-handler', ['jquery'], function($) {
+  var addTagSpecificStyle = function(element, s, w, h, htmlConverter, str, alt) {
+    var tag;
+    switch (element.tagName.toLowerCase()){
+      case 'h1':
+        alt.setAttribute('font-size', Math.round(s.fontSize + 60/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-weight', 'bold');
+        break;
+      case 'h2':
+        alt.setAttribute('font-size', Math.round(s.fontSize + 30/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-weight', 'bold');
+        break;
+      case 'h3':
+        alt.setAttribute('font-size', Math.round(s.fontSize + 15/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-weight', 'bold');
+        break;
+      case 'h4':
+        alt.setAttribute('font-weight', 'bold');
+        break;
+      case 'h5':
+        alt.setAttribute('font-size', Math.round(s.fontSize - 15/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-weight', 'bold');
+        break;
+      case 'h6':
+        alt.setAttribute('font-size', Math.round(s.fontSize - 30/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-weight', 'bold');
+        break;
+      default:
+        return alt;
+    }
+    return alt;
+  };
+
+  var getStrWidth = function(str, s) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext("2d");
+    ctx.font = s.fontSize + ' ' + s.fontFamily;
+    var width = ctx.measureText(str).width;
+    return width;
+  };
+
+  // Creates a row inside a text element that should be wrapped. Take into accound the row number.
+  var createRow = function(w, h, rowNb) {
+    var row = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+    row.setAttribute('x', w);
+    row.setAttribute('y', h);
+    //row.setAttribute('dy', dy);
+    if (rowNb &gt; 0) {
+      takenCoordinates.push({'w': w, 'h': h});
+    }
+    //maybeChangeHeight(w, 0);
+    return row;
+  };
+
+  var wrapText = function(alt, s, w, h, content, contentWidth, maxWidth) {
+    var words = content.split(/[\s+]/);
+    var wordWidth;
+    var rowWidth = 0;
+    var rowNb = 0;
+    var row = createRow(w, h, rowNb);
+    alt.append(row);
+    words.each(function(word) {
+      word = word + ' ';
+      wordWidth = getStrWidth(word, s);
+      if (rowWidth + wordWidth &gt; maxWidth) {
+        h = h + 15;
+        row = createRow(w, h, ++rowNb);
+        row.textContent = word + ' ';
+        alt.append(row);
+        rowWidth = wordWidth;
+      } else {
+        row.textContent = row.textContent + word + ' ';
+        rowWidth += wordWidth;
+      }
+    });
+  };
+
+  var takenCoordinates = [];
+  // For the current block of text take into consideration if those coordinates are already in use.
+  // This is used when we are computing manually the children of an element.
+  var maybeChangeHeight = function(w, h, isChildElement) {
+    if (!isChildElement) {
+      return h;
+    }
+    var thisCoordinates = {'w': w, 'h': h};
+    takenCoordinates.each(function(coordinates) {
+      if (coordinates['w'] == thisCoordinates['w'] &amp;&amp; coordinates['h'] == thisCoordinates['h']) {
+        h += 15;
+        thisCoordinates['h'] = h;
+      }
+    });
+    takenCoordinates.push(thisCoordinates);
+    return h;
+  };
+
+  // Create the basis of a svg element.
+  var createSvgElement = function(s, w, h, tag, isChildElement) {
+    var alt = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    h = maybeChangeHeight(w, h, isChildElement);
+    alt.setAttribute('x', w);
+    alt.setAttribute('y', h);
+    alt.setAttribute('fill', s.fontColor || 'black');
+    alt.setAttribute('text-anchor', 'middle');
+    alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
+    alt.setAttribute('font-family', s.fontFamily);
+
+    if ((s.fontStyle &amp; mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
+    {
+      alt.setAttribute('font-weight', 'bold');
+    }
+
+    if ((s.fontStyle &amp; mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
+    {
+      alt.setAttribute('font-style', 'italic');
+    }
+
+    if ((s.fontStyle &amp; mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
+    {
+      alt.setAttribute('text-decoration', 'underline');
+    }
+    return alt;
+  };
+
+  var convertTextElementToSvg = function(element, s, w, h, htmlConverter, str, rectWidth) {
+    var tagName = element.tagName.toLowerCase();
+    var listTags = ['ul', 'ol'];
+    var isAList = listTags.includes(tagName);
+    if (tagName == 'br') {
+      return;
+    }
+    if ($(element).is(':first-child')) {
+      takenCoordinates = [];
+    }
+    w = Math.round(w / 2);
+    h = Math.round((h + s.fontSize) / 2);
+    var alt = createSvgElement(s, w, h, 'text', !isAList);
+
+    // Consider rectWidth as the container width to do the word wrap when needed. Add the inner html only if the
+    // element is not a list, since the text should be distributed to children instead of being shown at once.
+    // The same is applied for when the text is longer then the rectWidth, since it will be distributed to tspan elements.
+    htmlConverter.innerHTML = element.innerText;
+    var content = htmlConverter.value;
+    var contentWidth = getStrWidth(content, s);
+    if (contentWidth &gt; rectWidth) {
+      wrapText(alt, s, w, h, content, contentWidth, rectWidth);
+    }
+    if (!isAList &amp;&amp; contentWidth &lt;= rectWidth) {
+      alt.textContent = htmlConverter.value;
+    }
+
+    // Convert the children. Have a container that will hold the text element in case it has other children.
+    if (element.childElements().length &gt; 0) {
+      var container = createSvgElement(s, w, h, 'g', false);
+      // TODO: Don't append alt element, unless it has a content.
+      container.append(alt);
+      element.childElements().each(function(child) {
+        var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, rectWidth);
+        if (childSvg != undefined) {
+          container.append(childSvg);
+        }
+      });
+    }
+
+    // TODO: apply the defined style of the element.
+    alt = addTagSpecificStyle(element, s, w, h, htmlConverter, str, alt);
+    if (element.childElements().length &gt; 0) {
+      return container;
+    } else {
+      return alt;
+    }
+  };
+
+  return {
+    convertTextElementToSvg: convertTextElementToSvg
+  };
+});
+/**
  * Overrides the link dialog in order to support creating links to wiki pages.
  */
-define('diagram-link-editor', ['jquery', 'diagram-link-handler', 'draw.io', 'resourceSelector'], function($, diagramLinkHandler) {
+define('diagram-link-editor', ['jquery', 'diagram-link-handler', 'svg-handler', 'draw.io', 'resourceSelector'], function($, diagramLinkHandler, sh) {
   EditorUi.prototype.showLinkDialog = function(value, selectLabel, callback) {
     $('#diagramLinkModal').selectResource(diagramLinkHandler.getResourceReferenceFromCustomLink(value), {
       selectLabel: selectLabel
@@ -458,8 +634,36 @@ define('diagram-link-editor', ['jquery', 'diagram-link-handler', 'draw.io', 'res
           // Keep only the text content.
           str = $('&lt;div/&gt;').html(str).text() || this.foAltText;
         }
-        return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format, overflow,
-          clip, rotation);
+
+        var previousHeight;
+        if (this.foAltText != null) {
+          var s = this.state;
+          var htmlConverter = document.createElement('textarea');
+          var content = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          var elements = fo.firstElementChild.firstElementChild.childElements();
+          // Take the width from parent rect, which is the last one found.
+          var rectangles = $(fo.parentElement.parentElement).find('rect');
+          var rectWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
+          try {
+            if (elements.length &gt; 0) {
+              elements.each(function(element) {
+                if (previousHeight === h) {
+                  h += 30;
+                }
+                previousHeight = h;
+                var alt = sh.convertTextElementToSvg(element, s, w, h, htmlConverter, str, rectWidth);
+                content.append(alt);
+              });
+              return content;
+            } else {
+              return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation);
+            }
+          } catch (e) {
+            return originalCreateAlternateContent.apply(this, arguments);
+          }
+        } else {
+          return originalCreateAlternateContent.apply(this, arguments);
+        }
       };
       return originalDrawState.apply(this, arguments);
     };
