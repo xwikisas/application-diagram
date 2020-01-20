@@ -423,29 +423,28 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     <property>
       <code>define('svg-handler', ['jquery'], function($) {
   var addTagSpecificStyle = function(element, s, w, h, htmlConverter, str, alt) {
-    var tag;
     switch (element.tagName.toLowerCase()){
       case 'h1':
-        alt.setAttribute('font-size', Math.round(s.fontSize + 60/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-size', Math.round(s.fontSize + 0.6 * s.fontSize) + 'px');
         alt.setAttribute('font-weight', 'bold');
         break;
       case 'h2':
-        alt.setAttribute('font-size', Math.round(s.fontSize + 30/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-size', Math.round(s.fontSize + 0.3 * s.fontSize) + 'px');
         alt.setAttribute('font-weight', 'bold');
         break;
       case 'h3':
-        alt.setAttribute('font-size', Math.round(s.fontSize + 15/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-size', Math.round(s.fontSize + 0.15 * s.fontSize) + 'px');
         alt.setAttribute('font-weight', 'bold');
         break;
       case 'h4':
         alt.setAttribute('font-weight', 'bold');
         break;
       case 'h5':
-        alt.setAttribute('font-size', Math.round(s.fontSize - 15/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-size', Math.round(s.fontSize - 0.15 * s.fontSize) + 'px');
         alt.setAttribute('font-weight', 'bold');
         break;
       case 'h6':
-        alt.setAttribute('font-size', Math.round(s.fontSize - 30/100 * s.fontSize) + 'px');
+        alt.setAttribute('font-size', Math.round(s.fontSize - 0.3 * s.fontSize) + 'px');
         alt.setAttribute('font-weight', 'bold');
         break;
       default:
@@ -455,44 +454,40 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var getStrWidth = function(str, s) {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext("2d");
-    ctx.font = s.fontSize + ' ' + s.fontFamily;
-    var width = ctx.measureText(str).width;
-    return width;
+    return $('&lt;span&gt;&lt;/span&gt;')
+      .css({display: 'none', whiteSpace: 'nowrap'})
+      .appendTo($('body'))
+      .text(str)
+      .width();
   };
 
-  // Creates a row inside a text element that should be wrapped. Take into accound the row number.
+  // Creates a row inside a text element that should be wrapped. The coordinates of the first row are already saved.
   var createRow = function(w, h, rowNb) {
     var row = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
     row.setAttribute('x', w);
     row.setAttribute('y', h);
-    //row.setAttribute('dy', dy);
     if (rowNb &gt; 0) {
       takenCoordinates.push({'w': w, 'h': h});
     }
-    //maybeChangeHeight(w, 0);
     return row;
   };
 
   var wrapText = function(alt, s, w, h, content, contentWidth, maxWidth) {
     var words = content.split(/[\s+]/);
-    var wordWidth;
-    var rowWidth = 0;
-    var rowNb = 0;
+    var wordWidth, rowWidth = 0, rowNb = 0;
     var row = createRow(w, h, rowNb);
     alt.append(row);
     words.each(function(word) {
-      word = word + ' ';
+      word += ' ';
       wordWidth = getStrWidth(word, s);
       if (rowWidth + wordWidth &gt; maxWidth) {
-        h = h + 15;
+        h += 15;
         row = createRow(w, h, ++rowNb);
-        row.textContent = word + ' ';
+        row.textContent = word;
         alt.append(row);
         rowWidth = wordWidth;
       } else {
-        row.textContent = row.textContent + word + ' ';
+        row.textContent += word;
         rowWidth += wordWidth;
       }
     });
@@ -500,7 +495,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var takenCoordinates = [];
   // For the current block of text take into consideration if those coordinates are already in use.
-  // This is used when we are computing manually the children of an element.
+  // This is used when we are computing manually the container of children elements.
   var maybeChangeHeight = function(w, h, isChildElement) {
     if (!isChildElement) {
       return h;
@@ -564,11 +559,12 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     htmlConverter.innerHTML = element.innerText;
     var content = htmlConverter.value;
     var contentWidth = getStrWidth(content, s);
-    if (contentWidth &gt; rectWidth) {
-      wrapText(alt, s, w, h, content, contentWidth, rectWidth);
-    }
-    if (!isAList &amp;&amp; contentWidth &lt;= rectWidth) {
-      alt.textContent = htmlConverter.value;
+    if (!isAList) {
+      if (contentWidth &gt; rectWidth) {
+        wrapText(alt, s, w, h, content, contentWidth, rectWidth);
+      } else {
+        alt.textContent = htmlConverter.value;
+      }
     }
 
     // Convert the children. Have a container that will hold the text element in case it has other children.
