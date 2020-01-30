@@ -422,6 +422,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     </property>
     <property>
       <code>define('svg-handler', ['jquery'], function($) {
+  var lineHeight = 15;
   var addTagSpecificStyle = function(element, s, w, h, htmlConverter, str, alt) {
     switch (element.tagName.toLowerCase()){
       case 'h1':
@@ -481,7 +482,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       word += ' ';
       wordWidth = getStrWidth(word, s);
       if (rowWidth + wordWidth &gt; maxWidth) {
-        h += 15;
+        h += lineHeight;
         row = createRow(w, h, ++rowNb);
         row.textContent = word;
         alt.append(row);
@@ -503,7 +504,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var thisCoordinates = {'w': w, 'h': h};
     takenCoordinates.each(function(coordinates) {
       if (coordinates['w'] == thisCoordinates['w'] &amp;&amp; coordinates['h'] == thisCoordinates['h']) {
-        h += 15;
+        h += lineHeight;
         thisCoordinates['h'] = h;
       }
     });
@@ -590,7 +591,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   return {
-    convertTextElementToSvg: convertTextElementToSvg
+    convertTextElementToSvg: convertTextElementToSvg,
+    lineHeight: lineHeight
   };
 });
 /**
@@ -644,7 +646,7 @@ define('diagram-link-editor', ['jquery', 'diagram-link-handler', 'svg-handler', 
             if (elements.length &gt; 0) {
               elements.each(function(element) {
                 if (previousHeight === h) {
-                  h += 30;
+                  h += 2 * sh.lineHeight;
                 }
                 previousHeight = h;
                 var alt = sh.convertTextElementToSvg(element, s, w, h, htmlConverter, str, rectWidth);
