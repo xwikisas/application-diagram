@@ -654,6 +654,14 @@ define('diagram-link-editor', [
           try {
             if (elements.length &gt; 0) {
               elements.each(function(element) {
+                if (element.tagName == 'a') {
+                  var oldlink = $(element).attr('href');
+                  if (diagramLinkHandler.isXWikiCustomLink(oldlink)) {
+                    var newLink = diagramLinkHandler.getURLFromCustomLink(oldlink);
+                    // Use the absolute URL because the generated SVG needs to be portable.
+                    $(element).attr('href', newLink);
+                  }
+                }
                 if (previousHeight === h) {
                   h += 2 * sh.lineHeight;
                 }
