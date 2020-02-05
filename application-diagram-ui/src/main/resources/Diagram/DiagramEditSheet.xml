@@ -522,6 +522,13 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     return ['b', 'i', 'span'].includes(tag);
   }
 
+  var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
+    if (node.nodeType === 3 || (isInlineElement(node) &amp;&amp; nbOfSiblings &gt; 1)) {
+      return true;
+    }
+    return false;
+  }
+
   // For the current block of text take into consideration if those coordinates are already in use.
   // This is used when we are manually computing the container of children elements.
   var maybeChangeHeight = function(w, h, element) {
@@ -616,7 +623,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   return {
-    convertTextElementToSvg: convertTextElementToSvg
+    convertTextElementToSvg: convertTextElementToSvg,
+    isParagraphWithPartialStyle: isParagraphWithPartialStyle
   };
 });
 /**
@@ -677,9 +685,24 @@ define('diagram-link-editor', [
           var rectWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
           try {
             if (elements.length &gt; 0) {
-              elements.each(function(element) {
-                var alt = sh.convertTextElementToSvg(element, s, w, h, htmlConverter, str, rectWidth);
+              elements.each(function(index) {
+                // Make a clone of the element, to not alter the original child.
+                var element = $(this).clone()[0];
+                var stop = false;
+                // If this paragraph has partial styled nodes, like a link added to just a part of the text, fallback
+                // to display just the text, without any styles. This is done since is too complex to calculate the
+                // coordinates of the styled node, considering the last element added and that it may be needed to wrap
+                // the text.
+                if (svgHandler.isParagraphWithPartialStyle(element, elements.length)) {
+                  element = $('&lt;span&gt;&lt;/span&gt;').html(this.parentElement.innerText)[0];
+                  stop = true;
+                }
+                var alt = svgHandler.convertTextElementToSvg(element, s, x, y, w, h, htmlConverter, str, rectWidth, index == 0);
                 content.append(alt);
+                // If we took the inner text of the parent, the other child elements are not needed.
+                if (stop) {
+                  return false;
+                }
               });
               return content;
             } else {
