@@ -673,6 +673,14 @@ define('diagram-link-editor', [
           // Keep only the text content.
           str = $('&lt;div/&gt;').html(str).text() || this.foAltText;
         }
+        // Update links inside foreignObject to use absolute URLs, since the generated SVG needs to be portable.
+        $(fo).find('a').each(function() {
+          var oldLink = $(this).attr('href');
+          if (diagramLinkHandler.isXWikiCustomLink(oldLink)) {
+            var newLink = diagramLinkHandler.getURLFromCustomLink(oldLink);
+            $(this).attr('href', newLink);
+          }
+        });
 
         if (this.foAltText != null) {
           var s = this.state;
