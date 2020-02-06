@@ -705,9 +705,7 @@ define('diagram-link-editor', [
                 var alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, rectWidth, index == 0);
                 content.append(alt);
                 // If we took the inner text of the parent, the other child nodes are not needed.
-                if (stop) {
-                  return false;
-                }
+                return !stop;
               });
               return content;
             } else {
