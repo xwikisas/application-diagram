@@ -262,7 +262,7 @@
   EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, noScroll, transparent, onResize,
       ignoreBgClick) {
     originalShowDialog.apply(this, arguments);
-    if ($(this.dialog.container).find('input[name="printZoom"]')) {
+    if ($(this.dialog.container).find("input[name='printZoom']")) {
       fixDialogPosition(this);
       mxEvent.addListener(window, 'resize', mxUtils.bind(this, function() {
         fixDialogPosition(this);
