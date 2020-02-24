@@ -250,6 +250,26 @@
     return config;
   };
 
+  // Fix position of a dialog at the top of the window.
+  var fixDialogPosition = function(editorUi) {
+    editorUi.dialog.container.style.top = '0px';
+    editorUi.dialog.container.style.position = 'fixed';
+  };
+
+  // If a diagram is inserted in a page with a lot of content before it, then PrintDialog won't be visible, since the
+  // top of the dialog is computed to consider a page that only holds the diagram.
+  var originalShowDialog = EditorUi.prototype.showDialog;
+  EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, noScroll, transparent, onResize,
+      ignoreBgClick) {
+    originalShowDialog.apply(this, arguments);
+    if ($(this.dialog.container).find('input[name="printZoom"]')) {
+      fixDialogPosition(this);
+      mxEvent.addListener(window, 'resize', mxUtils.bind(this, function() {
+        fixDialogPosition(this);
+      }));
+    }
+  };
+
   $.fn.viewDiagram = function(configOverride) {
     return this.each(function() {
       var fromStorage = false;
