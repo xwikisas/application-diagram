@@ -251,9 +251,9 @@
   };
 
   // Fix position of a dialog at the top of the window.
-  var fixDialogPosition = function(editorUi) {
-    editorUi.dialog.container.style.top = '0px';
-    editorUi.dialog.container.style.position = 'fixed';
+  Dialog.prototype.fixDialogPosition = function() {
+    this.container.style.top = '0px';
+    this.container.style.position = 'fixed';
   };
 
   // If a diagram is inserted in a page with a lot of content before it, then PrintDialog won't be visible, since the
@@ -262,11 +262,17 @@
   EditorUi.prototype.showDialog = function(elt, w, h, modal, closable, onClose, noScroll, transparent, onResize,
       ignoreBgClick) {
     originalShowDialog.apply(this, arguments);
-    if ($(this.dialog.container).find("input[name='printZoom']")) {
-      fixDialogPosition(this);
-      mxEvent.addListener(window, 'resize', mxUtils.bind(this, function() {
-        fixDialogPosition(this);
-      }));
+    var dialog = this.dialog;
+    if ($(dialog.container).find("input[name='printZoom']")) {
+      dialog.fixDialogPosition();
+      var originalResizeListener = dialog.resizeListener;
+      dialog.resizeListener =  mxUtils.bind(dialog, function() {
+        originalResizeListener.apply(this, arguments);
+        this.fixDialogPosition();
+      });
+      // Since the listener is already added at construction step, we need to remove it and reattach the new function.
+      mxEvent.removeListener(window, 'resize', originalResizeListener);
+      mxEvent.addListener(window, 'resize', dialog.resizeListener);
     }
   };
 
