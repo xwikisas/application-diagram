@@ -41,31 +41,29 @@
   <hidden>true</hidden>
   <content>{{velocity}}
 #if ($doc.getObject('Diagram.DiagramClass') || "$!request.source" != '')
-  #if ($xcontext.action == 'export' || $request.xpage == 'print')
-    {{html clean="false"}}
-      #set ($diagramURL = $doc.getAttachmentURL('diagram.svg', 'download', "v=$!doc.version"))
-      &lt;img src="$diagramURL" alt="$escapetool.xml($doc.plainTitle)" /&gt;
-    {{/html}}
-  #else
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($toolbar = 'zoom layers pages lightbox')
-    #if ("$!request.source" == '' &amp;&amp; $services.security.authorization.hasAccess('edit'))
-      #set ($toolbar = "edit $toolbar")
-    #end
-    {{html clean="false"}}
-    ## Check if the query contains the parameter for getting the diagram from URL.
-    &lt;div class="diagram loading"
-      data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
-      data-toolbar="$escapetool.xml($toolbar)"
-      #if ("$!request.source" == '')
-        data-model="$escapetool.xml($tdoc.content)"
-        data-reference="$escapetool.xml($services.model.serialize($tdoc.documentReference, 'default'))"
-        data-title="$escapetool.xml($tdoc.plainTitle)"
-      #end
-    &gt;&lt;/div&gt;
-    {{/html}}
+  #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+  #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+  #set ($toolbar = 'zoom layers pages lightbox')
+  #if ("$!request.source" == '' &amp;&amp; $services.security.authorization.hasAccess('edit'))
+    #set ($toolbar = "edit $toolbar")
   #end
+  {{html clean="false"}}
+  ## Check if the query contains the parameter for getting the diagram from URL.
+  &lt;div class="diagram"
+    data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+    data-toolbar="$escapetool.xml($toolbar)"
+    #if ("$!request.source" == '')
+      data-model="$escapetool.xml($tdoc.content)"
+      data-reference="$escapetool.xml($services.model.serialize($tdoc.documentReference, 'default'))"
+      data-title="$escapetool.xml($tdoc.plainTitle)"
+    #end
+  &gt;
+    ## Show a preview of the diagram until the diagram viewer is loaded. This is also useful for export and WYSIWYG edit
+    ## mode where the JavaScript code is not executed and thus the diagram viewer is never loaded.
+    #set ($diagramURL = $doc.getAttachmentURL('diagram.svg', 'download', "v=$!doc.version"))
+    &lt;img src="$diagramURL" alt="$escapetool.xml($doc.plainTitle)" /&gt;
+  &lt;/div&gt;
+  {{/html}}
 #end
 {{/velocity}}</content>
   <object>
@@ -277,7 +275,7 @@
   };
 
   $.fn.viewDiagram = function(configOverride) {
-    return this.each(function() {
+    return this.empty().each(function() {
       var fromStorage = false;
       var diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
       if (!diagramXML) {
@@ -294,7 +292,7 @@
         var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
         $(graphViewer.toolbar).children().last().empty().append(diagramLink);
       }
-    }).removeClass('loading');
+    });
   };
 
   return diagramUtils.loadTranslationAndTheme().done(function(theme) {

@@ -998,7 +998,8 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
  * Diagram Viewer
  */
 .diagram {
-  min-height: 25px;
+  /* Leave space for the toolbar. */
+  margin-top: 30px;
 }
 
 /**

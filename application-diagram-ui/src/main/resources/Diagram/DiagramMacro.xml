@@ -194,7 +194,7 @@
   $output
   #if ($showCaption)
 
-        {{html clean="true"}}
+        {{html clean="false"}}
         &lt;div class="caption"&gt;
           &lt;a class="diagram-title" href="$xwiki.getURL($reference)"
             title="$escapetool.xml($services.localization.render('diagram.macro.view'))"
