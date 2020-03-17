@@ -1,3 +1,6 @@
 com.xwiki.diagram.internal.DiagramApplicationListener
 com.xwiki.diagram.internal.DrawIOImagePathMigration
 com.xwiki.diagram.internal.StoreSVGAsAttachmentMigration
+com.xwiki.diagram.internal.PageRenameListener
+com.xwiki.diagram.internal.DiagramCreatedListener
+com.xwiki.diagram.internal.DiagramRunnable
