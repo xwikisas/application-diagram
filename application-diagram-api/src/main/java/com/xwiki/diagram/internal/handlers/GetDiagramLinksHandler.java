@@ -23,30 +23,43 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 
 /**
- * Parses the XML of a diagram and gets the links to wiki pages that are included.
+ * Parses the XML of a diagram and gets the links to wiki pages that are linked.
  * 
  * @version $Id$
  * @since 1.13
  */
+@Component(roles = GetDiagramLinksHandler.class)
+@Singleton
 public class GetDiagramLinksHandler extends DefaultHandler
 {
+    @Inject
     private DiagramLinkHandler linkHandler;
+
+    @Inject
+    @Named("current")
+    private DocumentReferenceResolver<String> resolver;
 
     /**
      * Lists of pages referenced inside nodes.
      */
-    private List<String> includedPages = new ArrayList<String>();
+    private List<DocumentReference> linkedPages = new ArrayList<DocumentReference>();
 
     @Override
     public void startElement(String uri, String key, String qName, Attributes attributes) throws SAXException
     {
         String link = null;
-        linkHandler = new DiagramLinkHandler();
 
         if (qName.equalsIgnoreCase(DiagramLinkHandler.USEROBJECT)) {
             link = linkHandler.getUserObjectNodeLink(attributes.getValue("link"));
@@ -55,18 +68,18 @@ public class GetDiagramLinksHandler extends DefaultHandler
         }
 
         if (link != null) {
-            includedPages.add(link);
+            linkedPages.add(resolver.resolve(link));
         }
     }
 
     /**
-     * Get list of unique included pages.
+     * Get list of unique linked pages.
      * 
      * @return list of referenced pages.
      */
-    public List<String> getIncludedPages()
+    public List<DocumentReference> getLinkedPages()
     {
-        includedPages = includedPages.stream().distinct().collect(Collectors.toList());
-        return this.includedPages;
+        linkedPages = linkedPages.stream().distinct().collect(Collectors.toList());
+        return this.linkedPages;
     }
 }

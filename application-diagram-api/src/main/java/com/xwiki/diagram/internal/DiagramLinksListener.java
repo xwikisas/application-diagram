@@ -23,7 +23,6 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,9 +35,7 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 
@@ -47,34 +44,26 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.XWikiLink;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore;
-import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
+import com.xpn.xwiki.store.XWikiStoreInterface;
 import com.xpn.xwiki.store.migration.DataMigrationException;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
- * Listens to created or updated diagrams and adds backlinks from pages included inside them.
+ * Listens to created or updated diagrams and adds backlinks from pages linked inside them.
  * 
  * @version $Id$
  * @since 1.13
  */
 @Component
-@Named(DiagramCreatedListener.ROLE_HINT)
+@Named(DiagramLinksListener.ROLE_HINT)
 @Singleton
-public class DiagramCreatedListener extends AbstractEventListener
+public class DiagramLinksListener extends AbstractEventListener
 {
     /**
      * The role hint used for this component.
      */
     protected static final String ROLE_HINT = "DiagramCreatedListener";
-
-    /**
-     * Reference to Diagram's class.
-     */
-    private static final LocalDocumentReference DIAGRAM_CLASS = new LocalDocumentReference("Diagram", "DiagramClass");
-
-    @Inject
-    private Provider<XWikiContext> contextProvider;
 
     @Inject
     private ComponentManager componentManager;
@@ -84,37 +73,30 @@ public class DiagramCreatedListener extends AbstractEventListener
     private EntityReferenceSerializer<String> localEntityReferenceSerializer;
 
     @Inject
-    @Named("current")
-    private DocumentReferenceResolver<String> resolver;
-
-    @Inject
     @Named("compactwiki")
     private EntityReferenceSerializer<String> compactwikiEntityReferenceSerializer;
 
     @Inject
     private Logger logger;
 
-    /**
-     * Handler for operation performed on diagram content.
-     */
+    @Inject
     private DiagramContentHandler contentHandler;
 
     /**
      * Constructor.
      */
-    public DiagramCreatedListener()
+    public DiagramLinksListener()
     {
         super(ROLE_HINT, Arrays.<Event>asList(new DocumentUpdatedEvent(), new DocumentCreatedEvent()));
-        contentHandler = new DiagramContentHandler();
     }
 
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
         XWikiDocument document = (XWikiDocument) source;
-        XWikiContext context = contextProvider.get();
+        XWikiContext context = (XWikiContext) data;
 
-        if (document.getXObject(DIAGRAM_CLASS) != null) {
+        if (document.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
             try {
                 // We need to delete existing links before saving the page's ones.
                 deleteLinks(document.getId(), context);
@@ -127,11 +109,9 @@ public class DiagramCreatedListener extends AbstractEventListener
                         // Is necessary to blank links from doc.
                         context.remove("links");
 
-                        // Get pages included by this diagram.
-                        for (String includedPage : contentHandler.getIncludedPages(document.getContent())) {
-                            XWikiLink wikiLink = getXWikiLink(document.getId(),
-                                localEntityReferenceSerializer.serialize(document.getDocumentReference()),
-                                resolver.resolve(includedPage));
+                        // Get pages linked by this diagram.
+                        for (DocumentReference linkedDocRef : contentHandler.getLinkedPages(document.getContent())) {
+                            XWikiLink wikiLink = getXWikiLink(document, linkedDocRef);
                             session.save(wikiLink);
                         }
 
@@ -139,7 +119,7 @@ public class DiagramCreatedListener extends AbstractEventListener
                     }
                 });
             } catch (Exception e) {
-                logger.warn(e.getMessage(), e);
+                logger.warn("Failed to update backlinks from diagram content", e);
             }
         }
     }
@@ -147,18 +127,17 @@ public class DiagramCreatedListener extends AbstractEventListener
     /**
      * Get a document as XWikiLink.
      * 
-     * @param docId document id
-     * @param fullName full name of the document
-     * @param reference reference of the document
+     * @param document diagram document
+     * @param linkedDocRef reference of the linked document
      * @return document casted to XWikiLink
      */
-    private XWikiLink getXWikiLink(long docId, String fullName, DocumentReference reference)
+    private XWikiLink getXWikiLink(XWikiDocument document, DocumentReference linkedDocRef)
     {
         XWikiLink wikiLink = new XWikiLink();
 
-        wikiLink.setDocId(docId);
-        wikiLink.setFullName(fullName);
-        wikiLink.setLink(compactwikiEntityReferenceSerializer.serialize(reference));
+        wikiLink.setDocId(document.getId());
+        wikiLink.setFullName(localEntityReferenceSerializer.serialize(document.getDocumentReference()));
+        wikiLink.setLink(compactwikiEntityReferenceSerializer.serialize(linkedDocRef));
 
         // Verify that the link reference isn't larger than 255 characters (and truncate it if
         // that's the case) since otherwise that would lead to a DB error that would result in
@@ -176,7 +155,7 @@ public class DiagramCreatedListener extends AbstractEventListener
      * @param context the current request context
      * @throws XWikiException fail during delete action
      */
-    public void deleteLinks(long docId, XWikiContext context) throws XWikiException
+    private void deleteLinks(long docId, XWikiContext context) throws XWikiException
     {
         try {
             getStore().executeWrite(context, new HibernateCallback<Object>()
@@ -199,16 +178,11 @@ public class DiagramCreatedListener extends AbstractEventListener
 
     /**
      * @return store system for execute store-specific actions.
+     * @throws ComponentLookupException
      * @throws DataMigrationException if the store could not be reached
      */
-    protected XWikiHibernateBaseStore getStore() throws DataMigrationException
+    private XWikiHibernateBaseStore getStore() throws ComponentLookupException
     {
-        try {
-            // The roleHint should be changed to XWikiHibernateBaseStore.HINT after updating to 9.11 parent.
-            return (XWikiHibernateBaseStore) this.componentManager.getInstance(XWikiStoreInterface.class, "hibernate");
-        } catch (ComponentLookupException e) {
-            throw new DataMigrationException(
-                String.format("Unable to reach the store for database %s", contextProvider.get().getWikiId()), e);
-        }
+        return (XWikiHibernateBaseStore) this.componentManager.getInstance(XWikiStoreInterface.class, "hibernate");
     }
 }

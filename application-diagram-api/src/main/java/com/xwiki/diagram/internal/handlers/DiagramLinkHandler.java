@@ -22,6 +22,7 @@ package com.xwiki.diagram.internal.handlers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import javax.inject.Singleton;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -29,6 +30,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
@@ -37,13 +39,10 @@ import org.xwiki.model.reference.DocumentReference;
  * @version $Id$
  * @since 1.13
  */
+@Component(roles = DiagramLinkHandler.class)
+@Singleton
 public class DiagramLinkHandler
 {
-    /**
-     * The prefix added to the links inserted in a diagram.
-     */
-    public static final String CUSTOM_LINK_PREFIX = "data:xwiki/reference,";
-
     /**
      * UserObject node tag.
      */
@@ -57,7 +56,12 @@ public class DiagramLinkHandler
     /**
      * Href attribute.
      */
-    public static final String HREF = "href";
+    private static final String HREF = "href";
+
+    /**
+     * The prefix added to the links inserted in a diagram.
+     */
+    private static final String CUSTOM_LINK_PREFIX = "data:xwiki/reference,";
 
     /**
      * Get custom link for a resource reference.
@@ -65,7 +69,7 @@ public class DiagramLinkHandler
      * @param resourceReference the resource reference
      * @return the custom link
      */
-    public String getCustomLinkFromResourceReference(String resourceReference)
+    private String getCustomLinkFromResourceReference(String resourceReference)
     {
         return CUSTOM_LINK_PREFIX + "doc:" + resourceReference;
     }
@@ -76,7 +80,7 @@ public class DiagramLinkHandler
      * @param href the value of a link attribute
      * @return the reference to the page
      */
-    public String getResourceReferenceFromCustomLink(String href)
+    private String getResourceReferenceFromCustomLink(String href)
     {
         String resourceReference = href.substring(CUSTOM_LINK_PREFIX.length());
         Integer typeSeparatorIndex = resourceReference.indexOf(":");
@@ -89,7 +93,7 @@ public class DiagramLinkHandler
      * @param href the value of a link attribute
      * @return true if the link is custom.
      */
-    public Boolean isXWikiCustomLink(String href)
+    private Boolean isXWikiCustomLink(String href)
     {
         return href.substring(0, CUSTOM_LINK_PREFIX.length()).contentEquals(CUSTOM_LINK_PREFIX);
     }
@@ -200,7 +204,7 @@ public class DiagramLinkHandler
      * @throws IOException if parsing the document fails
      * @throws SAXException if parsing the document fails
      */
-    public String getLinkFromEmbeddedNode(String value) throws SAXException, IOException, ParserConfigurationException
+    private String getLinkFromEmbeddedNode(String value) throws SAXException, IOException, ParserConfigurationException
     {
         // Create a DOM node with the value to take the href attribute from inside it.
         Document doc =

@@ -27,7 +27,6 @@ import org.xwiki.model.reference.DocumentReference;
  * @version $Id$
  * @since 1.13
  */
-
 public class DiagramQueueEntry
 {
     /**

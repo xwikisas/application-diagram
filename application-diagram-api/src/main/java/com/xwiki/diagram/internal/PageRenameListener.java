@@ -88,13 +88,7 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (this.diagramThread == null) {
-            this.diagramThread = new Thread(this.diagramRunnable);
-            this.diagramRunnable.initilizeQueue();
-            this.diagramThread.setName("Update Diagram Links Thread");
-            this.diagramThread.setDaemon(true);
-            this.diagramThread.start();
-        }
+        startUpdateDiagramLinksThread();
 
         if (observationContext.isIn(new JobStartedEvent("refactoring/rename"))) {
             Job job = jobContext.getCurrentJob();
@@ -115,6 +109,20 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     }
 
     /**
+     * Actions for starting the thread.
+     */
+    public void startUpdateDiagramLinksThread()
+    {
+        if (this.diagramThread == null) {
+            this.diagramThread = new Thread(this.diagramRunnable);
+            this.diagramRunnable.initilizeQueue();
+            this.diagramThread.setName("Update Diagram Links Thread");
+            this.diagramThread.setDaemon(true);
+            this.diagramThread.start();
+        }
+    }
+
+    /**
      * Actions for closing the thread.
      * 
      * @throws InterruptedException if any thread has interrupted the current thread
@@ -123,7 +131,6 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     {
         if (this.diagramThread != null) {
             this.diagramRunnable.addToQueue(DiagramRunnable.STOP_RUNNABLE_ENTRY);
-            this.diagramThread.interrupt();
             this.diagramThread.join();
         }
     }

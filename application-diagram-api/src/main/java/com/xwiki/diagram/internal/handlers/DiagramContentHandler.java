@@ -19,25 +19,26 @@
  */
 package com.xwiki.diagram.internal.handlers;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.xml.XMLUtils;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
@@ -50,6 +51,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * @version $Id$
  * @since 1.13
  */
+@Component(roles = DiagramContentHandler.class)
+@Singleton
 public class DiagramContentHandler
 {
     /**
@@ -58,39 +61,36 @@ public class DiagramContentHandler
     public static final String VIEW_ACTION = "view";
 
     /**
-     * Pages referenced inside diagram content.
+     * Reference to Diagram's class.
      */
-    private List<String> includedPages = new ArrayList<String>();
+    public static final LocalDocumentReference DIAGRAM_CLASS = new LocalDocumentReference("Diagram", "DiagramClass");
 
-    /**
-     * Helper methods for custom links contained by a diagram.
-     */
+    @Inject
+    private GetDiagramLinksHandler getDiagramLinksHandler;
+
+    @Inject
     private DiagramLinkHandler linkHandler;
 
-    /**
-     * Constructor.
-     */
-    public DiagramContentHandler()
-    {
-        this.linkHandler = new DiagramLinkHandler();
-    }
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     /**
      * Update the attachments content and save the new version.
      * 
      * @param backlinkDoc document that has a backlink to diagram
-     * @param context the execution context
      * @param oldDocRef reference of the page before rename
      * @param newDocRef reference of the page after rename
      * @throws XWikiException when an error occurs while accessing documents.
      * @throws IOException if something goes wrong while setting attachment's content.
      */
-    public void updateAttachment(XWikiDocument backlinkDoc, XWikiContext context, DocumentReference oldDocRef,
-        DocumentReference newDocRef) throws XWikiException, IOException
+    public void updateAttachment(XWikiDocument backlinkDoc, DocumentReference oldDocRef, DocumentReference newDocRef)
+        throws XWikiException, IOException
     {
         XWikiAttachment attachment = backlinkDoc.getAttachment("diagram.svg");
+        XWikiContext context = contextProvider.get();
+
         if (attachment != null) {
-            backlinkDoc.addAttachment(getUpdatedAttachment(attachment, context, oldDocRef, newDocRef));
+            backlinkDoc.addAttachment(getUpdatedAttachment(attachment, oldDocRef, newDocRef));
             context.getWiki().saveDocument(backlinkDoc, "Updated attachment after page rename", context);
         }
     }
@@ -99,26 +99,20 @@ public class DiagramContentHandler
      * Migrate links inside diagram's attachment to the new name.
      * 
      * @param attachment attachment to be processed
-     * @param context the execution context
      * @param oldDocRef reference of the page before rename
      * @param newDocRef reference of the page after rename
      * @return the modified attachment
      * @throws XWikiException when an error occurs while accessing documents.
      * @throws IOException if something goes wrong while setting attachment's content.
      */
-    public XWikiAttachment getUpdatedAttachment(XWikiAttachment attachment, XWikiContext context,
-        DocumentReference oldDocRef, DocumentReference newDocRef) throws XWikiException, IOException
+    private XWikiAttachment getUpdatedAttachment(XWikiAttachment attachment, DocumentReference oldDocRef,
+        DocumentReference newDocRef) throws XWikiException, IOException
     {
+        XWikiContext context = contextProvider.get();
         XWikiDocument oldDoc = context.getWiki().getDocument(oldDocRef, context);
         XWikiDocument newDoc = context.getWiki().getDocument(newDocRef, context);
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(attachment.getContentInputStream(context)));
-        StringBuffer sb = new StringBuffer();
-
-        String str;
-        while ((str = reader.readLine()) != null) {
-            sb.append(str);
-        }
+        String attachmentContent = IOUtils.toString(attachment.getContentInputStream(context), "UTF-8");
 
         String regex = "\"%s\"";
         String oldAbsoluteURL = String.format(regex, oldDoc.getExternalURL(VIEW_ACTION, context));
@@ -126,7 +120,7 @@ public class DiagramContentHandler
         String oldURL = String.format(regex, oldDoc.getURL(VIEW_ACTION, context));
         String newURL = String.format(regex, newDoc.getURL(VIEW_ACTION, context));
 
-        String newContent = sb.toString().replaceAll(oldAbsoluteURL, newAbsoluteURL).replaceAll(oldURL, newURL);
+        String newContent = attachmentContent.replaceAll(oldAbsoluteURL, newAbsoluteURL).replaceAll(oldURL, newURL);
 
         attachment.setContent(new ByteArrayInputStream(newContent.getBytes()));
 
@@ -162,48 +156,31 @@ public class DiagramContentHandler
             linkHandler.updateMxCellNode(mxCellList.item(i), currentDocRef, originalDocRef);
         }
 
-        backlinkDoc.setContent(getStringFromDocument(document));
+        backlinkDoc.setContent(XMLUtils.serialize(document));
         context.getWiki().saveDocument(backlinkDoc, "Updated diagram after page rename", context);
-    }
-
-    /**
-     * Convert a document to String.
-     * 
-     * @param doc the Document to be processed
-     * @return converted Document to String
-     */
-    public String getStringFromDocument(Document doc)
-    {
-        try {
-            StringWriter sw = new StringWriter();
-            TransformerFactory.newInstance().newTransformer().transform(new DOMSource(doc), new StreamResult(sw));
-
-            return sw.toString();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error converting to String", ex);
-        }
     }
 
     /**
      * Search referenced pages inside the content of a diagram.
      * 
      * @param content the content of the diagram
-     * @return includedPages list of pages inside this content
+     * @return linkedPages list of pages linked in this content
      */
-    public List<String> getIncludedPages(String content)
+    public List<DocumentReference> getLinkedPages(String content)
     {
+        List<DocumentReference> linkedPages = new ArrayList<DocumentReference>();
+
         try {
-            GetDiagramLinksHandler getDiagramLinksHandler = new GetDiagramLinksHandler();
             SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(content.getBytes()),
                 getDiagramLinksHandler);
 
-            return getDiagramLinksHandler.getIncludedPages();
+            return getDiagramLinksHandler.getLinkedPages();
         } catch (ParserConfigurationException | SAXException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return includedPages;
+        return linkedPages;
     }
 }

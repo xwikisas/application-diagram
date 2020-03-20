@@ -19,24 +19,19 @@
  */
 package com.xwiki.diagram.internal;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
-import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.context.Execution;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.LocalDocumentReference;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.util.AbstractXWikiRunnable;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
@@ -52,35 +47,23 @@ import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 public class DiagramRunnable extends AbstractXWikiRunnable
 {
     /**
-     * Reference to Diagram's class.
-     */
-    public static final LocalDocumentReference DIAGRAM_CLASS = new LocalDocumentReference("Diagram", "DiagramClass");
-
-    /**
      * Stop runnable entry.
      */
     public static final DiagramQueueEntry STOP_RUNNABLE_ENTRY = new DiagramQueueEntry(null, null);
 
     @Inject
-    private Execution execution;
+    private Logger logger;
 
     @Inject
-    private Logger logger;
+    private DiagramContentHandler contentHandler;
+
+    @Inject
+    private Provider<XWikiContext> contextProvider;
 
     /**
      * Entries to be processed by this thread.
      */
     private BlockingQueue<DiagramQueueEntry> diagramsQueue;
-
-    /**
-     * Backlinks of the document.
-     */
-    private List<DocumentReference> backlinks;
-
-    /**
-     * Handler for operation performed on diagram content.
-     */
-    private DiagramContentHandler contentHandler;
 
     /**
      * {@inheritDoc}
@@ -101,39 +84,31 @@ public class DiagramRunnable extends AbstractXWikiRunnable
 
             if (queueEntry == STOP_RUNNABLE_ENTRY) {
                 diagramsQueue.clear();
-                diagramsQueue.offer(STOP_RUNNABLE_ENTRY);
                 break;
             }
 
-            XWikiContext context = (XWikiContext) this.execution.getContext().getProperty("xwikicontext");
+            XWikiContext context = contextProvider.get();
             DocumentReference originalDocRef = queueEntry.originalDocRef;
             DocumentReference currentDocRef = queueEntry.currentDocRef;
-
-            contentHandler = new DiagramContentHandler();
 
             try {
                 // We need to take backlinks from the original document because at this step they are not loaded on
                 // the new document.
-                backlinks = context.getWiki().getDocument(originalDocRef, context).getBackLinkedReferences(context);
+                List<DocumentReference> backlinks =
+                    context.getWiki().getDocument(originalDocRef, context).getBackLinkedReferences(context);
 
                 XWikiDocument backlinkDoc;
                 for (DocumentReference backlinkRef : backlinks) {
                     backlinkDoc = context.getWiki().getDocument(backlinkRef, context);
 
-                    if (backlinkDoc.getXObject(DIAGRAM_CLASS) != null) {
+                    if (backlinkDoc.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
                         contentHandler.updateDiagramContent(backlinkDoc, originalDocRef, currentDocRef, context);
 
-                        contentHandler.updateAttachment(backlinkDoc, context, originalDocRef, currentDocRef);
+                        contentHandler.updateAttachment(backlinkDoc, originalDocRef, currentDocRef);
                     }
                 }
-            } catch (XWikiException e) {
-                logger.warn(e.getMessage(), e);
-            } catch (IOException e) {
-                logger.warn(e.getMessage(), e);
-            } catch (ParserConfigurationException e) {
-                logger.warn(e.getMessage(), e);
-            } catch (SAXException e) {
-                logger.warn(e.getMessage(), e);
+            } catch (Exception e) {
+                logger.warn("Update diagram backlinks thread interrupted", e);
             }
         }
     }
