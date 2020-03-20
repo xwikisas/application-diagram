@@ -40,7 +40,8 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
-#if ($doc.getObject('Diagram.DiagramClass') || "$!request.source" != '')
+#set ($diagramObj = $doc.getObject('Diagram.DiagramClass'))
+#if ($diagramObj || "$!request.source" != '')
   #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
   #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
   #set ($toolbar = 'zoom layers pages lightbox')
@@ -60,7 +61,13 @@
   &gt;
     ## Show a preview of the diagram until the diagram viewer is loaded. This is also useful for export and WYSIWYG edit
     ## mode where the JavaScript code is not executed and thus the diagram viewer is never loaded.
-    #set ($diagramURL = $doc.getAttachmentURL('diagram.svg', 'download', "v=$!doc.version"))
+    #set ($fileName = 'diagram.svg')
+    #set ($pngFileName = 'diagram.thumbnail.png')
+    #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
+        &amp;&amp; $doc.getAttachment($pngFileName))
+      #set ($fileName = $pngFileName)
+    #end
+    #set ($diagramURL = $doc.getAttachmentURL($fileName, 'download', "v=$!doc.version"))
     &lt;img src="$diagramURL" alt="$escapetool.xml($doc.plainTitle)" /&gt;
   &lt;/div&gt;
   {{/html}}

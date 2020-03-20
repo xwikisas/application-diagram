@@ -245,12 +245,36 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     left.done($.proxy(right, 'resolve')).fail($.proxy(right, 'reject'));
   };
 
-  var imageCache = {};
-  var saveFileAsImageAttachment = function(file) {
+  var saveBlobAsImageAttachment = function(blob, fileName, documentReference) {
     var deferred = $.Deferred();
-    // This is a workaround for https://github.com/jgraph/drawio/issues/490
-    // Stop editing for getting the latest content from diagram
-    file.ui.editor.graph.stopEditing(false);
+    var attachmentReference = new XWiki.AttachmentReference(fileName, documentReference);
+    // Avoid creating too many versions of the attachment.
+    xutils.deleteAttachment(attachmentReference).always(function() {
+      pipeDeferred(xutils.uploadAttachment(blob, attachmentReference), deferred);
+    });
+    return deferred.promise();
+  };
+
+  var imageCache = {};
+  var saveFileAsPNGImageAttachment = function(file) {
+    var deferred = $.Deferred();
+    file.getUi().exportToCanvas(/* callback */ function(canvas) {
+      if (canvas) {
+        canvas.toBlob(function(blob) {
+          pipeDeferred(saveBlobAsImageAttachment(blob, 'diagram.thumbnail.png', file.documentReference), deferred);
+        });
+      } else {
+        deferred.reject();
+      }
+    }, /* width */ null, /* imageCache */ imageCache, /* background */ null, /* error */ function(e) {
+      new XWiki.widgets.Notification(
+        $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
+    }, /* limitHeight */ null, /* ignoreSelection */ true);
+    return deferred.promise();
+  };
+
+  var saveFileAsSVGImageAttachment = function(file) {
+    var deferred = $.Deferred();
     var svgRoot = file.ui.editor.graph.getSvg(/* background: */ '#ffffff', /* scale: */ null, /* border: */ null,
       /* nocrop: */ true, /* crisp: */ null, /* ignoreSelection: */ true);
     // Embed the images because the PDF exporter might not be able to access them.
@@ -259,19 +283,26 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         '&lt;!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"&gt;\n' +
         mxUtils.getXml(svgRoot);
       var blob = new Blob([svg], {type: 'image/svg+xml'});
-      var attachmentReference = new XWiki.AttachmentReference('diagram.svg', file.documentReference);
-      // Avoid creating too many versions of the attachment.
-      xutils.deleteAttachment(attachmentReference).always(function() {
-        pipeDeferred(xutils.uploadAttachment(blob, attachmentReference), deferred);
-      });
+      pipeDeferred(saveBlobAsImageAttachment(blob, 'diagram.svg', file.documentReference), deferred);
     }, imageCache);
+    return deferred.promise();
+  };
+
+  var saveFileAsImageAttachments = function(file) {
+    var deferred = $.Deferred().resolve();
+    // This is a workaround for https://github.com/jgraph/drawio/issues/490
+    // Stop editing for getting the latest content from diagram
+    file.ui.editor.graph.stopEditing(false);
+    var svgUpload = $.proxy(saveFileAsSVGImageAttachment, null, file);
+    var pngUpload = $.proxy(saveFileAsPNGImageAttachment, null, file);
+    deferred = deferred.then(svgUpload, svgUpload).then(pngUpload, pngUpload);
     return deferred.promise();
   };
 
   var saveFilesAsImageAttachments = function() {
     var uploadDeferred = $.Deferred().resolve();
     forEachOpenedFile(function(file) {
-      var nextUpload = $.proxy(saveFileAsImageAttachment, null, file);
+      var nextUpload = $.proxy(saveFileAsImageAttachments, null, file);
       uploadDeferred = uploadDeferred.then(nextUpload, nextUpload);
     });
     return uploadDeferred.promise();
