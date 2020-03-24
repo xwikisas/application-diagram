@@ -54,6 +54,21 @@
       <defaultWeb/>
       <nameField/>
       <validationScript/>
+      <exportUsingSVG>
+        <customDisplay/>
+        <defaultValue>1</defaultValue>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType/>
+        <hint/>
+        <name>exportUsingSVG</name>
+        <number>1</number>
+        <prettyName>exportUsingSVG</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </exportUsingSVG>
     </class>
   </object>
 </xwikidoc>
