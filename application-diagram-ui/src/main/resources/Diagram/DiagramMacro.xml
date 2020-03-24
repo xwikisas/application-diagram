@@ -171,11 +171,10 @@
     #if ($diagramObj)
       #if ($xcontext.action == 'edit' || $xcontext.action == 'export' || $request.xpage == 'print'
           || $xcontext.macro.params.cached == 'true')
-        #set ($fileName = 'diagram.svg')
-        #set ($pngFileName = 'diagram.thumbnail.png')
-        #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
-            &amp;&amp; $diagram.getAttachment($pngFileName))
-          #set ($fileName = $pngFileName)
+        #set ($fileName = 'diagram.png')
+        #if ($xcontext.action != 'export' || $diagramObj.getValue('exportUsingSVG') == 1
+            || !$diagram.getAttachment($fileName))
+          #set ($fileName = 'diagram.svg')
         #end
         #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
         #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")

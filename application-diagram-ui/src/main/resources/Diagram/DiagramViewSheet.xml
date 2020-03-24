@@ -61,11 +61,10 @@
   &gt;
     ## Show a preview of the diagram until the diagram viewer is loaded. This is also useful for export and WYSIWYG edit
     ## mode where the JavaScript code is not executed and thus the diagram viewer is never loaded.
-    #set ($fileName = 'diagram.svg')
-    #set ($pngFileName = 'diagram.thumbnail.png')
-    #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
-        &amp;&amp; $doc.getAttachment($pngFileName))
-      #set ($fileName = $pngFileName)
+    #set ($fileName = 'diagram.png')
+    #if ($xcontext.action != 'export' || $diagramObj.getValue('exportUsingSVG') == 1
+        || !$doc.getAttachment($fileName))
+      #set ($fileName = 'diagram.svg')
     #end
     #set ($diagramURL = $doc.getAttachmentURL($fileName, 'download', "v=$!doc.version"))
     &lt;img src="$diagramURL" alt="$escapetool.xml($doc.plainTitle)" /&gt;

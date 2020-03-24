@@ -246,13 +246,10 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var saveBlobAsImageAttachment = function(blob, fileName, documentReference) {
-    var deferred = $.Deferred();
     var attachmentReference = new XWiki.AttachmentReference(fileName, documentReference);
-    // Avoid creating too many versions of the attachment.
-    xutils.deleteAttachment(attachmentReference).always(function() {
-      pipeDeferred(xutils.uploadAttachment(blob, attachmentReference), deferred);
-    });
-    return deferred.promise();
+    var uploadAttachment = $.proxy(xutils.uploadAttachment, null, blob, attachmentReference);
+    // Avoid creating too many versions of the attachment. Upload the attachment even if we failed to delete it first.
+    return xutils.deleteAttachment(attachmentReference).then(uploadAttachment, uploadAttachment);
   };
 
   var imageCache = {};
@@ -261,7 +258,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     file.getUi().exportToCanvas(/* callback */ function(canvas) {
       if (canvas) {
         canvas.toBlob(function(blob) {
-          pipeDeferred(saveBlobAsImageAttachment(blob, 'diagram.thumbnail.png', file.documentReference), deferred);
+          pipeDeferred(saveBlobAsImageAttachment(blob, 'diagram.png', file.documentReference), deferred);
         });
       } else {
         deferred.reject();
@@ -269,6 +266,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     }, /* width */ null, /* imageCache */ imageCache, /* background */ null, /* error */ function(e) {
       new XWiki.widgets.Notification(
         $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
+      deferred.reject();
     }, /* limitHeight */ null, /* ignoreSelection */ true);
     return deferred.promise();
   };
@@ -289,19 +287,18 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var saveFileAsImageAttachments = function(file) {
-    var deferred = $.Deferred().resolve();
     // This is a workaround for https://github.com/jgraph/drawio/issues/490
     // Stop editing for getting the latest content from diagram
     file.ui.editor.graph.stopEditing(false);
-    var svgUpload = $.proxy(saveFileAsSVGImageAttachment, null, file);
+    // We upload the PNG image even if the SVG upload has failed.
     var pngUpload = $.proxy(saveFileAsPNGImageAttachment, null, file);
-    deferred = deferred.then(svgUpload, svgUpload).then(pngUpload, pngUpload);
-    return deferred.promise();
+    return saveFileAsSVGImageAttachment(file).then(pngUpload, pngUpload);
   };
 
   var saveFilesAsImageAttachments = function() {
     var uploadDeferred = $.Deferred().resolve();
     forEachOpenedFile(function(file) {
+      // We do the next upload even if the previous uploads have failed.
       var nextUpload = $.proxy(saveFileAsImageAttachments, null, file);
       uploadDeferred = uploadDeferred.then(nextUpload, nextUpload);
     });
