@@ -69,6 +69,28 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
       </exportUsingSVG>
+      <pdfImageExportZoom>
+        <cache>0</cache>
+        <customDisplay/>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <hint>Specify the zoom applied to the PNG image used in PDF export. A bigger zoom will generate a bigger image with a better quality.</hint>
+        <multiSelect>0</multiSelect>
+        <name>pdfImageExportZoom</name>
+        <number>2</number>
+        <picker>0</picker>
+        <prettyName>pdfImageExportZoom</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <sort>none</sort>
+        <unmodifiable>0</unmodifiable>
+        <validationMessage/>
+        <validationRegExp/>
+        <values>100%|200%|300%|400%</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </pdfImageExportZoom>
     </class>
   </object>
 </xwikidoc>
