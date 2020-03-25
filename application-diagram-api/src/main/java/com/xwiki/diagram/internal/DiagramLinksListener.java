@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,7 +34,6 @@ import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.observation.AbstractEventListener;
@@ -46,7 +46,6 @@ import com.xpn.xwiki.doc.XWikiLink;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
 import com.xpn.xwiki.store.XWikiStoreInterface;
-import com.xpn.xwiki.store.migration.DataMigrationException;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
@@ -66,15 +65,16 @@ public class DiagramLinksListener extends AbstractEventListener
     protected static final String ROLE_HINT = "DiagramCreatedListener";
 
     @Inject
-    private ComponentManager componentManager;
-
-    @Inject
     @Named("local")
     private EntityReferenceSerializer<String> localEntityReferenceSerializer;
 
     @Inject
     @Named("compactwiki")
     private EntityReferenceSerializer<String> compactwikiEntityReferenceSerializer;
+
+    @Inject
+    @Named("hibernate")
+    private Provider<XWikiStoreInterface> hibernateStoreProvider;
 
     @Inject
     private Logger logger;
@@ -110,7 +110,8 @@ public class DiagramLinksListener extends AbstractEventListener
                         context.remove("links");
 
                         // Get pages linked by this diagram.
-                        for (DocumentReference linkedDocRef : contentHandler.getLinkedPages(document.getContent())) {
+                        for (DocumentReference linkedDocRef : contentHandler.getLinkedPages(document.getContent(),
+                            document.getDocumentReference())) {
                             XWikiLink wikiLink = getXWikiLink(document, linkedDocRef);
                             session.save(wikiLink);
                         }
@@ -178,11 +179,10 @@ public class DiagramLinksListener extends AbstractEventListener
 
     /**
      * @return store system for execute store-specific actions.
-     * @throws ComponentLookupException
-     * @throws DataMigrationException if the store could not be reached
+     * @throws ComponentLookupException if the store could not be reached
      */
     private XWikiHibernateBaseStore getStore() throws ComponentLookupException
     {
-        return (XWikiHibernateBaseStore) this.componentManager.getInstance(XWikiStoreInterface.class, "hibernate");
+        return (XWikiHibernateBaseStore) hibernateStoreProvider.get();
     }
 }

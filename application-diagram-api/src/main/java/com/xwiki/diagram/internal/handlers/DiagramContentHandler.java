@@ -21,7 +21,7 @@ package com.xwiki.diagram.internal.handlers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -32,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -73,6 +74,9 @@ public class DiagramContentHandler
 
     @Inject
     private Provider<XWikiContext> contextProvider;
+
+    @Inject
+    private Logger logger;
 
     /**
      * Update the attachments content and save the new version.
@@ -164,23 +168,20 @@ public class DiagramContentHandler
      * Search referenced pages inside the content of a diagram.
      * 
      * @param content the content of the diagram
+     * @param diagramReference the reference of current diagram
      * @return linkedPages list of pages linked in this content
      */
-    public List<DocumentReference> getLinkedPages(String content)
+    public List<DocumentReference> getLinkedPages(String content, DocumentReference diagramReference)
     {
-        List<DocumentReference> linkedPages = new ArrayList<DocumentReference>();
-
         try {
             SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(content.getBytes()),
                 getDiagramLinksHandler);
 
-            return getDiagramLinksHandler.getLinkedPages();
-        } catch (ParserConfigurationException | SAXException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            return getDiagramLinksHandler.getLinkedPages(diagramReference);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            logger.warn("Failed while getting diagram linked paged", e);
         }
 
-        return linkedPages;
+        return Collections.emptyList();
     }
 }

@@ -22,10 +22,12 @@ package com.xwiki.diagram.internal.handlers;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -62,6 +64,9 @@ public class DiagramLinkHandler
      * The prefix added to the links inserted in a diagram.
      */
     private static final String CUSTOM_LINK_PREFIX = "data:xwiki/reference,";
+
+    @Inject
+    private Logger logger;
 
     /**
      * Get custom link for a resource reference.
@@ -171,7 +176,7 @@ public class DiagramLinkHandler
      * Get link from inside mxCell node of the diagram.
      * 
      * @param value link node in string format
-     * @return resourse reference
+     * @return resource reference
      */
     public String getMxCellNodeLink(String value)
     {
@@ -184,12 +189,8 @@ public class DiagramLinkHandler
             if (link != null && isXWikiCustomLink(link)) {
                 return getResourceReferenceFromCustomLink(link);
             }
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            logger.warn("Failed while parsing a mxCell node", e);
         }
 
         return null;

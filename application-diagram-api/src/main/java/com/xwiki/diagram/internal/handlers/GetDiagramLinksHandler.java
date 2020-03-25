@@ -48,13 +48,13 @@ public class GetDiagramLinksHandler extends DefaultHandler
     private DiagramLinkHandler linkHandler;
 
     @Inject
-    @Named("current")
+    @Named("explicit")
     private DocumentReferenceResolver<String> resolver;
 
     /**
      * Lists of pages referenced inside nodes.
      */
-    private List<DocumentReference> linkedPages = new ArrayList<DocumentReference>();
+    private List<String> linkedPages = new ArrayList<String>();
 
     @Override
     public void startElement(String uri, String key, String qName, Attributes attributes) throws SAXException
@@ -68,18 +68,19 @@ public class GetDiagramLinksHandler extends DefaultHandler
         }
 
         if (link != null) {
-            linkedPages.add(resolver.resolve(link));
+            linkedPages.add(link);
         }
     }
 
     /**
      * Get list of unique linked pages.
      * 
+     * @param diagramReference the reference of current diagram
      * @return list of referenced pages.
      */
-    public List<DocumentReference> getLinkedPages()
+    public List<DocumentReference> getLinkedPages(DocumentReference diagramReference)
     {
-        linkedPages = linkedPages.stream().distinct().collect(Collectors.toList());
-        return this.linkedPages;
+        return linkedPages.stream().distinct().map(link -> resolver.resolve(link, diagramReference))
+            .collect(Collectors.toList());
     }
 }
