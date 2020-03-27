@@ -179,7 +179,7 @@ public class DiagramContentHandler
 
             return getDiagramLinksHandler.getLinkedPages(diagramReference);
         } catch (ParserConfigurationException | SAXException | IOException e) {
-            logger.warn("Failed while getting diagram linked paged", e);
+            logger.warn("Failed while getting diagram linked pages", e);
         }
 
         return Collections.emptyList();
