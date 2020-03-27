@@ -40,14 +40,16 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity}}
-#if ($doc.getObject('Diagram.DiagramClass'))
+#set ($diagramObj = $doc.getObject('Diagram.DiagramClass'))
+#if ($diagramObj)
   #set ($diagramConfig = {
     "debug": $services.debug.minify.equals(false),
     "locale": $xcontext.locale,
     "mxGraphClientBasePath": $services.webjars.url('org.xwiki.contrib:mxgraph-client', ''),
     "mxGraphEditorBasePath": $services.webjars.url('org.xwiki.contrib:mxgraph-editor', ''),
     "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
-    "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL')
+    "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
+    "pdfImageExportZoom": $diagramObj.getValue('pdfImageExportZoom')
   })
   #if ($xcontext.action == 'edit')
     {{include reference="Diagram.DiagramEditSheet" /}}

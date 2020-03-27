@@ -170,8 +170,8 @@
       <code>/**
  * Adds support for editing diagrams stored in XWiki pages.
  */
-define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils', 'draw.io', 'xwiki-events-bridge'],
-    function($, xm, xutils, diagramUtils) {
+define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils', 'diagram-config', 'draw.io',
+    'xwiki-events-bridge'], function($, xm, xutils, diagramUtils, diagramConfig) {
   var files = [];
   window._xfiles = files;
   var createFile = function(ui, input, title, documentReference) {
@@ -267,7 +267,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       new XWiki.widgets.Notification(
         $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
       deferred.reject();
-    }, /* limitHeight */ null, /* ignoreSelection */ true);
+    }, /* limitHeight */ null, /* ignoreSelection */ true, /* scale */ diagramConfig.pdfImageExportZoom);
     return deferred.promise();
   };
 
