@@ -488,6 +488,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         link.setAttribute('x', w);
         link.setAttribute('y', h);
         link.setAttribute('xlink:href', element.href);
+        // Add link decorations for the text.
+        alt.setAttribute('fill', '#0000EE');
+        alt.setAttribute('text-decoration', 'underline');
         link.append(alt);
         return link;
       default:
