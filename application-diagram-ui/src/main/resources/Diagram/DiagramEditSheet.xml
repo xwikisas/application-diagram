@@ -586,7 +586,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var isListItem = function(element) {
     if (element == null) { return false; }
-    return element.tagName.toLowerCase() == 'li';
+    return element &amp;&amp; element.tagName.toLowerCase() == 'li';
   };
 
   var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
