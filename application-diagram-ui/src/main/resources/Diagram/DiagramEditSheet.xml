@@ -452,6 +452,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       <code>define('svg-handler', ['jquery'], function($) {
   var lineHeight = 15;
   var spaceWidth = 5;
+  var listBorder = 35;
   var addTagSpecificStyle = function(element, s, w, h, htmlConverter, str, alt) {
     switch (element.tagName.toLowerCase()){
       case 'h1':
@@ -482,6 +483,32 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         break;
       case 'i':
         alt.setAttribute('font-style', 'italic');
+        break;
+      case 'li':
+        // Because of the space that is reserved for the bullets delimiters, the list's text is moved more to the
+        // right. For simulating the same behavior in svg, the text-anchor is removed for all the elements inside this
+        // container, meaning also for ul and ol elements.
+        alt.removeAttribute('text-anchor');
+
+        // Have a bullet for each row.
+        var delimiter = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        delimiter.textContent = "•";
+        delimiter.setAttribute('x', w - 2 * spaceWidth);
+
+        // Move all to a container.
+        var container = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        container.setAttribute('x', w);
+        container.setAttribute('y', h);
+        container.append(delimiter);
+        container.append(alt);
+        return container;
+      case 'ul':
+        // See comment from case 'li'.
+        alt.removeAttribute('text-anchor');
+        break;
+      case 'ol':
+        // See comment from care 'li'.
+        alt.removeAttribute('text-anchor');
         break;
       case 'a':
         var link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
@@ -543,26 +570,31 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   var isHeadingElement = function(element) {
     var tag = element.tagName.toLowerCase();
     return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag);
-  }
+  };
 
   var isBlockElement = function(element) {
     var tag = element.tagName.toLowerCase();
     return ['li', 'p', 'div'].includes(tag) || isHeadingElement(element);
-  }
+  };
 
   var isListElement = function(element) {
     var tag = element.tagName.toLowerCase();
     return ['ul', 'ol'].includes(tag);
-  }
+  };
 
   var isInlineElement = function(element) {
     var tag = element.tagName.toLowerCase();
     return ['b', 'i', 'span'].includes(tag);
-  }
+  };
+
+  var isListItem = function(element) {
+    if (element == null) { return false; }
+    return element &amp;&amp; element.tagName.toLowerCase() == 'li';
+  };
 
   var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
     return node.nodeType === 3 || (isInlineElement(node) &amp;&amp; nbOfSiblings &gt; 1);
-  }
+  };
 
   // For the current block of text take into consideration if those coordinates are already in use.
   // This is used when we are manually computing the container of children elements.
@@ -581,7 +613,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   // Create the basis of a svg element. Calculate new coordinates if is needed.
-  var createSvgElement = function(s, w, h, tag, element) {
+  var createSvgElement = function(s, w, h, tag, element, addAnchor) {
     var alt = document.createElementNS('http://www.w3.org/2000/svg', tag);
     if (element &amp;&amp; isBlockElement(element)) {
       h = maybeChangeHeight(w, h, element);
@@ -589,7 +621,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     alt.setAttribute('x', w);
     alt.setAttribute('y', h);
     alt.setAttribute('fill', s.fontColor || 'black');
-    alt.setAttribute('text-anchor', 'middle');
+    if (addAnchor) {
+      alt.setAttribute('text-anchor', 'middle');
+    }
     alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
     alt.setAttribute('font-family', s.fontFamily);
 
@@ -619,16 +653,23 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     }
     w = Math.round(w / 2);
     h = Math.round((h + s.fontSize) / 2);
-    var alt = createSvgElement(s, w, h, 'text', element);
+    // Use 'tspan' for 'li' elements since they will be move inside a 'text' container along with a row delimiter.
+    // Update h in case it was manually modified to take into consideration other inserted elements.
+    var tag = isListItem(element) ? 'tspan' : 'text';
+    var alt = createSvgElement(s, w, h, tag, element, true);
+    h = parseInt(alt.getAttribute('y'));
 
     // Consider rectWidth as the container width to do the word wrap when needed. Add the inner html only if the
     // element is not a list, since the text should be distributed to children instead of being shown at once. The same
     // is applied for when the text is longer then the rectWidth, since it will be distributed to tspan elements.
+    // Shorten the rectWidth send to text wrapper for 'li' elements since in their case an adittional space is added
+    // for the bullet delimiter and it shouldn't be included.
     htmlConverter.innerHTML = element.innerText;
     var content = htmlConverter.value;
     var contentWidth = getStrWidth(content, s);
     if (!isListElement(element)) {
       if (contentWidth &gt; rectWidth) {
+        rectWidth = isListItem(element) ? rectWidth - listBorder : rectWidth;
         wrapText(alt, s, w, h, content, contentWidth, rectWidth);
       } else {
         alt.textContent = htmlConverter.value;
@@ -637,7 +678,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
     // Convert recursively the children. Have a container that will hold the text element in case it has other children.
     if (element.childElements().length &gt; 0) {
-      var container = createSvgElement(s, w, h, 'g', null);
+      var container = createSvgElement(s, w, h, 'g', null, !isListElement(element));
       // TODO: Don't append alt element, unless it has a content.
       container.append(alt);
       element.childElements().each(function(child) {
