@@ -22,6 +22,10 @@ package com.xwiki.diagram.internal;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.inject.Inject;
+
+import org.slf4j.Logger;
+
 import com.xpn.xwiki.util.AbstractXWikiRunnable;
 
 /**
@@ -40,7 +44,10 @@ public abstract class AbstractDiagramRunnable extends AbstractXWikiRunnable
     /**
      * Entries to be processed by this thread.
      */
-    private BlockingQueue<DiagramQueueEntry> diagramsQueue;
+    private final BlockingQueue<DiagramQueueEntry> diagramsQueue = new LinkedBlockingQueue<DiagramQueueEntry>();
+
+    @Inject
+    private Logger logger;
 
     /**
      * Add entries to the thread's queue.
@@ -53,20 +60,25 @@ public abstract class AbstractDiagramRunnable extends AbstractXWikiRunnable
     }
 
     /**
-     * Create an empty blocking queue.
-     */
-    public void initilizeQueue()
-    {
-        this.diagramsQueue = new LinkedBlockingQueue<DiagramQueueEntry>();
-    }
-
-    /**
-     * Get the entries to be processed by the thread.
+     * Process new diagram entry of queue.
      * 
-     * @return queue with the entries for the thread
+     * @return queueEntry the new diagram entry
      */
-    public BlockingQueue<DiagramQueueEntry> getDiagramsQueue()
+    public DiagramQueueEntry processDiagram()
     {
-        return this.diagramsQueue;
+        DiagramQueueEntry queueEntry;
+
+        try {
+            queueEntry = this.diagramsQueue.take();
+        } catch (InterruptedException e) {
+            logger.warn("Diagrams update thread has been interrupted", e);
+            queueEntry = STOP_RUNNABLE_ENTRY;
+        }
+
+        if (queueEntry == STOP_RUNNABLE_ENTRY) {
+            this.diagramsQueue.clear();
+        }
+
+        return queueEntry;
     }
 }

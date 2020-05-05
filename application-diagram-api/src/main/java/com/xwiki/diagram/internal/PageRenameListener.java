@@ -149,7 +149,6 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     public Thread startThread(AbstractDiagramRunnable diagramRunnable, String threadName)
     {
         Thread diagramThread = new Thread(diagramRunnable);
-        diagramRunnable.initilizeQueue();
         diagramThread.setName(threadName);
         diagramThread.setDaemon(true);
         diagramThread.start();

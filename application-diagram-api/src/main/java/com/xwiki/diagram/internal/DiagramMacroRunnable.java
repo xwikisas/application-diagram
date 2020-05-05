@@ -20,7 +20,6 @@
 package com.xwiki.diagram.internal;
 
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -51,6 +50,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 public class DiagramMacroRunnable extends AbstractDiagramRunnable
 {
     private static final String MACRO_REFERENCE_PARAMETER = "reference";
+
     @Inject
     private Provider<XWikiContext> contextProvider;
 
@@ -68,18 +68,9 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
     public void runInternal()
     {
         while (!Thread.interrupted()) {
-            DiagramQueueEntry queueEntry;
-            BlockingQueue<DiagramQueueEntry> diagramsQueue = this.getDiagramsQueue();
-
-            try {
-                queueEntry = diagramsQueue.take();
-            } catch (InterruptedException e) {
-                logger.warn("Diagrams update thread has been interrupted", e);
-                queueEntry = STOP_RUNNABLE_ENTRY;
-            }
+            DiagramQueueEntry queueEntry = processDiagram();
 
             if (queueEntry == STOP_RUNNABLE_ENTRY) {
-                diagramsQueue.clear();
                 break;
             }
 
@@ -99,7 +90,7 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
                     updateDiagramMacrosReferences(backlinkDoc, currentDocRef, originalDocRef, xcontext);
                 }
             } catch (XWikiException e) {
-                logger.debug(e.getFullMessage());
+                logger.warn("Update diagram macro reference parameter thread interrupted", e);
             }
         }
     }

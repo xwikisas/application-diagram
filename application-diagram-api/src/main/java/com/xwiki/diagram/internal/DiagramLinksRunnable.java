@@ -20,7 +20,6 @@
 package com.xwiki.diagram.internal;
 
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -66,18 +65,9 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
     public void runInternal()
     {
         while (!Thread.interrupted()) {
-            DiagramQueueEntry queueEntry;
-            BlockingQueue<DiagramQueueEntry> diagramsQueue = this.getDiagramsQueue();
-
-            try {
-                queueEntry = diagramsQueue.take();
-            } catch (InterruptedException e) {
-                logger.warn("Diagrams update thread has been interrupted", e);
-                queueEntry = STOP_RUNNABLE_ENTRY;
-            }
+            DiagramQueueEntry queueEntry = processDiagram();
 
             if (queueEntry == STOP_RUNNABLE_ENTRY) {
-                diagramsQueue.clear();
                 break;
             }
 
