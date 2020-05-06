@@ -94,7 +94,7 @@ public class DiagramContentHandler
         XWikiContext context = contextProvider.get();
 
         if (attachment != null) {
-            backlinkDoc.addAttachment(getUpdatedAttachment(attachment, oldDocRef, newDocRef));
+            backlinkDoc.setAttachment(getUpdatedAttachment(attachment, oldDocRef, newDocRef));
             context.getWiki().saveDocument(backlinkDoc, "Updated attachment after page rename", context);
         }
     }

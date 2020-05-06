@@ -40,9 +40,11 @@ import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
 
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
- * Listens to rename of pages and starts a thread that will update backlinked diagrams.
+ * Listens to rename of pages and starts a thread that will update the content of backlinked diagrams. Also, for diagram
+ * pages it will start a thread for updating references of the diagram macro.
  * 
  * @version $Id$
  * @since 1.13
@@ -58,9 +60,14 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     protected static final String ROLE_HINT = "PageRenameEventListener";
 
     /**
-     * Thread that will handle updating diagram's content after a page rename.
+     * Thread that will handle updating diagram's content and attachment after a page rename.
      */
-    public Thread diagramThread;
+    public Thread diagramLinksThread;
+
+    /**
+     * Thread that will handle updating the reference of a diagram macro after a diagram rename.
+     */
+    public Thread diagramMacroThread;
 
     @Inject
     protected ObservationContext observationContext;
@@ -75,7 +82,10 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     private Logger logger;
 
     @Inject
-    private DiagramRunnable diagramRunnable;
+    private DiagramLinksRunnable diagramLinksRunnable;
+
+    @Inject
+    private DiagramMacroRunnable diagramMacroRunnable;
 
     /**
      * Constructor.
@@ -88,7 +98,12 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        startUpdateDiagramLinksThread();
+        if (this.diagramLinksThread == null) {
+            this.diagramLinksThread = startThread(this.diagramLinksRunnable, "Update Diagram Links Thread");
+        }
+        if (this.diagramMacroThread == null) {
+            this.diagramMacroThread = startThread(this.diagramMacroRunnable, "Update Diagram Macro Thread");
+        }
 
         if (observationContext.isIn(new JobStartedEvent("refactoring/rename"))) {
             Job job = jobContext.getCurrentJob();
@@ -102,36 +117,57 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
                 DocumentReference currentDocRef = currentDoc.getDocumentReference();
 
                 if (destinationRef.equals(currentDocRef)) {
-                    this.diagramRunnable.addToQueue(new DiagramQueueEntry(originalDocRef, currentDocRef));
+                    startContentUpdating(currentDoc, new DiagramQueueEntry(originalDocRef, currentDocRef));
                 }
             }
         }
     }
 
     /**
-     * Actions for starting the thread.
+     * Add entries in the queue of threads that will update the content of pages after rename, in just two cases: update
+     * content of a diagram after renaming pages that are linked in the content, update reference parameter of diagram
+     * macro after renaming a diagram.
+     *
+     * @param currentDoc current document
+     * @param queueEntry entry to be added in the thread queue
      */
-    public void startUpdateDiagramLinksThread()
+    public void startContentUpdating(XWikiDocument currentDoc, DiagramQueueEntry queueEntry)
     {
-        if (this.diagramThread == null) {
-            this.diagramThread = new Thread(this.diagramRunnable);
-            this.diagramRunnable.initilizeQueue();
-            this.diagramThread.setName("Update Diagram Links Thread");
-            this.diagramThread.setDaemon(true);
-            this.diagramThread.start();
+        if (currentDoc.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
+            this.diagramMacroRunnable.addToQueue(queueEntry);
         }
+        this.diagramLinksRunnable.addToQueue(queueEntry);
     }
 
     /**
-     * Actions for closing the thread.
+     * Actions for starting a thread.
+     *
+     * @param diagramRunnable runnable object that implements the run method
+     * @param threadName name of the thread
+     * @return thread that was started
+     */
+    public Thread startThread(AbstractDiagramRunnable diagramRunnable, String threadName)
+    {
+        Thread diagramThread = new Thread(diagramRunnable);
+        diagramThread.setName(threadName);
+        diagramThread.setDaemon(true);
+        diagramThread.start();
+
+        return diagramThread;
+    }
+
+    /**
+     * Actions for closing a thread.
      * 
+     * @param diagramThread thread to be stopped
+     * @param diagramRunnable runnable object of the thread
      * @throws InterruptedException if any thread has interrupted the current thread
      */
-    public void stopUpdateDiagramLinksThread() throws InterruptedException
+    public void stopThread(Thread diagramThread, AbstractDiagramRunnable diagramRunnable) throws InterruptedException
     {
-        if (this.diagramThread != null) {
-            this.diagramRunnable.addToQueue(DiagramRunnable.STOP_RUNNABLE_ENTRY);
-            this.diagramThread.join();
+        if (diagramThread != null) {
+            diagramRunnable.addToQueue(AbstractDiagramRunnable.STOP_RUNNABLE_ENTRY);
+            diagramThread.join();
         }
     }
 
@@ -139,9 +175,10 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     public void dispose() throws ComponentLifecycleException
     {
         try {
-            stopUpdateDiagramLinksThread();
+            stopThread(this.diagramLinksThread, this.diagramLinksRunnable);
+            stopThread(this.diagramMacroThread, this.diagramMacroRunnable);
         } catch (InterruptedException e) {
-            logger.debug("Diagram update links thread interruped", e);
+            logger.debug("Diagram backlinks update thread interruped", e);
         }
     }
 }

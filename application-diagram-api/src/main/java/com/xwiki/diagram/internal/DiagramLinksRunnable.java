@@ -20,8 +20,6 @@
 package com.xwiki.diagram.internal;
 
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -33,18 +31,17 @@ import org.xwiki.model.reference.DocumentReference;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.util.AbstractXWikiRunnable;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
- * Updates content and attachment of diagram for rename of backlinked pages.
+ * Updates content and attachment of a diagram after the rename of backlinked pages.
  * 
  * @version $Id$
  * @since 1.13
  */
-@Component(roles = DiagramRunnable.class)
+@Component(roles = DiagramLinksRunnable.class)
 @Singleton
-public class DiagramRunnable extends AbstractXWikiRunnable
+public class DiagramLinksRunnable extends AbstractDiagramRunnable
 {
     /**
      * Stop runnable entry.
@@ -61,12 +58,6 @@ public class DiagramRunnable extends AbstractXWikiRunnable
     private Provider<XWikiContext> contextProvider;
 
     /**
-     * Entries to be processed by this thread.
-     */
-    private BlockingQueue<DiagramQueueEntry> diagramsQueue;
-
-    /**
-     * {@inheritDoc}
      * 
      * @see com.xpn.xwiki.util.AbstractXWikiRunnable#runInternal()
      */
@@ -74,16 +65,9 @@ public class DiagramRunnable extends AbstractXWikiRunnable
     public void runInternal()
     {
         while (!Thread.interrupted()) {
-            DiagramQueueEntry queueEntry;
-            try {
-                queueEntry = diagramsQueue.take();
-            } catch (InterruptedException e) {
-                logger.warn("Diagrams update thread has been interrupted", e);
-                queueEntry = STOP_RUNNABLE_ENTRY;
-            }
+            DiagramQueueEntry queueEntry = getNextDiagramQueueEntry();
 
             if (queueEntry == STOP_RUNNABLE_ENTRY) {
-                diagramsQueue.clear();
                 break;
             }
 
@@ -111,23 +95,5 @@ public class DiagramRunnable extends AbstractXWikiRunnable
                 logger.warn("Update diagram backlinks thread interrupted", e);
             }
         }
-    }
-
-    /**
-     * Add entries to the thread's queue.
-     * 
-     * @param queueEntry the entry to be added
-     */
-    public void addToQueue(DiagramQueueEntry queueEntry)
-    {
-        this.diagramsQueue.add(queueEntry);
-    }
-
-    /**
-     * Create an empty blocking queue.
-     */
-    public void initilizeQueue()
-    {
-        this.diagramsQueue = new LinkedBlockingQueue<DiagramQueueEntry>();
     }
 }
