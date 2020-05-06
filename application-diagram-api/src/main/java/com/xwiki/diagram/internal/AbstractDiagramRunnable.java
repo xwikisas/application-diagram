@@ -64,7 +64,7 @@ public abstract class AbstractDiagramRunnable extends AbstractXWikiRunnable
      * 
      * @return queueEntry the new diagram entry
      */
-    public DiagramQueueEntry processDiagram()
+    public DiagramQueueEntry getNextDiagramQueueEntry()
     {
         DiagramQueueEntry queueEntry;
 

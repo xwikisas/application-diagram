@@ -68,7 +68,7 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
     public void runInternal()
     {
         while (!Thread.interrupted()) {
-            DiagramQueueEntry queueEntry = processDiagram();
+            DiagramQueueEntry queueEntry = getNextDiagramQueueEntry();
 
             if (queueEntry == STOP_RUNNABLE_ENTRY) {
                 break;
