@@ -52,7 +52,7 @@ import com.xwiki.diagram.internal.handlers.StoreHandler;
  * page rename.
  * 
  * @version $Id$
- * @since 1.14
+ * @since 1.13.1
  */
 @Component
 @Named(DiagramMacroListener.ROLE_HINT)

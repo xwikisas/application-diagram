@@ -43,7 +43,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
  * Updates diagram macro reference parameter after the rename of a diagram.
  * 
  * @version $Id$
- * @since 1.14
+ * @since 1.13.1
  */
 @Component(roles = DiagramMacroRunnable.class)
 @Singleton

@@ -32,7 +32,7 @@ import com.xpn.xwiki.util.AbstractXWikiRunnable;
  * Base class for diagram Runnable. It provides tools for working with diagramsQueue.
  * 
  * @version $Id$
- * @since 1.14
+ * @since 1.13.1
  */
 public abstract class AbstractDiagramRunnable extends AbstractXWikiRunnable
 {
