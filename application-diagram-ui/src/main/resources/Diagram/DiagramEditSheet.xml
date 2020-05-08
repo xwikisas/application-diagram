@@ -499,8 +499,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         var container = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         container.setAttribute('x', w);
         container.setAttribute('y', h);
-        container.append(delimiter);
-        container.append(alt);
+        container.appendChild(delimiter);
+        container.appendChild(alt);
         return container;
       case 'ul':
         // See comment from case 'li'.
@@ -518,7 +518,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         // Add link decorations for the text.
         alt.setAttribute('fill', '#0000EE');
         alt.setAttribute('text-decoration', 'underline');
-        link.append(alt);
+        link.appendChild(alt);
         return link;
       default:
         return alt;
@@ -550,7 +550,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var words = content.split(/[\s+]/);
     var wordWidth, rowWidth = 0, rowNb = 0;
     var row = createRow(w, h, rowNb);
-    alt.append(row);
+    alt.appendChild(row);
     words.each(function(word) {
       word += ' ';
       wordWidth = getStrWidth(word, s);
@@ -558,7 +558,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         h += lineHeight;
         row = createRow(w, h, ++rowNb);
         row.textContent = word;
-        alt.append(row);
+        alt.appendChild(row);
         rowWidth = wordWidth;
       } else {
         row.textContent += word;
@@ -569,22 +569,22 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var isHeadingElement = function(element) {
     var tag = element.tagName.toLowerCase();
-    return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag);
+    return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(tag) != -1;
   };
 
   var isBlockElement = function(element) {
     var tag = element.tagName.toLowerCase();
-    return ['li', 'p', 'div'].includes(tag) || isHeadingElement(element);
+    return ['li', 'p', 'div'].indexOf(tag) != -1 || isHeadingElement(element);
   };
 
   var isListElement = function(element) {
     var tag = element.tagName.toLowerCase();
-    return ['ul', 'ol'].includes(tag);
+    return ['ul', 'ol'].indexOf(tag) != -1;
   };
 
   var isInlineElement = function(element) {
     var tag = element.tagName.toLowerCase();
-    return ['b', 'i', 'span'].includes(tag);
+    return ['b', 'i', 'span'].indexOf(tag) != -1;
   };
 
   var isListItem = function(element) {
@@ -680,11 +680,11 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     if (element.childElements().length &gt; 0) {
       var container = createSvgElement(s, w, h, 'g', null, !isListElement(element));
       // TODO: Don't append alt element, unless it has a content.
-      container.append(alt);
+      container.appendChild(alt);
       element.childElements().each(function(child) {
         var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, rectWidth, false);
         if (childSvg != undefined) {
-          container.append(childSvg);
+          container.appendChild(childSvg);
         }
       });
     }
@@ -765,7 +765,7 @@ define('diagram-link-editor', [
           var elementsContainer = $(fo).children().first().children().first();
           var childNodes = elementsContainer.contents();
           // Take the width from parent rect, which is the last one found.
-          var rectangles = $(fo.parentElement.parentElement).find('rect');
+          var rectangles = $(fo.parentNode.parentNode).find('rect');
           var rectWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
           try {
             if (childNodes.length &gt; 0) {
@@ -778,11 +778,11 @@ define('diagram-link-editor', [
                 // coordinates of the styled node, considering the last element added and that it may be needed to wrap
                 // the text.
                 if (svgHandler.isParagraphWithPartialStyle(node, childNodes.length)) {
-                  node = $('&lt;span&gt;&lt;/span&gt;').html(this.parentElement.innerText)[0];
+                  node = $('&lt;span&gt;&lt;/span&gt;').html(this.parentNode.innerText)[0];
                   stop = true;
                 }
                 var alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, rectWidth, index == 0);
-                content.append(alt);
+                content.appendChild(alt);
                 // If we took the inner text of the parent, the other child nodes are not needed.
                 return !stop;
               });
