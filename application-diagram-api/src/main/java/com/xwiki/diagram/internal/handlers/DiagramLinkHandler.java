@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -183,9 +184,11 @@ public class DiagramLinkHandler
         if (value == null || value.indexOf(DiagramLinkHandler.HREF) == -1) {
             return null;
         }
+        String linkElement = cleanLinkValue(value);
+
         try {
             // The value attribute contains an 'a' node that holds the link value.
-            String link = getLinkFromEmbeddedNode(value);
+            String link = getLinkFromEmbeddedNode(linkElement);
             if (link != null && isXWikiCustomLink(link)) {
                 return getResourceReferenceFromCustomLink(link);
             }
@@ -194,6 +197,19 @@ public class DiagramLinkHandler
         }
 
         return null;
+    }
+
+    /**
+     * If in a link cell there is also simple text, that will also be added in mxCell value, before or after the
+     * <a></a> tag. This needs to be cleaned, since just the link tag is needed.
+     *
+     * @param value value attribute of mxCell node
+     * @return just the link element inside
+     */
+    public String cleanLinkValue(String value)
+    {
+        String valueInsideLinkElement = StringUtils.substringBetween(value, "<a", "</a>");
+        return String.format("<a %s </a>", valueInsideLinkElement);
     }
 
     /**

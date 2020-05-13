@@ -717,16 +717,16 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
 
   /*
-   * Converts a partially styled element (e.g. link added to just a word of a phrase) to svg kepping as much as possible
-   * from the original element.
+   * Converts a partially styled element (e.g. link added to just a word of a phrase) to svg kepping as much as
+   * possible from the original element.
    * When different types of elements are separated vertically (see Example 1), as long as each element is not a
    * composite one, the result is mainly as the input. But, for cases when the styled element is inside a phrase (see
    * Example 2), the result is a fallback to simple text.
-   * TODO: In the case of Example 3, when a child of a partially styled paragraph is itself a partially styled paragraph
-   * with "Text" nodes a fallback must be added. For now, elementsContainer.contents() separates the nodes that are
-   * connected and there isn't a smooth solution to get which elements were on the same line (maybe consider &lt;/br&gt;
-   * as divider). Even though it looks the same in html, Example 4 works compared to 3 since there are no text nodes,
-   * but this depends on how the user inserts the text.
+   * TODO: In the case of Example 3, when a child of a partially styled paragraph is itself a partially styled
+   * paragraph with "Text" nodes a fallback must be added. For now, elementsContainer.contents() separates the nodes
+   * that are connected and there isn't a smooth solution to get which elements were on the same line (maybe consider
+   * &lt;/br&gt; as divider). Even though it looks the same in html, Example 4 works compared to 3 since there are
+   * no text nodes, but this depends on how the user inserts the text.
    *
    * Example 1: &lt;div&gt; "Simple text" &lt;/br&gt; &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
    * Example 2: &lt;div&gt; "Simple text" &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
