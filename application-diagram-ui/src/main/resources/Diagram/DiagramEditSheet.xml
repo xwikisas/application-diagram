@@ -626,7 +626,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     } else {
       h = Math.round(h / 2 - fontSize / 2);
     }
-    return [w, h];
+    return {w, h};
   }
 
   // Create the basis of a svg element. Calculate new coordinates if is needed.
@@ -668,7 +668,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     if (isFirstChild) {
       takenCoordinates = [];
     }
-    [w, h] = getAdjustedInitialCoordinates(w, h, s.fontSize);
+    var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
+    w = coordinates.w;
+    h = coordinates.h;
 
     // Use 'tspan' for 'li' elements since they will be move inside a 'text' container along with a row delimiter.
     // Update h in case it was manually modified to take into consideration other inserted elements.
@@ -739,7 +741,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   */
   var convertPartiallyStyledParagraphToSVG = function(childNodes, s, w, h, htmlConverter, str, rectWidth) {
     takenCoordinates = [];
-    [w, h] = getAdjustedInitialCoordinates(w, h, s.fontSize);
+    var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
+    w = coordinates.w;
+    h = coordinates.h;
 
     var container = createSvgElement(s, w, h, 'g', null, true);
     // Resolve the basic case where the element is just a phrase with a styled element. Remove this after fixing
