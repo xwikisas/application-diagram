@@ -816,7 +816,8 @@ define('diagram-link-editor', [
 /**
  * Adds support for using XWiki image attachments in diagrams.
  */
-define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'], function(xutils, diagramLinkHandler) {
+define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'xwiki-meta', 'draw.io'],
+       function(xutils, diagramLinkHandler, xm) {
   // Fix the base URL used when exporting the diagram as image.
   var originalCreateImageUrlConverter = EditorUi.prototype.createImageUrlConverter;
   EditorUi.prototype.createImageUrlConverter = function() {
@@ -850,7 +851,7 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
             // when saving the diagram (we want to save the attachment reference not the attachment URL).
             let resourceReference = {
               type: 'attach',
-              reference: XWiki.Model.serialize(new XWiki.AttachmentReference(filename))
+              reference: XWiki.Model.serialize(new XWiki.AttachmentReference(filename, xm.documentReference))
             };
             let customLink = diagramLinkHandler.getCustomLinkFromResourceReference(resourceReference);
             fnArgs[0] = xutils.getAttachmentURL(filename) + '#' + encodeURIComponent(customLink);
