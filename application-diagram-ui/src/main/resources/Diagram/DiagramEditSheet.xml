@@ -816,8 +816,7 @@ define('diagram-link-editor', [
 /**
  * Adds support for using XWiki image attachments in diagrams.
  */
-define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'xwiki-meta', 'draw.io'],
-       function(xutils, diagramLinkHandler, xm) {
+define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'], function(xutils, diagramLinkHandler) {
   // Fix the base URL used when exporting the diagram as image.
   var originalCreateImageUrlConverter = EditorUi.prototype.createImageUrlConverter;
   EditorUi.prototype.createImageUrlConverter = function() {
