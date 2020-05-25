@@ -348,24 +348,26 @@ define('diagram-link-handler', ['xwiki-utils', 'draw.io.common'], function(xutil
     }
   };
 
-  var getURLFromResourceReference = function(resourceReference) {
+  var getURLFromResourceReference = function(resourceReference, diagramReference) {
     switch (resourceReference.type) {
       case 'doc':
         let documentReference = XWiki.Model.resolve(resourceReference.reference, XWiki.EntityType.DOCUMENT,
           XWiki.currentDocument.documentReference);
         return new XWiki.Document(documentReference).getURL();
       case 'attach':
+        // The diagram reference is used for the attachment reference only if is specified. This is needed when the
+        // diagram is displayed on another page. See https://github.com/xwikisas/application-diagram/issues/121
         let attachmentReference = XWiki.Model.resolve(resourceReference.reference, XWiki.EntityType.ATTACHMENT,
-          XWiki.currentDocument.documentReference);
+          (diagramReference ? diagramReference : XWiki.currentDocument.documentReference));
         return xutils.getAttachmentURL(attachmentReference);
       default:
         return resourceReference.reference;
     }
   };
 
-  var getURLFromCustomLink = function(href) {
+  var getURLFromCustomLink = function(href, diagramReference) {
     let resourceReference = getResourceReferenceFromCustomLink(href);
-    return getURLFromResourceReference(resourceReference);
+    return getURLFromResourceReference(resourceReference, diagramReference);
   };
 
   var originalHandleCustomLink = Graph.prototype.handleCustomLink;
@@ -544,7 +546,8 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
         if (diagramLinkHandler.isXWikiCustomLink(decodedOldSource)) {
           // Replace the attachment reference from the image source with the attachment URL, but keep the attachment
           // reference in the fragment identifier in order to be able to restore it on save.
-          newSource = diagramLinkHandler.getURLFromCustomLink(decodedOldSource) + '#' + oldSource;
+          var diagramReference = XWiki.Model.resolve($(graph.container).data('reference'), XWiki.EntityType.DOCUMENT);
+          newSource = diagramLinkHandler.getURLFromCustomLink(decodedOldSource, diagramReference) + '#' + oldSource;
         }
       } catch (e) {
         // Ignore.
