@@ -30,7 +30,6 @@ import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
@@ -215,7 +214,10 @@ public class DiagramLinkHandler
         // Create a DOM using the value and take the href attribute from inside the a element.
         // TODO: iterate though children nodes since there could be multiple links inside the given value.
         Document doc = defaultHTMLCleaner.clean(new StringReader(value));
-        NodeList nodes = doc.getElementsByTagName("a");
-        return ((Element) nodes.item(0)).getAttribute(HREF);
+        Element node = (Element) doc.getElementsByTagName("a").item(0);
+        if (node != null) {
+            return node.getAttribute(HREF);
+        }
+        return null;
     }
 }
