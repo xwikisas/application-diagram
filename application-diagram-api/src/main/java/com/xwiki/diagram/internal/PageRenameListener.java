@@ -39,6 +39,8 @@ import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
 
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
@@ -98,11 +100,8 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (this.diagramLinksThread == null) {
-            this.diagramLinksThread = startThread(this.diagramLinksRunnable, "Update Diagram Links Thread");
-        }
-        if (this.diagramMacroThread == null) {
-            this.diagramMacroThread = startThread(this.diagramMacroRunnable, "Update Diagram Macro Thread");
+        if (this.diagramLinksThread == null || this.diagramMacroThread == null) {
+            startThreads();
         }
 
         if (observationContext.isIn(new JobStartedEvent("refactoring/rename"))) {
@@ -117,7 +116,7 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
                 DocumentReference currentDocRef = currentDoc.getDocumentReference();
 
                 if (destinationRef.equals(currentDocRef)) {
-                    startContentUpdating(currentDoc, new DiagramQueueEntry(originalDocRef, currentDocRef));
+                    startContentUpdating((XWikiContext) data, currentDoc, originalDocRef);
                 }
             }
         }
@@ -128,15 +127,40 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
      * content of a diagram after renaming pages that are linked in the content, update reference parameter of diagram
      * macro after renaming a diagram.
      *
+     * @param context the current context
      * @param currentDoc current document
-     * @param queueEntry entry to be added in the thread queue
+     * @param originalDocRef the reference of the document before rename
      */
-    public void startContentUpdating(XWikiDocument currentDoc, DiagramQueueEntry queueEntry)
+    public void startContentUpdating(XWikiContext context, XWikiDocument currentDoc, DocumentReference originalDocRef)
     {
+        DiagramQueueEntry queueEntry = new DiagramQueueEntry(originalDocRef, currentDoc.getDocumentReference());
         if (currentDoc.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
             this.diagramMacroRunnable.addToQueue(queueEntry);
         }
-        this.diagramLinksRunnable.addToQueue(queueEntry);
+
+        try {
+            // Restrain the number of documents added to queue to only those that have backlinks. We need to take
+            // backlinks from the original document because at this step they are not loaded to the new document.
+            if (!context.getWiki().getDocument(originalDocRef, context).getBackLinkedReferences(context).isEmpty()) {
+                this.diagramLinksRunnable.addToQueue(queueEntry);
+            }
+        } catch (XWikiException e) {
+            logger.warn("Error when getting backlinks of renamed document");
+        }
+    }
+
+    /**
+     * Multiple rename jobs could be started at very close dates in the moment when the threads were not initialized yet
+     * (for example, at installation step) and we need to be sure that only a single instance of each thread is created.
+     */
+    public synchronized void startThreads()
+    {
+        if (this.diagramLinksThread == null) {
+            this.diagramLinksThread = startThread(this.diagramLinksRunnable, "Update Diagram Links Thread");
+        }
+        if (this.diagramMacroThread == null) {
+            this.diagramMacroThread = startThread(this.diagramMacroRunnable, "Update Diagram Macro Thread");
+        }
     }
 
     /**
