@@ -19,12 +19,11 @@
  */
 package com.xwiki.diagram.internal.handlers;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.slf4j.Logger;
@@ -34,6 +33,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.xml.html.HTMLCleaner;
 
 /**
  * Handles links to wiki pages, contained by diagrams.
@@ -64,6 +64,9 @@ public class DiagramLinkHandler
      * The prefix added to the links inserted in a diagram.
      */
     private static final String CUSTOM_LINK_PREFIX = "data:xwiki/reference,";
+
+    @Inject
+    private HTMLCleaner defaultHTMLCleaner;
 
     @Inject
     private Logger logger;
@@ -183,6 +186,7 @@ public class DiagramLinkHandler
         if (value == null || value.indexOf(DiagramLinkHandler.HREF) == -1) {
             return null;
         }
+
         try {
             // The value attribute contains an 'a' node that holds the link value.
             String link = getLinkFromEmbeddedNode(value);
@@ -207,11 +211,13 @@ public class DiagramLinkHandler
      */
     private String getLinkFromEmbeddedNode(String value) throws SAXException, IOException, ParserConfigurationException
     {
-        // Create a DOM node with the value to take the href attribute from inside it.
-        Document doc =
-            DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new ByteArrayInputStream(value.getBytes()));
-        String link = ((Element) doc.getFirstChild()).getAttribute(HREF);
-
-        return link;
+        // Create a DOM using the value and take the href attribute from inside the a element.
+        // TODO: iterate though children nodes since there could be multiple links inside the given value.
+        Document doc = defaultHTMLCleaner.clean(new StringReader(value));
+        Element node = (Element) doc.getElementsByTagName("a").item(0);
+        if (node != null) {
+            return node.getAttribute(HREF);
+        }
+        return null;
     }
 }

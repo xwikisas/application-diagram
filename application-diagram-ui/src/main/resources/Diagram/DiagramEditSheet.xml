@@ -597,7 +597,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
-    return node.nodeType === 3 || (isInlineElement(node) &amp;&amp; nbOfSiblings &gt; 1);
+    return node.nodeType === 3 || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
   };
 
   // For the current block of text take into consideration if those coordinates are already in use.
@@ -615,6 +615,19 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     takenCoordinates.push(thisCoordinates);
     return h;
   };
+
+  var getAdjustedInitialCoordinates = function(w, h, fontSize) {
+    w = Math.round(w / 2);
+    // For smaller heights the result seems to corespond to the one in the original view, but for the others the font
+    // size is relevant.
+    // TODO: investigate the reasons behind this behavior.
+    if (h &lt; lineHeight) {
+      h = Math.round(h / 2);
+    } else {
+      h = Math.round(h / 2 - fontSize / 2);
+    }
+    return {w, h};
+  }
 
   // Create the basis of a svg element. Calculate new coordinates if is needed.
   var createSvgElement = function(s, w, h, tag, element, addAnchor) {
@@ -650,13 +663,15 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var convertTextElementToSvg = function(element, s, w, h, htmlConverter, str, rectWidth, isFirstChild) {
     if (element.tagName.toLowerCase() == 'br') {
-      return;
+      return document.createElementNS('http://www.w3.org/2000/svg', "text");
     }
     if (isFirstChild) {
       takenCoordinates = [];
     }
-    w = Math.round(w / 2);
-    h = Math.round((h + s.fontSize) / 2);
+    var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
+    w = coordinates.w;
+    h = coordinates.h;
+
     // Use 'tspan' for 'li' elements since they will be move inside a 'text' container along with a row delimiter.
     // Update h in case it was manually modified to take into consideration other inserted elements.
     var tag = isListItem(element) ? 'tspan' : 'text';
@@ -702,9 +717,86 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     }
   };
 
+
+  /*
+   * Converts a partially styled element (e.g. link added to just a word of a phrase) to svg kepping as much as
+   * possible from the original element.
+   * When different types of elements are separated vertically (see Example 1), as long as each element is not a
+   * composite one, the result is mainly as the input. But, for cases when the styled element is inside a phrase (see
+   * Example 2), the result is a fallback to simple text.
+   * TODO: In the case of Example 3, when a child of a partially styled paragraph is itself a partially styled
+   * paragraph with "Text" nodes a fallback must be added. For now, elementsContainer.contents() separates the nodes
+   * that are connected and there isn't a smooth solution to get which elements were on the same line (maybe consider
+   * &lt;/br&gt; as divider). Even though it looks the same in html, Example 4 works compared to 3 since there are
+   * no text nodes, but this depends on how the user inserts the text.
+   *
+   * Example 1: &lt;div&gt; "Simple text" &lt;/br&gt; &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
+   * Example 2: &lt;div&gt; "Simple text" &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
+   * Example 3: &lt;div&gt; "Simple text" &lt;/br&gt; "Simple text" &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
+   * Example 4:
+   * &lt;div&gt;
+   * "Simple text" &lt;/br&gt;
+   * &lt;span&gt;"Simple text" &lt;b&gt;Bolded text&lt;/b&gt;&lt;/span&gt;
+   * &lt;/div&gt;
+  */
+  var convertPartiallyStyledParagraphToSVG = function(childNodes, s, w, h, htmlConverter, str, rectWidth) {
+    takenCoordinates = [];
+    var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
+    w = coordinates.w;
+    h = coordinates.h;
+
+    var container = createSvgElement(s, w, h, 'g', null, true);
+    // Resolve the basic case where the element is just a phrase with a styled element. Remove this after fixing
+    // the TODO described in the comment above.
+    var simpleNodes= childNodes.filter(function() {
+      return this.nodeType === 3 || isInlineElement(this);
+    });
+
+    if(simpleNodes.length == childNodes.length) {
+      var element = $('&lt;span&gt;&lt;/span&gt;').html(str)[0];
+      var alt = convertTextElementToSvg(element, s, w, h, htmlConverter, str, rectWidth, true);
+      return alt;
+    }
+
+    // Look only on first-level children since for now it is not supported to partially style paragraphs inside a
+    // partially styled paragraph.
+    childNodes.each(function(index) {
+      var element = $(this).clone()[0];
+      // Convert text content to element for consistency.
+      if (element.nodeType === 3) {
+        element = $('&lt;span&gt;&lt;/span&gt;').html(element.textContent)[0];
+      }
+
+      // Don't do anything for &lt;/br&gt; tags or empty elements.
+      if (element.tagName == 'br' || element.innerText == '') {
+        return;
+      }
+
+      // Modify the height if needed.
+      h = maybeChangeHeight(w, h, element);
+      var alt = createSvgElement(s, w, h, /* tag */ 'text', /* element */ element, /* addAnchor */ true);
+
+      // Set text content. Manually do text wrapping when the text is longer then the rectWidth by distributing it
+      // to tspan elements.
+      var textContent = element.innerText;
+      var contentWidth = getStrWidth(textContent, s);
+      if (contentWidth &gt; rectWidth) {
+        wrapText(alt, s, w, h, textContent, contentWidth, rectWidth);
+      } else {
+        alt.textContent = textContent;
+      }
+
+      alt = addTagSpecificStyle(element, s, w, h, htmlConverter, str, alt);
+      container.appendChild(alt)
+    });
+    return container;
+
+  };
+
   return {
     convertTextElementToSvg: convertTextElementToSvg,
-    isParagraphWithPartialStyle: isParagraphWithPartialStyle
+    isParagraphWithPartialStyle: isParagraphWithPartialStyle,
+    convertPartiallyStyledParagraphToSVG: convertPartiallyStyledParagraphToSVG
   };
 });
 /**
@@ -766,6 +858,7 @@ define('diagram-link-editor', [
           var s = this.state;
           var htmlConverter = document.createElement('textarea');
           var content = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          var temporaryContent = document.createElementNS('http://www.w3.org/2000/svg', 'g');
           var elementsContainer = $(fo).children().first().children().first();
           var childNodes = elementsContainer.contents();
           // Take the width from parent rect, which is the last one found.
@@ -773,26 +866,31 @@ define('diagram-link-editor', [
           var rectWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
           try {
             if (childNodes.length &gt; 0) {
+              var isPartiallyStyledElement = false;
+              var alt;
               childNodes.each(function(index) {
                 // Make a clone of the node, to not alter the original child.
                 var node = $(this).clone()[0];
-                var stop = false;
-                // If this paragraph has partial styled nodes, like a link added to just a part of the text, fallback
-                // to display just the text, without any styles. This is done since is too complex to calculate the
+                // If this paragraph has partially styled nodes (i.e. link added to just a part of the text) create a
+                // fallback version of it, since not all the cases are supported and the created svg could not be
+                // compatible with the already created elements. This is done since is too complex to calculate the
                 // coordinates of the styled node, considering the last element added and that it may be needed to wrap
                 // the text.
                 if (svgHandler.isParagraphWithPartialStyle(node, childNodes.length)) {
-                  node = $('&lt;span&gt;&lt;/span&gt;').html(this.parentNode.innerText)[0];
-                  stop = true;
+                  alt = svgHandler.convertPartiallyStyledParagraphToSVG(childNodes, s, w, h, htmlConverter, str,
+                    rectWidth);
+                  isPartiallyStyledElement = true;
+                  return false;
+                } else {
+                  alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, rectWidth, index == 0);
+                  temporaryContent.appendChild(alt);
                 }
-                var alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, rectWidth, index == 0);
-                content.appendChild(alt);
-                // If we took the inner text of the parent, the other child nodes are not needed.
-                return !stop;
               });
+              content.appendChild(isPartiallyStyledElement ? alt : temporaryContent)
               return content;
             } else {
-              return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation);
+              return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format,
+                overflow, clip, rotation);
             }
           } catch (e) {
             return originalCreateAlternateContent.apply(this, arguments);
