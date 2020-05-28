@@ -202,7 +202,7 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
             stopThread(this.diagramLinksThread, this.diagramLinksRunnable);
             stopThread(this.diagramMacroThread, this.diagramMacroRunnable);
         } catch (InterruptedException e) {
-            logger.debug("Diagram backlinks update thread interruped", e);
+            logger.warn("Diagram backlinks update thread interruped", e);
         }
     }
 }

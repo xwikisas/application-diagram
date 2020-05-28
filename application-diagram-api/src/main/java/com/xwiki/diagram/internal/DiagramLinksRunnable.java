@@ -43,11 +43,6 @@ import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 @Singleton
 public class DiagramLinksRunnable extends AbstractDiagramRunnable
 {
-    /**
-     * Stop runnable entry.
-     */
-    public static final DiagramQueueEntry STOP_RUNNABLE_ENTRY = new DiagramQueueEntry(null, null);
-
     @Inject
     private Logger logger;
 
@@ -58,7 +53,6 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
     private Provider<XWikiContext> contextProvider;
 
     /**
-     * 
      * @see com.xpn.xwiki.util.AbstractXWikiRunnable#runInternal()
      */
     @Override
