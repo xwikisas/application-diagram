@@ -44,7 +44,7 @@ import com.xwiki.diagram.export.internal.DiagramExportRequestFactory;
 import com.xwiki.diagram.export.internal.HTTPDiagramExporter;
 
 /**
- * Script services for the Diagram application.
+ * Script services for exporting diagrams.
  * 
  * @version $Id$
  * @since 1.11

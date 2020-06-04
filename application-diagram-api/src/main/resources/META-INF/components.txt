@@ -1,4 +1,5 @@
 com.xwiki.diagram.internal.DiagramApplicationListener
+com.xwiki.diagram.internal.DiagramImporter
 com.xwiki.diagram.internal.DrawIOImagePathMigration
 com.xwiki.diagram.internal.StoreSVGAsAttachmentMigration
 com.xwiki.diagram.internal.PageRenameListener
@@ -10,3 +11,4 @@ com.xwiki.diagram.internal.handlers.DiagramContentHandler
 com.xwiki.diagram.internal.handlers.DiagramLinkHandler
 com.xwiki.diagram.internal.handlers.StoreHandler
 com.xwiki.diagram.internal.DiagramMacroListener
+com.xwiki.diagram.script.DiagramScriptService

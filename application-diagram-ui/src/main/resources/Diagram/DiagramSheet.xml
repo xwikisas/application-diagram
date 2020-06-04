@@ -223,6 +223,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.TEMPLATE_PATH = drawIOBasePath + 'templates';
   // This is used by File &gt; Open Library from &gt; Browser...
   window.OPEN_FORM = drawIOBasePath + 'open.html';
+  window.OPEN_URL = new XWiki.Document('DiagramImporter', 'Diagram').getURL('get', 'outputSyntax=plain');
   window.EXPORT_URL = diagramConfig.exportURL;
   window.PROXY_URL = new XWiki.Document('DiagramProxy', 'Diagram').getURL('get');
   window.isLocalStorage = true;

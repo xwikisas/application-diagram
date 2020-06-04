@@ -32,6 +32,16 @@
   <packaging>jar</packaging>
   <description>Provides script APIs for the Diagram application.</description>
   <dependencies>
+    <!-- Used for diagram import. -->
+    <dependency>
+      <groupId>org.xwiki.contrib</groupId>
+      <artifactId>draw.io-api</artifactId>
+      <version>${draw.io.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.xwiki.commons</groupId>
       <artifactId>xwiki-commons-component-api</artifactId>

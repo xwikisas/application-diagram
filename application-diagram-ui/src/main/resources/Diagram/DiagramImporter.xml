@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.4" reference="Diagram.DiagramImporter" locale="">
+  <web>Diagram</web>
+  <name>DiagramImporter</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <creationDate>1591182845000</creationDate>
+  <parent>WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <date>1591268488000</date>
+  <contentUpdateDate>1591268488000</contentUpdateDate>
+  <version>1.1</version>
+  <title/>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{velocity output="false"}}
+#macro (outputScript $code)
+  &lt;html&gt;
+    &lt;body&gt;
+      &lt;script type="text/javascript"&gt;
+		$!code
+      &lt;/script&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;
+#end
+{{/velocity}}
+
+{{velocity wiki="false"}}
+## The following code replicates, as much as possible, the behavior of draw.io's OpenServlet.
+#set ($fileParamName = 'upfile')
+#set ($fileName = $xwiki.fileupload.getFileName($fileParamName))
+#if ($xcontext.action != 'get')
+  #stop
+#elseif ("$!xcontext.userReference" == '')
+  ## Forbidden
+  #set ($discard = $response.sendError(403, 'You are not allowed to perform this action.'))
+#elseif ("$!fileName" == '')
+  ## Bad Request
+  #set ($message = "The '$fileParamName' request parameter is missing. Either you didn't submit any file or the size of"
+    + 'the submitted file exceeds the configured maximum upload size.')
+  #set ($discard = $response.sendError(400, $message))
+#else
+  #set ($diagramContent = $xwiki.fileupload.getFileItemAsString($fileParamName))
+  #set ($format = $request.format)
+  #if ("$!format" == '')
+    #set ($format = 'html')
+  #end
+  #set ($xml = $services.diagram.importDiagram($diagramContent, $fileName))
+  #if ("$!xml" == '' &amp;&amp; $xml != '')
+    ## Unsupported diagram format.
+    #set ($xml = $diagramContent)
+  #end
+  #if ($format == 'xml')
+    #set ($discard = $response.setContentType('application/xml'))
+    $xml
+  #elseif ("$!xml" == '')
+    #define($code)
+      window.parent.showOpenAlert({
+        message: window.parent.mxResources.get('invalidOrMissingFile')
+      });
+    #end
+    #outputScript($code)
+  #else
+    #define($code)
+      try {
+        window.parent.setCurrentXml(
+          decodeURIComponent('$escapetool.javascript($escapetool.url($xml))'),
+          decodeURIComponent('$escapetool.javascript($escapetool.url($fileName))')
+        );
+      } catch(e) {
+        window.parent.showOpenAlert({
+          message: window.parent.mxResources.get('notAUtf8File')
+        });
+      }
+    #end
+    #outputScript($code)
+  #end
+#end
+{{/velocity}}</content>
+</xwikidoc>
