@@ -1052,6 +1052,44 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
 });
 
 /**
+  * In case external services are disabled, stop the features that require it (export of pdf from diagram editor
+  * or png / jpeg export on IE) and show an info dialog.
+  */
+define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], function($, diagramConfig) {
+  var showDisabledServicesDialog = function(editorUi) {
+    var errorMessage = $('&lt;div&gt;&lt;/div')
+      .html("$services.localization.render('diagram.editor.disabledExternalServices')");
+    errorMessage.addClass('externalServicesDialog');
+    var dlg = new CustomDialog(/*editorUi*/ editorUi, /*content*/ errorMessage[0], /*okFn*/ null, /*cancelFn*/ null,
+                               /*okButtonText*/ mxResources.get('ok'), /*helpLink*/ null, /*buttonsContent*/ null,
+                               /*hideCancel*/ true);
+    editorUi.showDialog(dlg.container, 250, 75, true, true);
+  }
+
+  // This is used from File -&gt; Export as.
+  var originalCreateDownloadRequest = EditorUi.prototype.createDownloadRequest;
+  EditorUi.prototype.createDownloadRequest = function(filename, format, ignoreSelection, base64, transparent,
+      currentPage, scale, border, grid, includeXml) {
+    if (diagramConfig.disableExternalServices) {
+      showDisabledServicesDialog(this);
+      return;
+    }
+    return originalCreateDownloadRequest.apply(this, arguments);
+  };
+
+  // This is used from File -&gt; Export as -&gt; Advanced...
+  var originalExportFile = ExportDialog.exportFile;
+  ExportDialog.exportFile = function(editorUi, name, format, bg, s, b, dpi) {
+    if (diagramConfig.disableExternalServices &amp;&amp; (format == 'pdf' ||
+        (['png', 'jpg', 'jpeg'].indexOf(format) != -1 &amp;&amp; !editorUi.isExportToCanvas()))) {
+      showDisabledServicesDialog(editorUi);
+      return;
+    }
+    return originalExportFile.apply(this, arguments);
+  }
+});
+
+/**
  * Integrates draw.io diagram editor in XWiki.
  */
 define('diagram-editor', [
@@ -1061,7 +1099,8 @@ define('diagram-editor', [
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
-  'diagram-url-io'
+  'diagram-url-io',
+  'diagram-external-services'
 ], function($, diagramStore, diagramUtils) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
