@@ -626,7 +626,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     } else {
       h = Math.round(h / 2 - fontSize / 2);
     }
-    return {w, h};
+    return {'w': w, 'h': h};
   }
 
   // Create the basis of a svg element. Calculate new coordinates if is needed.
