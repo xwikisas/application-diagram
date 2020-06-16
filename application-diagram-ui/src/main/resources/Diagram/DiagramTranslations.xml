@@ -72,10 +72,13 @@ diagram.macro.viewNotAllowed=You are not allowed to view this diagram.
 
 # Diagram editor
 diagram.editor.saveAsImageAttachmentError=Error when saving the diagram as an image attachment.
+diagram.editor.disabledExternalServices=External services are disabled.
 
 # Diagram Configuration
 Diagram.DiagramConfigClass_exportURL=Export URL
-Diagram.DiagramConfigClass_exportURL_hint=The URL used to export the diagrams as image or PDF.</content>
+Diagram.DiagramConfigClass_exportURL_hint=The URL used to export the diagrams as image or PDF.
+Diagram.DiagramConfigClass_disableExternalServices=Disable External Services
+Diagram.DiagramConfigClass_disableExternalServices_hint=Disable features that require an external server</content>
   <object>
     <name>Diagram.DiagramTranslations</name>
     <number>0</number>

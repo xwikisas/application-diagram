@@ -43,6 +43,23 @@
 #macro (stripHTMLMacro $displayOutput)
   $stringtool.removeEnd($stringtool.removeStart($displayOutput, '{{html clean="false" wiki="false"}}'), '{{/html}}')
 #end
+#macro (showProperty $propertyName)
+  &lt;dl&gt;
+    &lt;dt&gt;
+      #set ($propertyClass = $xclass.get($propertyName))
+      &lt;label#if ($editing) for="${diagramConfigClassName}_0_${propertyName}"#end&gt;
+        $escapetool.xml($propertyClass.translatedPrettyName)
+      &lt;/label&gt;
+      #set ($hint = $propertyClass.hint)
+      #if ("$!hint" == '')
+        #set ($hint = $services.localization.render("${diagramConfigClassName}_${propertyName}_hint"))
+      #end
+      &lt;span class="xHint"&gt;$escapetool.xml($hint)&lt;/span&gt;
+    &lt;/dt&gt;
+    #set ($displayOutput = $doc.display($propertyName, $mode))
+    &lt;dd&gt;#stripHTMLMacro($displayOutput)&lt;/dd&gt;
+  &lt;/dl&gt;
+#end
 {{/velocity}}
 
 {{velocity}}
@@ -61,21 +78,8 @@
 #else
   &lt;div class="diagram-config xform"&gt;
 #end
-  &lt;dl&gt;
-    &lt;dt&gt;
-      #set ($propertyClass = $xclass.get('exportURL'))
-      &lt;label#if ($editing) for="${diagramConfigClassName}_0_exportURL"#end&gt;
-        $escapetool.xml($propertyClass.translatedPrettyName)
-      &lt;/label&gt;
-      #set ($hint = $propertyClass.hint)
-      #if ("$!hint" == '')
-        #set ($hint = $services.localization.render("${diagramConfigClassName}_exportURL_hint"))
-      #end
-      &lt;span class="xHint"&gt;$escapetool.xml($hint)&lt;/span&gt;
-    &lt;/dt&gt;
-    #set ($displayOutput = $doc.display('exportURL', $mode))
-    &lt;dd&gt;#stripHTMLMacro($displayOutput)&lt;/dd&gt;
-  &lt;/dl&gt;
+  #showProperty('exportURL')
+  #showProperty('disableExternalServices')
 #if ($xcontext.action == 'admin')
   &lt;p&gt;
     &lt;input type="submit" class="btn btn-primary" name="action_saveandcontinue"
