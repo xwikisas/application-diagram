@@ -873,9 +873,9 @@ define('diagram-link-editor', [
           // or any non squared shape, there is no rect and we fallback to the initial width of the text node, which is
           // less accurate.
           var containerWidth = this.state.initialWidth;
-          var rectangles = $(fo.parentNode.parentNode).find('rect');
-          if (rectangles) {
-            var containerWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
+          var prevNode = $(fo.parentNode).prev()[0];
+          if (prevNode.nodeName == 'rect') {
+            var containerWidth = prevNode.width.baseVal.valueAsString;
           }
           try {
             if (childNodes.length &gt; 0) {
