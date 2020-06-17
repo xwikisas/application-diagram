@@ -661,7 +661,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     return alt;
   };
 
-  var convertTextElementToSvg = function(element, s, w, h, htmlConverter, str, rectWidth, isFirstChild) {
+  var convertTextElementToSvg = function(element, s, w, h, htmlConverter, str, containerWidth, isFirstChild) {
     if (element.tagName.toLowerCase() == 'br') {
       return document.createElementNS('http://www.w3.org/2000/svg', "text");
     }
@@ -678,18 +678,18 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var alt = createSvgElement(s, w, h, tag, element, true);
     h = parseInt(alt.getAttribute('y'));
 
-    // Consider rectWidth as the container width to do the word wrap when needed. Add the inner html only if the
+    // Consider containerWidth as the maximal width to do the word wrap when needed. Add the inner html only if the
     // element is not a list, since the text should be distributed to children instead of being shown at once. The same
-    // is applied for when the text is longer then the rectWidth, since it will be distributed to tspan elements.
-    // Shorten the rectWidth send to text wrapper for 'li' elements since in their case an adittional space is added
-    // for the bullet delimiter and it shouldn't be included.
+    // is applied for when the text is longer then the containerWidth, since it will be distributed to tspan elements.
+    // Shorten the containerWidth send to text wrapper for 'li' elements since in their case an adittional space is
+    // added for the bullet delimiter and it shouldn't be included.
     htmlConverter.innerHTML = element.innerText;
     var content = htmlConverter.value;
     var contentWidth = getStrWidth(content, s);
     if (!isListElement(element)) {
-      if (contentWidth &gt; rectWidth) {
-        rectWidth = isListItem(element) ? rectWidth - listBorder : rectWidth;
-        wrapText(alt, s, w, h, content, contentWidth, rectWidth);
+      if (contentWidth &gt; containerWidth) {
+        containerWidth = isListItem(element) ? containerWidth - listBorder : containerWidth;
+        wrapText(alt, s, w, h, content, contentWidth, containerWidth);
       } else {
         alt.textContent = htmlConverter.value;
       }
@@ -701,7 +701,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       // TODO: Don't append alt element, unless it has a content.
       container.appendChild(alt);
       element.childElements().each(function(child) {
-        var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, rectWidth, false);
+        var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, containerWidth, false);
         if (childSvg != undefined) {
           container.appendChild(childSvg);
         }
@@ -739,7 +739,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
    * &lt;span&gt;"Simple text" &lt;b&gt;Bolded text&lt;/b&gt;&lt;/span&gt;
    * &lt;/div&gt;
   */
-  var convertPartiallyStyledParagraphToSVG = function(childNodes, s, w, h, htmlConverter, str, rectWidth) {
+  var convertPartiallyStyledParagraphToSVG = function(childNodes, s, w, h, htmlConverter, str, containerWidth) {
     takenCoordinates = [];
     var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
     w = coordinates.w;
@@ -754,7 +754,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
     if(simpleNodes.length == childNodes.length) {
       var element = $('&lt;span&gt;&lt;/span&gt;').html(str)[0];
-      var alt = convertTextElementToSvg(element, s, w, h, htmlConverter, str, rectWidth, true);
+      var alt = convertTextElementToSvg(element, s, w, h, htmlConverter, str, containerWidth, true);
       return alt;
     }
 
@@ -776,12 +776,12 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       h = maybeChangeHeight(w, h, element);
       var alt = createSvgElement(s, w, h, /* tag */ 'text', /* element */ element, /* addAnchor */ true);
 
-      // Set text content. Manually do text wrapping when the text is longer then the rectWidth by distributing it
+      // Set text content. Manually do text wrapping when the text is longer then the containerWidth by distributing it
       // to tspan elements.
       var textContent = element.innerText;
       var contentWidth = getStrWidth(textContent, s);
-      if (contentWidth &gt; rectWidth) {
-        wrapText(alt, s, w, h, textContent, contentWidth, rectWidth);
+      if (contentWidth &gt; containerWidth) {
+        wrapText(alt, s, w, h, textContent, contentWidth, containerWidth);
       } else {
         alt.textContent = textContent;
       }
@@ -818,6 +818,14 @@ define('diagram-link-editor', [
     }).done(function(resourceReference) {
       callback(diagramLinkHandler.getCustomLinkFromResourceReference(resourceReference));
     });
+  };
+
+  // For some cases, to consider wrapping or overflow, w might be altered and we need to keep the initial value as
+  // it was from bounds.width of the base mxText node.
+  var originalText = mxSvgCanvas2D.prototype.text;
+  mxSvgCanvas2D.prototype.text = function(x, y, w, h, str, align, valign, wrap, format, overflow, clip, rotation, dir) {
+    this.state.initialWidth = w;
+    return originalText.apply(this, arguments);
   };
 
   // Overwrite Graph.getSvg in order to replace XWiki custom links with absolute URLs.
@@ -861,9 +869,14 @@ define('diagram-link-editor', [
           var temporaryContent = document.createElementNS('http://www.w3.org/2000/svg', 'g');
           var elementsContainer = $(fo).children().first().children().first();
           var childNodes = elementsContainer.contents();
-          // Take the width from parent rect, which is the last one found.
+          // Consider the container width to be the width of the closest rect parent node. For some shapes, like Actor
+          // or any non squared shape, there is no rect and we fallback to the initial width of the text node, which is
+          // less accurate.
+          var containerWidth = this.state.initialWidth;
           var rectangles = $(fo.parentNode.parentNode).find('rect');
-          var rectWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
+          if (rectangles) {
+            var containerWidth = rectangles[rectangles.length - 1].width.baseVal.valueAsString;
+          }
           try {
             if (childNodes.length &gt; 0) {
               var isPartiallyStyledElement = false;
@@ -878,11 +891,11 @@ define('diagram-link-editor', [
                 // the text.
                 if (svgHandler.isParagraphWithPartialStyle(node, childNodes.length)) {
                   alt = svgHandler.convertPartiallyStyledParagraphToSVG(childNodes, s, w, h, htmlConverter, str,
-                    rectWidth);
+                    containerWidth);
                   isPartiallyStyledElement = true;
                   return false;
                 } else {
-                  alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, rectWidth, index == 0);
+                  alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, containerWidth, index == 0);
                   temporaryContent.appendChild(alt);
                 }
               });
