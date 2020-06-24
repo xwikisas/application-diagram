@@ -207,8 +207,10 @@
           selectedResource.reference = entry.value;
         }
       }
-      deferred.resolve(selectedResource);
-      modal.modal('hide');
+      // In IE the text needs to be visible before creating the link on it, so we wait for the modal to be closed.
+      modal.one('hidden.bs.modal', function() {
+        deferred.resolve(selectedResource);
+      }).modal('hide');
     });
     if (typeof settings.selectLabel === 'string') {
       selectButton.text(settings.selectLabel);
