@@ -518,7 +518,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         var link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
         link.setAttribute('x', w);
         link.setAttribute('y', h);
-        link.setAttribute('xlink:href', element.href);
+        link.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', element.href);
         // Add link decorations for the text.
         alt.setAttribute('fill', '#0000EE');
         alt.setAttribute('text-decoration', 'underline');
