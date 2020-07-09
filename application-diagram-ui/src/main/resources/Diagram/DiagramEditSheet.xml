@@ -494,17 +494,38 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         // container, meaning also for ul and ol elements.
         alt.removeAttribute('text-anchor');
 
+        // Adapt elements for XWiki PDF export since links are not displayed when 'a' tag is placed inside a 'text'
+        // element.
+        var isLinkTag = alt.tagName.toLowerCase() == 'a';
+
         // Have a bullet for each row.
-        var delimiter = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        var delimiter = document.createElementNS('http://www.w3.org/2000/svg', isLinkTag ? 'text' : 'tspan');
         delimiter.textContent = "•";
         delimiter.setAttribute('x', w - 2 * spaceWidth);
+        delimiter.setAttribute('y', h);
 
         // Move all to a container.
-        var container = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        var container = document.createElementNS('http://www.w3.org/2000/svg', isLinkTag ? 'g' : 'text');
         container.setAttribute('x', w);
         container.setAttribute('y', h);
         container.appendChild(delimiter);
+
+        if (isLinkTag) {
+          // The text inside alt is distributed to 'tspan' elements and since they are showned only if are placed
+          // under a 'text' parent, we add it between them and the link.
+          var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.appendChild($(alt).children()[0]);
+          $(alt).html('');
+          alt.appendChild(text);
+        }
+
+        // If alt comes from a container, we should preserve the original parent.
+        var parent = alt.parentElement;
         container.appendChild(alt);
+        if (parent != null) {
+          parent.appendChild(container);
+          parent.removeAttribute('text-anchor');
+        }
         return container;
       case 'ul':
         // See comment from case 'li'.
@@ -514,6 +535,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         // See comment from care 'li'.
         alt.removeAttribute('text-anchor');
         break;
+      case 'u':
+        alt.setAttribute('text-decoration', 'underline');
+        break;
       case 'a':
         var link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
         link.setAttribute('x', w);
@@ -522,7 +546,13 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         // Add link decorations for the text.
         alt.setAttribute('fill', '#0000EE');
         alt.setAttribute('text-decoration', 'underline');
+        alt.removeAttribute('text-anchor');
+        // If alt comes from a container, we should preserve the original parent.
+        var parent = alt.parentElement;
         link.appendChild(alt);
+        if (parent != null) {
+          parent.appendChild(link);
+        }
         return link;
       default:
         return alt;
@@ -571,6 +601,27 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     });
   };
 
+  /*
+   * Consider containerWidth as the maximal width to do the word wrap when needed. Add the inner html only if the
+   * element is not a list, since the text should be distributed to children instead of being shown at once. The same
+   * is applied for when the text is longer then the containerWidth, since it will be distributed to tspan elements.
+   * Shorten the containerWidth send to text wrapper for 'li' elements since in their case an adittional space is
+   * added for the bullet delimiter and it shouldn't be included.
+  */
+  var addTextContent= function(element, htmlConverter, s, containerWidth, alt, w, h) {
+    htmlConverter.innerHTML = element.innerText;
+    var content = htmlConverter.value;
+    var contentWidth = getStrWidth(content, s);
+    if (!isListElement(element)) {
+      if (contentWidth &gt; containerWidth) {
+        containerWidth = isListItem(element) ? containerWidth - listBorder : containerWidth;
+        wrapText(alt, s, w, h, content, contentWidth, containerWidth);
+      } else {
+        alt.textContent = htmlConverter.value;
+      }
+    }
+  }
+
   var isHeadingElement = function(element) {
     var tag = element.tagName.toLowerCase();
     return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(tag) != -1;
@@ -599,6 +650,32 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
     return node.nodeType === 3 || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
   };
+
+  var isStyleElement = function(element) {
+    if (element == null) { return false; }
+    return ['b', 'i', 'u', 'a'].indexOf(element.tagName.toLowerCase()) != -1 || isHeadingElement(element);
+  };
+
+  /*
+   * Get multiple styles of an element (i.e. b, i, u, a tags)
+  */
+  var getStylesFromElement = function(element) {
+    var styles = [];
+    // Partially styled elements are not supported, so consider only the styles of the main element.
+    var parentTextLength = element.parentElement.textContent.length;
+    if (element.textContent.length == parentTextLength) {
+      styles.push(element);
+    }
+    // Consider not just direct children.
+    var childElements = element.getElementsByTagName("*");
+    for (i = 0; i &lt; childElements.length; i++) {
+      var child = childElements[i];
+      if (child.textContent.length == parentTextLength) {
+        styles.push(child);
+      }
+    };
+    return styles;
+  }
 
   // For the current block of text take into consideration if those coordinates are already in use.
   // This is used when we are manually computing the container of children elements.
@@ -678,32 +755,26 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var alt = createSvgElement(s, w, h, tag, element, true);
     h = parseInt(alt.getAttribute('y'));
 
-    // Consider containerWidth as the maximal width to do the word wrap when needed. Add the inner html only if the
-    // element is not a list, since the text should be distributed to children instead of being shown at once. The same
-    // is applied for when the text is longer then the containerWidth, since it will be distributed to tspan elements.
-    // Shorten the containerWidth send to text wrapper for 'li' elements since in their case an adittional space is
-    // added for the bullet delimiter and it shouldn't be included.
-    htmlConverter.innerHTML = element.innerText;
-    var content = htmlConverter.value;
-    var contentWidth = getStrWidth(content, s);
-    if (!isListElement(element)) {
-      if (contentWidth &gt; containerWidth) {
-        containerWidth = isListItem(element) ? containerWidth - listBorder : containerWidth;
-        wrapText(alt, s, w, h, content, contentWidth, containerWidth);
-      } else {
-        alt.textContent = htmlConverter.value;
-      }
-    }
+    addTextContent(element, htmlConverter, s, containerWidth, alt, w, h);
 
-    // Convert recursively the children. Have a container that will hold the text element in case it has other children.
+    // Convert recursively the children. Have a container that will hold the elements in case there are other children.
+    // Consider the case when multiple styles are added to an element (e.g. &lt;i&gt;&lt;b&gt;txt&lt;/b&gt;&lt;/i&gt;).
+    // Traverse all children and keep the styles to just one element.
     if (element.childElements().length &gt; 0) {
       var container = createSvgElement(s, w, h, 'g', null, !isListElement(element));
       // TODO: Don't append alt element, unless it has a content.
       container.appendChild(alt);
       element.childElements().each(function(child) {
-        var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, containerWidth, false);
-        if (childSvg != undefined) {
-          container.appendChild(childSvg);
+        if (isStyleElement(child)) {
+          var styles = getStylesFromElement(child);
+          styles.each(function(style) {
+            alt = addTagSpecificStyle(style, s, w, h, htmlConverter, str, alt, true);
+          });
+        } else {
+          var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, containerWidth, false);
+          if (childSvg != undefined) {
+            container.appendChild(childSvg);
+          }
         }
       });
     }
