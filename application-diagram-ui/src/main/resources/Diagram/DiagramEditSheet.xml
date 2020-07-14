@@ -543,9 +543,19 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         link.setAttribute('x', w);
         link.setAttribute('y', h);
         link.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', element.href);
-        // Add link decorations for the text.
-        alt.setAttribute('fill', '#0000EE');
-        alt.setAttribute('text-decoration', 'underline');
+        // Add link decorations for the text. Some styles added to a 'g' are not distributed to it's children by FOP,
+        // so we do it manually.
+        if (alt.tagName.toLowerCase() == 'g') {
+          var childNodes = $(alt).children();
+          childNodes.each(function(index) {
+            var child = childNodes[index];
+            child.setAttribute('fill', '#0000EE');
+            child.setAttribute('text-decoration', 'underline');
+          });
+        } else {
+          alt.setAttribute('fill', '#0000EE');
+          alt.setAttribute('text-decoration', 'underline');
+        }
         alt.removeAttribute('text-anchor');
         // If alt comes from a container, we should preserve the original parent.
         var parent = alt.parentElement;
@@ -629,7 +639,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var isBlockElement = function(element) {
     var tag = element.tagName.toLowerCase();
-    return ['li', 'p', 'div'].indexOf(tag) != -1 || isHeadingElement(element);
+    return ['p', 'div'].indexOf(tag) != -1 || isHeadingElement(element);
   };
 
   var isListElement = function(element) {
@@ -647,9 +657,27 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     return element &amp;&amp; element.tagName.toLowerCase() == 'li';
   };
 
-  var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
+  var isNodeWithPartialStyle = function(node, nbOfSiblings) {
     return node.nodeType === 3 || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
   };
+
+  var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
+    if (isNodeWithPartialStyle(node, nbOfSiblings)) {
+      return true;
+    }
+
+    // Consider also indirect children.
+    var childNodes = $(node).contents();
+    if ($(node).children().length &gt; 0) {
+      for (var i = 0; i &lt; childNodes.length; i++) {
+        var child = childNodes[i];
+        if (isParagraphWithPartialStyle(child, childNodes.length) == true) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   var isStyleElement = function(element) {
     if (element == null) { return false; }
@@ -666,14 +694,14 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     if (element.textContent.length == parentTextLength) {
       styles.push(element);
     }
-    // Consider not just direct children.
+    // Consider also indirect children.
     var childElements = element.getElementsByTagName("*");
     for (i = 0; i &lt; childElements.length; i++) {
       var child = childElements[i];
       if (child.textContent.length == parentTextLength) {
         styles.push(child);
       }
-    };
+    }
     return styles;
   }
 
@@ -707,9 +735,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   }
 
   // Create the basis of a svg element. Calculate new coordinates if is needed.
-  var createSvgElement = function(s, w, h, tag, element, addAnchor) {
+  var createSvgElement = function(s, w, h, tag, element, addAnchor, isPartiallyStyledElement) {
     var alt = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    if (element &amp;&amp; isBlockElement(element)) {
+    if (element &amp;&amp; (isBlockElement(element) || isListItem(element) || isPartiallyStyledElement)) {
       h = maybeChangeHeight(w, h, element);
     }
     alt.setAttribute('x', w);
@@ -816,7 +844,19 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     w = coordinates.w;
     h = coordinates.h;
 
-    var container = createSvgElement(s, w, h, 'g', null, true);
+    var container = createSvgElement(s, w, h, /* tag */ 'g', /* element */ null,
+        /* addAnchor */ !isListElement(childNodes[0]));
+    // Go to last level of child nodes in case there is a style added to the root element. Keep the styles to add
+    // them after assembling the element with its children.
+    var styles = [];
+    while (childNodes.length == 1 &amp;&amp; $(childNodes[0]).children().length &gt; 0) {
+      var rootNode = childNodes[0];
+      if (isStyleElement(rootNode)) {
+        styles.push(rootNode);
+      }
+      childNodes = $(rootNode).contents();
+    }
+
     // Resolve the basic case where the element is just a phrase with a styled element. Remove this after fixing
     // the TODO described in the comment above.
     var simpleNodes= childNodes.filter(function() {
@@ -843,22 +883,21 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         return;
       }
 
-      // Modify the height if needed.
-      h = maybeChangeHeight(w, h, element);
-      var alt = createSvgElement(s, w, h, /* tag */ 'text', /* element */ element, /* addAnchor */ true);
+      // Consider that list elements will be moved to a 'text' container and in this case 'tspan' should be used as
+      // child tag. Specify that it is a partially styled element because in this case it could contain '&lt;br&gt;'
+      // tags and the children would need to have changed coordinates (heights) when they are created.
+      var alt = createSvgElement(s, w, h, /* tag */ isListItem(element) ? 'tspan' : 'text', /* element */ element,
+          /* addAnchor */ true, /* isPartiallyStyledElement */ true);
+      h = parseInt(alt.getAttribute('y'));
 
-      // Set text content. Manually do text wrapping when the text is longer then the containerWidth by distributing it
-      // to tspan elements.
-      var textContent = element.innerText;
-      var contentWidth = getStrWidth(textContent, s);
-      if (contentWidth &gt; containerWidth) {
-        wrapText(alt, s, w, h, textContent, contentWidth, containerWidth);
-      } else {
-        alt.textContent = textContent;
-      }
+      addTextContent(element, htmlConverter, s, containerWidth, alt, w, h);
 
       alt = addTagSpecificStyle(element, s, w, h, htmlConverter, str, alt);
-      container.appendChild(alt)
+      container.appendChild(alt);
+    });
+    // Consider the case when multiple styles are added to the root element.
+    styles.each(function(style) {
+      container = addTagSpecificStyle(style, s, w, h, htmlConverter, str, container, true);
     });
     return container;
 
