@@ -630,7 +630,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         alt.textContent = htmlConverter.value;
       }
     }
-  }
+  };
 
   var isHeadingElement = function(element) {
     var tag = element.tagName.toLowerCase();
@@ -677,7 +677,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       }
     }
     return false;
-  }
+  };
 
   var isStyleElement = function(element) {
     if (element == null) { return false; }
@@ -703,7 +703,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       }
     }
     return styles;
-  }
+  };
 
   // For the current block of text take into consideration if those coordinates are already in use.
   // This is used when we are manually computing the container of children elements.
