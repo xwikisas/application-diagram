@@ -485,7 +485,7 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   var originalImportGraphModel = Graph.prototype.importGraphModel;
   Graph.prototype.importGraphModel = function(node, dx, dy, crop) {
     filter(this, node, onImportImage, onImportLink, onImportBackgroundImage);
-    originalImportGraphModel.call(this, node, dx, dy, crop);
+    return originalImportGraphModel.call(this, node, dx, dy, crop);
   };
 
   var filter = function(graph, node, filterImage, filterLink, filterBackgroundImage) {
