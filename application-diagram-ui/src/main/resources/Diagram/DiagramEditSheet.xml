@@ -496,7 +496,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
         // Adapt elements for XWiki PDF export since links are not displayed when 'a' tag is placed inside a 'text'
         // element.
-        var isLinkTag = alt.tagName.toLowerCase() == 'a';
+        var isLinkTag = alt.tagName.toLowerCase() === 'a';
 
         // Have a bullet for each row.
         var delimiter = document.createElementNS('http://www.w3.org/2000/svg', isLinkTag ? 'text' : 'tspan');
@@ -514,8 +514,11 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
           // The text inside alt is distributed to 'tspan' elements and since they are showned only if are placed
           // under a 'text' parent, we add it between them and the link.
           var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          // Copy only first child since it refers to the actual text content which, dependending on whether the
+          // text needed wrapping or not, is a 'tspan' with either just text inside or with multiple children
+          // representing the wrapped text.
           text.appendChild($(alt).children()[0]);
-          $(alt).html('');
+          $(alt).empty();
           alt.appendChild(text);
         }
 
@@ -547,10 +550,9 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         // so we do it manually.
         if (alt.tagName.toLowerCase() == 'g') {
           var childNodes = $(alt).children();
-          childNodes.each(function(index) {
-            var child = childNodes[index];
-            child.setAttribute('fill', '#0000EE');
-            child.setAttribute('text-decoration', 'underline');
+          childNodes.each(function() {
+            this.setAttribute('fill', '#0000EE');
+            this.setAttribute('text-decoration', 'underline');
           });
         } else {
           alt.setAttribute('fill', '#0000EE');
