@@ -247,7 +247,9 @@
       <name>diagram.template.name</name>
     </property>
     <property>
-      <spaces/>
+      <spaces>
+        <value>Diagram</value>
+      </spaces>
     </property>
     <property>
       <template>Diagram.DiagramTemplate</template>

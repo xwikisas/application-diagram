@@ -89,15 +89,6 @@
       <version>${rendering.version}</version>
       <scope>runtime</scope>
     </dependency>
-    <!-- This application is needed to preselect the Diagram template at creation step according to
-      https://github.com/xwikisas/application-diagram/issues/13 only for xwiki versions until 9.5 -->
-    <dependency>
-      <groupId>com.xwiki.defaultPageTemplate</groupId>
-      <artifactId>application-defaultPageTemplate</artifactId>
-      <version>1.4</version>
-      <scope>runtime</scope>
-      <type>xar</type>
-    </dependency>
     <!-- WebJars -->
     <dependency>
       <groupId>org.webjars</groupId>
