@@ -155,8 +155,7 @@ public class DiagramLinkHandler
             }
 
             // The value attribute contains the text element, which could contain one or more links.
-            List<String> oldSources = getLinksFromEmbeddedNode(value);
-            for (String oldSource : oldSources) {
+            for (String oldSource : getLinksFromEmbeddedNode(value)) {
                 if (oldSource != null && isXWikiCustomLink(oldSource)
                     && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
                     String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
