@@ -206,7 +206,7 @@ public class DiagramLinkHandler
     }
 
     /**
-     * Get href values from the content of a text element.
+     * Get links from the content of a text element.
      * 
      * @param value value of the text element.
      * @return links inside text element
