@@ -59,16 +59,10 @@ public class GetDiagramLinksHandler extends DefaultHandler
     @Override
     public void startElement(String uri, String key, String qName, Attributes attributes) throws SAXException
     {
-        String link = null;
-
         if (qName.equalsIgnoreCase(DiagramLinkHandler.USEROBJECT)) {
-            link = linkHandler.getUserObjectNodeLink(attributes.getValue("link"));
+            linkedPages.add(linkHandler.getUserObjectNodeLink(attributes.getValue("link")));
         } else if (qName.equalsIgnoreCase(DiagramLinkHandler.MXCELL)) {
-            link = linkHandler.getMxCellNodeLink(attributes.getValue("value"));
-        }
-
-        if (link != null) {
-            linkedPages.add(link);
+            linkedPages.addAll(linkHandler.getMxCellNodeLinks(attributes.getValue("value")));
         }
     }
 
