@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -195,7 +196,7 @@ public class DiagramLinkHandler
         try {
             // The value attribute contains the text element, which could contain one or more links.
             links = getLinksFromEmbeddedNode(value);
-            links = links.stream().filter(link -> (link != null && isXWikiCustomLink(link)))
+            links = links.stream().filter(Objects::nonNull).filter(this::isXWikiCustomLink)
                 .map(link -> getResourceReferenceFromCustomLink(link)).collect(Collectors.toList());
         } catch (ParserConfigurationException | IOException | SAXException e) {
             logger.warn("Failed while parsing a mxCell node", e);
@@ -222,9 +223,7 @@ public class DiagramLinkHandler
         NodeList nodes = doc.getElementsByTagName("a");
         for (int i = 0; i < nodes.getLength(); i++) {
             Element node = (Element) nodes.item(i);
-            if (node != null) {
-                hrefValues.add(node.getAttribute(HREF));
-            }
+            hrefValues.add(node.getAttribute(HREF));
         }
         return hrefValues;
     }
