@@ -21,6 +21,10 @@ package com.xwiki.diagram.internal.handlers;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -30,6 +34,7 @@ import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
@@ -150,12 +155,13 @@ public class DiagramLinkHandler
                 return;
             }
 
-            // The value attribute contains an 'a' node that holds the link value.
-            String oldSource = getLinkFromEmbeddedNode(value);
-            if (oldSource != null && isXWikiCustomLink(oldSource)
-                && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
-                String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
-                linkNode.setNodeValue(value.replace(oldSource, newSource));
+            // The value attribute contains the text element, which could contain one or more links.
+            for (String oldSource : getLinksFromEmbeddedNode(value)) {
+                if (oldSource != null && isXWikiCustomLink(oldSource)
+                    && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
+                    String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
+                    linkNode.setNodeValue(value.replace(oldSource, newSource));
+                }
             }
 
         }
@@ -176,48 +182,49 @@ public class DiagramLinkHandler
     }
 
     /**
-     * Get link from inside mxCell node of the diagram.
+     * Get links from inside mxCell node of the diagram.
      * 
-     * @param value link node in string format
-     * @return resource reference
+     * @param value text element content in string format
+     * @return resource references inside text element
      */
-    public String getMxCellNodeLink(String value)
+    public List<String> getMxCellNodeLinks(String value)
     {
+        List<String> links = new ArrayList<String>();
         if (value == null || value.indexOf(DiagramLinkHandler.HREF) == -1) {
-            return null;
+            return links;
         }
-
         try {
-            // The value attribute contains an 'a' node that holds the link value.
-            String link = getLinkFromEmbeddedNode(value);
-            if (link != null && isXWikiCustomLink(link)) {
-                return getResourceReferenceFromCustomLink(link);
-            }
+            // The value attribute contains the text element, which could contain one or more links.
+            links = getLinksFromEmbeddedNode(value);
+            links = links.stream().filter(Objects::nonNull).filter(this::isXWikiCustomLink)
+                .map(link -> getResourceReferenceFromCustomLink(link)).collect(Collectors.toList());
         } catch (ParserConfigurationException | IOException | SAXException e) {
             logger.warn("Failed while parsing a mxCell node", e);
         }
 
-        return null;
+        return links;
     }
 
     /**
-     * Get link from value attribute of another node.
+     * Get links from the content of a text element.
      * 
-     * @param value the node that contains the link
-     * @return link inside node attribute
+     * @param value value of the text element.
+     * @return links inside text element
      * @throws ParserConfigurationException if document builder cannot be created
      * @throws IOException if parsing the document fails
      * @throws SAXException if parsing the document fails
      */
-    private String getLinkFromEmbeddedNode(String value) throws SAXException, IOException, ParserConfigurationException
+    private List<String> getLinksFromEmbeddedNode(String value)
+        throws SAXException, IOException, ParserConfigurationException
     {
-        // Create a DOM using the value and take the href attribute from inside the a element.
-        // TODO: iterate though children nodes since there could be multiple links inside the given value.
+        List<String> hrefValues = new ArrayList<String>();
+        // Create a DOM using value for getting the href of 'a' elements inside it.
         Document doc = defaultHTMLCleaner.clean(new StringReader(value));
-        Element node = (Element) doc.getElementsByTagName("a").item(0);
-        if (node != null) {
-            return node.getAttribute(HREF);
+        NodeList nodes = doc.getElementsByTagName("a");
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Element node = (Element) nodes.item(i);
+            hrefValues.add(node.getAttribute(HREF));
         }
-        return null;
+        return hrefValues;
     }
 }
