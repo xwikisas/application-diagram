@@ -218,7 +218,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.RESOURCE_BASE = RESOURCES_PATH + '/dia';
   window.STENCIL_PATH = drawIOBasePath + 'stencils';
   window.IMAGE_PATH = drawIOBasePath + 'images';
-  window.STYLE_PATH = CSS_PATH = drawIOBasePath + 'styles';
+  window.STYLE_PATH = window.CSS_PATH = drawIOBasePath + 'styles';
   window.SHAPES_PATH = drawIOBasePath + 'shapes';
   window.GRAPH_IMAGE_PATH = drawIOBasePath + 'img';
   window.TEMPLATE_PATH = drawIOBasePath + 'templates';
