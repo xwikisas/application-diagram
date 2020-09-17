@@ -635,44 +635,36 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var getTagName = function(element) {
-    if (!element) { return ''; }
+    if (!element || isTextNode(element)) { return ''; }
     return element.tagName.toLowerCase();
   };
 
-  var isTextElement = function(element) {
-    if (!element) { return false; }
-    return element.nodeType == 3;
+  var isTextNode = function(element) {
+    return element &amp;&amp; element.nodeType === 3;
   };
 
   var isHeadingElement = function(element) {
-    if (!element) { return false; }
-    return !isTextElement(element) &amp;&amp; ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getTagName(element)) != -1;
+    return  ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getTagName(element)) != -1;
   };
 
   var isBlockElement = function(element) {
-    if (!element) { return false; }
-    return !isTextElement(element) &amp;&amp;
-      (['p', 'div'].indexOf(getTagName(element)) != -1 || isHeadingElement(element));
+    return ['p', 'div'].indexOf(getTagName(element)) != -1 || isHeadingElement(element);
   };
 
   var isListElement = function(element) {
-    if (!element) { return false; }
-    return !isTextElement(element) &amp;&amp; ['ul', 'ol'].indexOf(getTagName(element)) != -1;
+    return ['ul', 'ol'].indexOf(getTagName(element)) != -1;
   };
 
   var isInlineElement = function(element) {
-    if (!element) { return false; }
-    return !isTextElement(element) &amp;&amp; ['b', 'i', 'span'].indexOf(getTagName(element)) != -1;
+    return  ['b', 'i', 'span'].indexOf(getTagName(element)) != -1;
   };
 
   var isListItem = function(element) {
-    if (!element) { return false; }
-    return !isTextElement(element) &amp;&amp; getTagName(element) == 'li';
+    return getTagName(element) == 'li';
   };
 
   var isNodeWithPartialStyle = function(node, nbOfSiblings) {
-    if (!node) { return false; }
-    return isTextElement(node) || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
+    return isTextNode(node) || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
   };
 
   var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
@@ -876,7 +868,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     // Resolve the basic case where the element is just a phrase with a styled element. Remove this after fixing
     // the TODO described in the comment above.
     var simpleNodes= childNodes.filter(function() {
-      return isTextElement(this) || isInlineElement(this);
+      return isTextNode(this) || isInlineElement(this);
     });
 
     if(simpleNodes.length == childNodes.length) {
@@ -892,7 +884,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     childNodes.each(function(index) {
       var element = $(this).clone()[0];
       // Convert text content to element for consistency.
-      if (isTextElement(element)) {
+      if (isTextNode(element)) {
         element = $('&lt;span&gt;&lt;/span&gt;').html(element.textContent)[0];
       }
 
