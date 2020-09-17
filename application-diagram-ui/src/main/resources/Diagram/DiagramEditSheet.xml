@@ -635,32 +635,31 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var getTagName = function(element) {
-    if (!element || isTextNode(element)) { return ''; }
-    return element.tagName.toLowerCase();
+    return element &amp;&amp; element.tagName &amp;&amp; element.tagName.toLowerCase();
   };
 
-  var isTextNode = function(element) {
-    return element &amp;&amp; element.nodeType === 3;
+  var isTextNode = function(node) {
+    return node &amp;&amp; node.nodeType === 3;
   };
 
   var isHeadingElement = function(element) {
-    return  ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getTagName(element)) != -1;
+    return  ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getTagName(element)) &gt;= 0;
   };
 
   var isBlockElement = function(element) {
-    return ['p', 'div'].indexOf(getTagName(element)) != -1 || isHeadingElement(element);
+    return ['p', 'div'].indexOf(getTagName(element)) &gt;= 0 || isHeadingElement(element);
   };
 
   var isListElement = function(element) {
-    return ['ul', 'ol'].indexOf(getTagName(element)) != -1;
+    return ['ul', 'ol'].indexOf(getTagName(element)) &gt;= 0;
   };
 
   var isInlineElement = function(element) {
-    return  ['b', 'i', 'span'].indexOf(getTagName(element)) != -1;
+    return  ['b', 'i', 'span'].indexOf(getTagName(element)) &gt;= 0;
   };
 
   var isListItem = function(element) {
-    return getTagName(element) == 'li';
+    return getTagName(element) === 'li';
   };
 
   var isNodeWithPartialStyle = function(node, nbOfSiblings) {
