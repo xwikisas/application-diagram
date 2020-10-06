@@ -458,7 +458,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   var spaceWidth = 5;
   var listBorder = 35;
   var addTagSpecificStyle = function(element, s, w, h, htmlConverter, str, alt) {
-    switch (element.tagName.toLowerCase()){
+    switch (getTagName(element)){
       case 'h1':
         alt.setAttribute('font-size', Math.round(s.fontSize + 0.6 * s.fontSize) + 'px');
         alt.setAttribute('font-weight', 'bold');
@@ -496,7 +496,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
         // Adapt elements for XWiki PDF export since links are not displayed when 'a' tag is placed inside a 'text'
         // element.
-        var isLinkTag = alt.tagName.toLowerCase() === 'a';
+        var isLinkTag = getTagName(alt) === 'a';
 
         // Have a bullet for each row.
         var delimiter = document.createElementNS('http://www.w3.org/2000/svg', isLinkTag ? 'text' : 'tspan');
@@ -548,7 +548,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         link.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', element.href);
         // Add link decorations for the text. Some styles added to a 'g' are not distributed to it's children by FOP,
         // so we do it manually.
-        if (alt.tagName.toLowerCase() == 'g') {
+        if (getTagName(alt) == 'g') {
           var childNodes = $(alt).children();
           childNodes.each(function() {
             this.setAttribute('fill', '#0000EE');
@@ -634,33 +634,36 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     }
   };
 
+  var getTagName = function(element) {
+    return element &amp;&amp; element.tagName &amp;&amp; element.tagName.toLowerCase();
+  };
+
+  var isTextNode = function(node) {
+    return node &amp;&amp; node.nodeType === 3;
+  };
+
   var isHeadingElement = function(element) {
-    var tag = element.tagName.toLowerCase();
-    return ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(tag) != -1;
+    return  ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getTagName(element)) &gt;= 0;
   };
 
   var isBlockElement = function(element) {
-    var tag = element.tagName.toLowerCase();
-    return ['p', 'div'].indexOf(tag) != -1 || isHeadingElement(element);
+    return ['p', 'div'].indexOf(getTagName(element)) &gt;= 0 || isHeadingElement(element);
   };
 
   var isListElement = function(element) {
-    var tag = element.tagName.toLowerCase();
-    return ['ul', 'ol'].indexOf(tag) != -1;
+    return ['ul', 'ol'].indexOf(getTagName(element)) &gt;= 0;
   };
 
   var isInlineElement = function(element) {
-    var tag = element.tagName.toLowerCase();
-    return ['b', 'i', 'span'].indexOf(tag) != -1;
+    return  ['b', 'i', 'span'].indexOf(getTagName(element)) &gt;= 0;
   };
 
   var isListItem = function(element) {
-    if (element == null) { return false; }
-    return element &amp;&amp; element.tagName.toLowerCase() == 'li';
+    return getTagName(element) === 'li';
   };
 
   var isNodeWithPartialStyle = function(node, nbOfSiblings) {
-    return node.nodeType === 3 || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
+    return isTextNode(node) || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
   };
 
   var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
@@ -683,7 +686,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var isStyleElement = function(element) {
     if (element == null) { return false; }
-    return ['b', 'i', 'u', 'a'].indexOf(element.tagName.toLowerCase()) != -1 || isHeadingElement(element);
+    return ['b', 'i', 'u', 'a'].indexOf(getTagName(element)) != -1 || isHeadingElement(element);
   };
 
   /*
@@ -769,7 +772,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var convertTextElementToSvg = function(element, s, w, h, htmlConverter, str, containerWidth, isFirstChild) {
-    if (element.tagName.toLowerCase() == 'br') {
+    if (getTagName(element) == 'br') {
       return document.createElementNS('http://www.w3.org/2000/svg', "text");
     }
     if (isFirstChild) {
@@ -842,6 +845,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   */
   var convertPartiallyStyledParagraphToSVG = function(childNodes, s, w, h, htmlConverter, str, containerWidth) {
     takenCoordinates = [];
+    var initialWidth = w;
+    var initialHeight = h;
     var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
     w = coordinates.w;
     h = coordinates.h;
@@ -862,12 +867,14 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     // Resolve the basic case where the element is just a phrase with a styled element. Remove this after fixing
     // the TODO described in the comment above.
     var simpleNodes= childNodes.filter(function() {
-      return this.nodeType === 3 || isInlineElement(this);
+      return isTextNode(this) || isInlineElement(this);
     });
 
     if(simpleNodes.length == childNodes.length) {
       var element = $('&lt;span&gt;&lt;/span&gt;').html(str)[0];
-      var alt = convertTextElementToSvg(element, s, w, h, htmlConverter, str, containerWidth, true);
+      // We use the unmodified coordinates to prevent adjusting them twice.
+      var alt = convertTextElementToSvg(element, s, initialWidth, initialHeight, htmlConverter, str, containerWidth,
+          /* isFirstChild */ true);
       return alt;
     }
 
@@ -876,12 +883,12 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     childNodes.each(function(index) {
       var element = $(this).clone()[0];
       // Convert text content to element for consistency.
-      if (element.nodeType === 3) {
+      if (isTextNode(element)) {
         element = $('&lt;span&gt;&lt;/span&gt;').html(element.textContent)[0];
       }
 
       // Don't do anything for &lt;/br&gt; tags or empty elements.
-      if (element.tagName == 'br' || element.innerText == '') {
+      if (getTagName(element) == 'br' || element.innerText == '') {
         return;
       }
 
