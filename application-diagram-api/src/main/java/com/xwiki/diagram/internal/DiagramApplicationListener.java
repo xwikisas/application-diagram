@@ -77,7 +77,8 @@ public class DiagramApplicationListener extends AbstractEventListener
 
     private Collection<String> getTargetWikis(ExtensionEvent event)
     {
-        if (event.hasNamespace() && event.getNamespace().startsWith("wiki:")) {
+        // Checking also for null namespace since it could mean that the upgrade is done on farm level.
+        if (event.hasNamespace() && event.getNamespace() != null && event.getNamespace().startsWith("wiki:")) {
             return Collections.singleton(event.getNamespace().substring(5));
         } else {
             try {
