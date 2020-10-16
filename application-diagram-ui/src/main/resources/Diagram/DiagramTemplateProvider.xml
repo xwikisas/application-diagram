@@ -232,7 +232,9 @@
       <action>edit</action>
     </property>
     <property>
-      <creationRestrictions/>
+      <creationRestrictions>
+        <value>Diagram</value>
+      </creationRestrictions>
     </property>
     <property>
       <creationRestrictionsAreSuggestions>0</creationRestrictionsAreSuggestions>
@@ -247,9 +249,7 @@
       <name>diagram.template.name</name>
     </property>
     <property>
-      <spaces>
-        <value>Diagram</value>
-      </spaces>
+      <spaces/>
     </property>
     <property>
       <template>Diagram.DiagramTemplate</template>
