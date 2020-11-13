@@ -30,7 +30,7 @@
   <artifactId>application-diagram</artifactId>
   <name>Diagram Application (Pro) - UI</name>
   <packaging>xar</packaging>
-  <description>Create various types of diagrams using draw.io</description>
+  <description>Create easy to use diagrams and flowcharts using draw.io. Import Gliffy diagrams. Include diagrams in other pages. Export them as PDFs or images. The app can be purchased individually or part of the XWiki Pro package. Try it free.</description>
   <properties>
     <!-- This module doesn't have any Java code. -->
     <xwiki.revapi.skip>true</xwiki.revapi.skip>

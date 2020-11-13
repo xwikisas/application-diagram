@@ -32,7 +32,7 @@
   <version>1.15.4-SNAPSHOT</version>
   <name>Diagram Application (Pro) - Parent POM</name>
   <packaging>pom</packaging>
-  <description>Create various types of diagrams using draw.io</description>
+  <description>Create easy to use diagrams and flowcharts using draw.io. Import Gliffy diagrams. Include diagrams in other pages. Export them as PDFs or images. The app can be purchased individually or part of the XWiki Pro package. Try it free.</description>
   <issueManagement>
     <system>GitHub</system>
     <url>https://github.com/xwikisas/application-diagram/issues</url>
