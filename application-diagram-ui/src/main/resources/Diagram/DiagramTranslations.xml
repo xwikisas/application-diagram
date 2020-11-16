@@ -76,7 +76,7 @@ diagram.editor.disabledExternalServices=External services are disabled.
 
 # Diagram Configuration
 Diagram.DiagramConfigClass_exportURL=Export URL
-Diagram.DiagramConfigClass_exportURL_hint=The URL used to export the diagrams as image or PDF.
+Diagram.DiagramConfigClass_exportURL_hint=The URL used to export the diagrams as image in IE11, or as PDF when is attempted from the diagram editor. Note that the diagram content, with all the private information that it may contain, will be send to the Export URL when this is used.
 Diagram.DiagramConfigClass_disableExternalServices=Disable External Services
 Diagram.DiagramConfigClass_disableExternalServices_hint=Disable features that require an external server</content>
   <object>
