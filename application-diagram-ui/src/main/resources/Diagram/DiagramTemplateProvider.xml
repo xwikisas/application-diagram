@@ -232,9 +232,7 @@
       <action>edit</action>
     </property>
     <property>
-      <creationRestrictions>
-        <value>Diagram</value>
-      </creationRestrictions>
+      <creationRestrictions/>
     </property>
     <property>
       <creationRestrictionsAreSuggestions>0</creationRestrictionsAreSuggestions>
