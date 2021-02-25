@@ -87,7 +87,7 @@
       <disableExternalServices>0</disableExternalServices>
     </property>
     <property>
-      <exportURL>https://exp.draw.io/ImageExport4/export</exportURL>
+      <exportURL>https://convert.diagrams.net/node/export</exportURL>
     </property>
   </object>
   <object>
