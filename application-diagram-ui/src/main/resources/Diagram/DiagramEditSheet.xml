@@ -1065,7 +1065,7 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
   // Override for uploading the image as attachment instead of encode it to Base64.
   var originalImportFiles = EditorUi.prototype.importFiles;
   EditorUi.prototype.importFiles = function(files, x, y, maxSize, fn, resultFn, filterFn, barrierFn, resizeDialog,
-      maxBytes, resampleThreshold, ignoreEmbeddedXml) {
+      maxBytes, resampleThreshold, ignoreEmbeddedXml, evt) {
     let importFilesArgs = arguments;
     if (fn) {
       let editorUi = this;
@@ -1149,16 +1149,13 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
   };
 
   // Custom diagram import from URL.
-  var originalLoadUrl = EditorUi.prototype.loadUrl;
-  EditorUi.prototype.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix) {
+  var loadUrl = function(url) {
+    var diagramXML = null;
     let exportedUrl = getParameterValueFromURL('url', url);
     if (exportedUrl) {
-      let diagramXML = diagramUtils.getDiagramXMLFromURL(exportedUrl);
-      if (diagramXML) {
-        return success(diagramXML);
-      }
+      diagramXML = diagramUtils.getDiagramXMLFromURL(exportedUrl);
     }
-    return originalLoadUrl.apply(this, arguments);
+    return diagramXML;
   };
 
   // Custom diagram export as URL (using the current host).
@@ -1181,6 +1178,10 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
     }
     return rawURL;
   }
+
+  return {
+    loadUrl: loadUrl
+  };
 });
 
 /**
@@ -1229,12 +1230,12 @@ define('diagram-editor', [
   'jquery',
   'diagram-store',
   'diagram-utils',
+  'diagram-url-io',
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
-  'diagram-url-io',
   'diagram-external-services'
-], function($, diagramStore, diagramUtils) {
+], function($, diagramStore, diagramUtils, diagramUrlIO) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
@@ -1257,6 +1258,7 @@ define('diagram-editor', [
     $(editorUI.container).data('diagramEditor', editorUI).trigger('diagramEditorCreated', editorUI);
     // Fix the editor UI before loading the diagram because layout changes can influence the way the shapes are drawn.
     fixEditorUI(editorUI);
+    fixLoadUrl(editorUI);
     var file = diagramStore.createFile(editorUI, options.input, options.fileName, options.documentReference);
     // The first letter of the file name is used to determine the storage type. Let's use 'X' for XWiki storage.
     editorUI.loadFile('X' + options.fileName, true, file);
@@ -1270,6 +1272,18 @@ define('diagram-editor', [
     removeCompactModeToggle(editorUI);
     fixFullScreenToggle(editorUI);
     fixEditorButtons($(editorUI.container));
+  };
+
+  var fixLoadUrl = function(editorUI) {
+    // Custom diagram import from URL.
+    var originalLoadUrl = editorUI.editor.loadUrl;
+    editorUI.editor.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix, noBinary, headers) {
+      var diagramXML = diagramUrlIO.loadUrl(url);
+      if (diagramXML != null) {
+        return success(diagramXML);
+      }
+      return originalLoadUrl.apply(this, arguments);
+    };
   };
 
   //
