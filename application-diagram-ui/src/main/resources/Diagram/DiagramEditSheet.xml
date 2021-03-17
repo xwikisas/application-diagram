@@ -993,7 +993,7 @@ define('diagram-link-editor', [
           // less accurate.
           var containerWidth = this.state.initialWidth;
           var prevNode = $(fo.parentNode).prev()[0];
-          if (prevNode.nodeName == 'rect') {
+          if (prevNode &amp;&amp; prevNode.nodeName == 'rect') {
             var containerWidth = prevNode.width.baseVal.valueAsString;
           }
           try {
@@ -1247,6 +1247,9 @@ define('diagram-editor', [
   //
   var createDiagramEditor = function(options) {
     options = options || {};
+    // Todo: this is needed since we do not use drafts and it would create the file to soon, leading to the file being
+    // opened in a new window.
+    EditorUi.enableDrafts = false;
     var editor = new Editor(/* chromeless: */ uiTheme === 'min', options.themes, /* model: */ null, /* graph: */ null,
       /* editable: */ true);
     var editorUI = new App(editor, options.container);

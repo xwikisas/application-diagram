@@ -274,6 +274,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'sanitizer': mxGraphEditorBasePath + 'sanitizer/sanitizer.min',
       'spin': drawIOBasePath + 'js/spin/spin.min',
       'jszip': drawIOBasePath + 'js/jszip/jszip.min',
+      'rough': drawIOBasePath + 'js/rough/rough.min',
       'mxgraph-init': drawIOBasePath + 'js/draw.io.init.min',
       'mxgraph-client': mxBasePath + 'mxClient.bundle.min',
       'mxgraph-editor': mxGraphEditorBasePath + 'mxGraphEditor.min',
@@ -286,7 +287,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'mxgraph-client': ['mxgraph-init'],
       'mxgraph-editor': ['mxgraph-client', 'jscolor', 'sanitizer'],
       'mxgraph-viewer': ['mxgraph-client', 'sanitizer'],
-      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global'],
+      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'rough'],
       'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global'],
     }
   })
