@@ -1266,7 +1266,6 @@ define('diagram-editor', [
   };
 
   var fixEditorUI = function(editorUI) {
-    hideFooter(editorUI);
     cleanMenu(editorUI);
     fixKeyboardShortcutsAction(editorUI);
     removeCompactModeToggle(editorUI);
@@ -1323,16 +1322,6 @@ define('diagram-editor', [
       return null;
     }
     return originalAddItem.apply(this, arguments);
-  };
-
-  //
-  // Hide the editor footer.
-  //
-  var hideFooter = function(editorUI) {
-    // We call this just in case the footer is visible.
-    editorUI.hideFooter();
-    // Make sure the diagram editor doesn't leave space for the footer.
-    editorUI.footerHeight = 0;
   };
 
   //
@@ -1401,7 +1390,7 @@ define('diagram-editor', [
   //
   var removeCompactModeToggle = function(editorUI) {
     if (typeof editorUI.toggleCompactMode === 'function') {
-      editorUI.toggleCompactMode(true);
+      editorUI.toggleCompactMode(/* visible: */ false);
       var buttons = $(editorUI.container).find('.geToolbarContainer &gt; a.geButton');
       buttons.last().remove();
       buttons.css('right', function(index, value) {
