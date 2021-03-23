@@ -1248,8 +1248,8 @@ define('diagram-editor', [
   //
   var createDiagramEditor = function(options) {
     options = options || {};
-    // Todo: this is needed since we do not use drafts and it would create the file to soon, leading to the file being
-    // opened in a new window.
+    // This is needed since we do not use drafts and it would create the file to soon, leading to the file being opened
+    // in a new window.
     EditorUi.enableDrafts = false;
     var editor = new Editor(/* chromeless: */ uiTheme === 'min', options.themes, /* model: */ null, /* graph: */ null,
       /* editable: */ true);
