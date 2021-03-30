@@ -912,10 +912,10 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   };
 
-  // Fix x and y coordinates, which are used when foreignObject is not supported and the view fallbacks to svg.
-  // This code is taken from an older draw.io version, since starting with 12.5.0 the transform attribute doesn't take
-  // into consideration the coordinates, but only the foOffset.
-  var adjustAlternateTextCoordinates = function(fo, x, y , w , h, s, align, valign, overflow, rotation, foOffset) {
+  // Fix the transform attribute of the element that is used when foreignObjects are not supported and the view
+  // fallbacks to svg. This code is taken from an older draw.io version, since starting with 12.5.0 the transform
+  // attribute doesn't take into consideration the coordinates, but only the foOffset.
+  var adjustAlternateTextCoordinates = function(group, x, y , w , h, s, align, valign, overflow, rotation, foOffset) {
         x += s.dx;
         y += s.dy;
         var dx = 0;
@@ -956,9 +956,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         }
 
         var transform = 'translate(' + (Math.round(x) + foOffset) + ',' + (Math.round(y) + foOffset) + ')' + tr;
-        fo.parentElement.setAttribute('transform', transform);
-
-        return [x, y];
+        group.setAttribute('transform', transform);
   };
 
   return {
@@ -1051,9 +1049,6 @@ define('diagram-link-editor', [
           if (prevNode &amp;&amp; prevNode.nodeName == 'rect') {
             var containerWidth = prevNode.width.baseVal.valueAsString;
           }
-          var coordinates = svgHandler.adjustAlternateTextCoordinates(fo, x, y , w , h, s, align, valign, overflow, rotation, this.foOffset);
-          x = coordinates[0];
-          y = coordinates[1];
           try {
             if (childNodes.length &gt; 0) {
               var isPartiallyStyledElement = false;
@@ -1077,6 +1072,8 @@ define('diagram-link-editor', [
                 }
               });
               content.appendChild(isPartiallyStyledElement ? alt : temporaryContent)
+              svgHandler.adjustAlternateTextCoordinates(content, x, y, w, h, s, align, valign, overflow, rotation,
+                this.foOffset);
               return content;
             } else {
               return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format,
