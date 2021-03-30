@@ -912,10 +912,60 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   };
 
+  // Fix x and y coordinates, which are used when foreignObject is not supported and the view fallbacks to svg.
+  // This code is taken from an older draw.io version, since starting with 12.5.0 the transform attribute doesn't take
+  // into consideration the coordinates, but only the foOffset.
+  var adjustAlternateTextCoordinates = function(fo, x, y , w , h, s, align, valign, overflow, rotation, foOffset) {
+        x += s.dx;
+        y += s.dy;
+        var dx = 0;
+        var dy = 0;
+
+        if (align == mxConstants.ALIGN_CENTER) {
+          dx -= w / 2;
+        } else if (align == mxConstants.ALIGN_RIGHT) {
+          dx -= w;
+        }
+        x += dx;
+
+        if (valign == mxConstants.ALIGN_MIDDLE) {
+          dy -= h / 2;
+        } else if (valign == mxConstants.ALIGN_BOTTOM) {
+          dy -= h;
+        }
+
+        if (overflow != 'fill' &amp;&amp; mxClient.IS_FF &amp;&amp; mxClient.IS_WIN) {
+          dy -= 2;
+        }
+        y += dy;
+
+        var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
+
+        if (s.rotation != 0 &amp;&amp; this.rotateHtml) {
+          tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
+          var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale, s.rotation, s.rotationCx, s.rotationCy);
+          x = pt.x - w * s.scale / 2;
+          y = pt.y - h * s.scale / 2;
+        } else {
+          x *= s.scale;
+          y *= s.scale;
+        }
+
+        if (rotation != 0) {
+          tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
+        }
+
+        var transform = 'translate(' + (Math.round(x) + foOffset) + ',' + (Math.round(y) + foOffset) + ')' + tr;
+        fo.parentElement.setAttribute('transform', transform);
+
+        return [x, y];
+  };
+
   return {
     convertTextElementToSvg: convertTextElementToSvg,
     isParagraphWithPartialStyle: isParagraphWithPartialStyle,
-    convertPartiallyStyledParagraphToSVG: convertPartiallyStyledParagraphToSVG
+    convertPartiallyStyledParagraphToSVG: convertPartiallyStyledParagraphToSVG,
+    adjustAlternateTextCoordinates: adjustAlternateTextCoordinates
   };
 });
 /**
@@ -947,11 +997,16 @@ define('diagram-link-editor', [
     return originalText.apply(this, arguments);
   };
 
+  // Don't add warning when the viewer doesn't supports SVG 1.1, since we create a fallback for foreignObjects.
+  Graph.prototype.addForeignObjectWarning = function(canvas, root) {
+    // Do nothing.
+  }
+
   // Overwrite Graph.getSvg in order to replace XWiki custom links with absolute URLs.
   // Also fix the text fallback for viewers with no support for foreignObjects.
   var originalGraphGetSVG = Graph.prototype.getSvg;
   Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText, imgExport,
-      linkTarget, hasShadow) {
+      linkTarget, hasShadow, incExtFonts, keepTheme, exportType, cells) {
     imgExport = imgExport || this.createSvgImageExport();
     var originalGetLinkForCellState = imgExport.getLinkForCellState;
     imgExport.getLinkForCellState = function() {
@@ -996,6 +1051,9 @@ define('diagram-link-editor', [
           if (prevNode &amp;&amp; prevNode.nodeName == 'rect') {
             var containerWidth = prevNode.width.baseVal.valueAsString;
           }
+          var coordinates = svgHandler.adjustAlternateTextCoordinates(fo, x, y , w , h, s, align, valign, overflow, rotation, this.foOffset);
+          x = coordinates[0];
+          y = coordinates[1];
           try {
             if (childNodes.length &gt; 0) {
               var isPartiallyStyledElement = false;
@@ -1035,7 +1093,7 @@ define('diagram-link-editor', [
     };
     try {
       return originalGraphGetSVG.call(this, background, scale, border, nocrop, crisp, ignoreSelection, showText,
-        imgExport, linkTarget, hasShadow);
+        imgExport, linkTarget, hasShadow, incExtFonts, keepTheme, exportType, cells);
     } finally {
       imgExport.getLinkForCellState = originalGetLinkForCellState;
       imgExport.drawState = originalDrawState;
