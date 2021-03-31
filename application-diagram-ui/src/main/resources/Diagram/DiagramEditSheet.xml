@@ -912,10 +912,58 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   };
 
+  // Fix the transform attribute of the element that is used when foreignObjects are not supported and the view
+  // fallbacks to svg. This code is taken from an older draw.io version, since starting with 12.5.0 the transform
+  // attribute doesn't take into consideration the coordinates, but only the foOffset.
+  var adjustAlternateTextCoordinates = function(group, x, y , w , h, s, align, valign, overflow, rotation, foOffset) {
+    x += s.dx;
+    y += s.dy;
+    var dx = 0;
+    var dy = 0;
+
+    if (align == mxConstants.ALIGN_CENTER) {
+      dx -= w / 2;
+    } else if (align == mxConstants.ALIGN_RIGHT) {
+      dx -= w;
+    }
+    x += dx;
+
+    if (valign == mxConstants.ALIGN_MIDDLE) {
+      dy -= h / 2;
+    } else if (valign == mxConstants.ALIGN_BOTTOM) {
+      dy -= h;
+    }
+
+    if (overflow != 'fill' &amp;&amp; mxClient.IS_FF &amp;&amp; mxClient.IS_WIN) {
+      dy -= 2;
+    }
+    y += dy;
+
+    var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
+
+    if (s.rotation != 0 &amp;&amp; this.rotateHtml) {
+      tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
+      var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale, s.rotation, s.rotationCx, s.rotationCy);
+      x = pt.x - w * s.scale / 2;
+      y = pt.y - h * s.scale / 2;
+    } else {
+      x *= s.scale;
+      y *= s.scale;
+    }
+
+    if (rotation != 0) {
+      tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
+    }
+
+    var transform = 'translate(' + (Math.round(x) + foOffset) + ',' + (Math.round(y) + foOffset) + ')' + tr;
+    group.setAttribute('transform', transform);
+  };
+
   return {
     convertTextElementToSvg: convertTextElementToSvg,
     isParagraphWithPartialStyle: isParagraphWithPartialStyle,
-    convertPartiallyStyledParagraphToSVG: convertPartiallyStyledParagraphToSVG
+    convertPartiallyStyledParagraphToSVG: convertPartiallyStyledParagraphToSVG,
+    adjustAlternateTextCoordinates: adjustAlternateTextCoordinates
   };
 });
 /**
@@ -947,11 +995,16 @@ define('diagram-link-editor', [
     return originalText.apply(this, arguments);
   };
 
+  // Don't add warning when the viewer doesn't support SVG 1.1, since we create a fallback for foreignObjects.
+  Graph.prototype.addForeignObjectWarning = function(canvas, root) {
+    // Do nothing.
+  }
+
   // Overwrite Graph.getSvg in order to replace XWiki custom links with absolute URLs.
   // Also fix the text fallback for viewers with no support for foreignObjects.
   var originalGraphGetSVG = Graph.prototype.getSvg;
   Graph.prototype.getSvg = function(background, scale, border, nocrop, crisp, ignoreSelection, showText, imgExport,
-      linkTarget, hasShadow) {
+      linkTarget, hasShadow, incExtFonts, keepTheme, exportType, cells) {
     imgExport = imgExport || this.createSvgImageExport();
     var originalGetLinkForCellState = imgExport.getLinkForCellState;
     imgExport.getLinkForCellState = function() {
@@ -993,7 +1046,7 @@ define('diagram-link-editor', [
           // less accurate.
           var containerWidth = this.state.initialWidth;
           var prevNode = $(fo.parentNode).prev()[0];
-          if (prevNode.nodeName == 'rect') {
+          if (prevNode &amp;&amp; prevNode.nodeName == 'rect') {
             var containerWidth = prevNode.width.baseVal.valueAsString;
           }
           try {
@@ -1019,6 +1072,8 @@ define('diagram-link-editor', [
                 }
               });
               content.appendChild(isPartiallyStyledElement ? alt : temporaryContent)
+              svgHandler.adjustAlternateTextCoordinates(content, x, y, w, h, s, align, valign, overflow, rotation,
+                this.foOffset);
               return content;
             } else {
               return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format,
@@ -1035,7 +1090,7 @@ define('diagram-link-editor', [
     };
     try {
       return originalGraphGetSVG.call(this, background, scale, border, nocrop, crisp, ignoreSelection, showText,
-        imgExport, linkTarget, hasShadow);
+        imgExport, linkTarget, hasShadow, incExtFonts, keepTheme, exportType, cells);
     } finally {
       imgExport.getLinkForCellState = originalGetLinkForCellState;
       imgExport.drawState = originalDrawState;
@@ -1065,7 +1120,7 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
   // Override for uploading the image as attachment instead of encode it to Base64.
   var originalImportFiles = EditorUi.prototype.importFiles;
   EditorUi.prototype.importFiles = function(files, x, y, maxSize, fn, resultFn, filterFn, barrierFn, resizeDialog,
-      maxBytes, resampleThreshold, ignoreEmbeddedXml) {
+      maxBytes, resampleThreshold, ignoreEmbeddedXml, evt) {
     let importFilesArgs = arguments;
     if (fn) {
       let editorUi = this;
@@ -1149,16 +1204,13 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
   };
 
   // Custom diagram import from URL.
-  var originalLoadUrl = EditorUi.prototype.loadUrl;
-  EditorUi.prototype.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix) {
+  var loadUrl = function(url) {
+    var diagramXML = null;
     let exportedUrl = getParameterValueFromURL('url', url);
     if (exportedUrl) {
-      let diagramXML = diagramUtils.getDiagramXMLFromURL(exportedUrl);
-      if (diagramXML) {
-        return success(diagramXML);
-      }
+      diagramXML = diagramUtils.getDiagramXMLFromURL(exportedUrl);
     }
-    return originalLoadUrl.apply(this, arguments);
+    return diagramXML;
   };
 
   // Custom diagram export as URL (using the current host).
@@ -1181,6 +1233,10 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
     }
     return rawURL;
   }
+
+  return {
+    loadUrl: loadUrl
+  };
 });
 
 /**
@@ -1229,12 +1285,12 @@ define('diagram-editor', [
   'jquery',
   'diagram-store',
   'diagram-utils',
+  'diagram-url-io',
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
-  'diagram-url-io',
   'diagram-external-services'
-], function($, diagramStore, diagramUtils) {
+], function($, diagramStore, diagramUtils, diagramUrlIO) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
@@ -1247,6 +1303,9 @@ define('diagram-editor', [
   //
   var createDiagramEditor = function(options) {
     options = options || {};
+    // This is needed since we do not use drafts and it would create the file to soon, leading to the file being opened
+    // in a new window.
+    EditorUi.enableDrafts = false;
     var editor = new Editor(/* chromeless: */ uiTheme === 'min', options.themes, /* model: */ null, /* graph: */ null,
       /* editable: */ true);
     var editorUI = new App(editor, options.container);
@@ -1254,6 +1313,7 @@ define('diagram-editor', [
     $(editorUI.container).data('diagramEditor', editorUI).trigger('diagramEditorCreated', editorUI);
     // Fix the editor UI before loading the diagram because layout changes can influence the way the shapes are drawn.
     fixEditorUI(editorUI);
+    fixLoadUrl(editorUI);
     var file = diagramStore.createFile(editorUI, options.input, options.fileName, options.documentReference);
     // The first letter of the file name is used to determine the storage type. Let's use 'X' for XWiki storage.
     editorUI.loadFile('X' + options.fileName, true, file);
@@ -1261,12 +1321,23 @@ define('diagram-editor', [
   };
 
   var fixEditorUI = function(editorUI) {
-    hideFooter(editorUI);
     cleanMenu(editorUI);
     fixKeyboardShortcutsAction(editorUI);
     removeCompactModeToggle(editorUI);
     fixFullScreenToggle(editorUI);
     fixEditorButtons($(editorUI.container));
+  };
+
+  var fixLoadUrl = function(editorUI) {
+    // Custom diagram import from URL.
+    var originalLoadUrl = editorUI.editor.loadUrl;
+    editorUI.editor.loadUrl = function(url, success, error, forceBinary, retry, dataUriPrefix, noBinary, headers) {
+      var diagramXML = diagramUrlIO.loadUrl(url);
+      if (diagramXML != null) {
+        return success(diagramXML);
+      }
+      return originalLoadUrl.apply(this, arguments);
+    };
   };
 
   //
@@ -1306,16 +1377,6 @@ define('diagram-editor', [
       return null;
     }
     return originalAddItem.apply(this, arguments);
-  };
-
-  //
-  // Hide the editor footer.
-  //
-  var hideFooter = function(editorUI) {
-    // We call this just in case the footer is visible.
-    editorUI.hideFooter();
-    // Make sure the diagram editor doesn't leave space for the footer.
-    editorUI.footerHeight = 0;
   };
 
   //
@@ -1384,7 +1445,7 @@ define('diagram-editor', [
   //
   var removeCompactModeToggle = function(editorUI) {
     if (typeof editorUI.toggleCompactMode === 'function') {
-      editorUI.toggleCompactMode(true);
+      editorUI.toggleCompactMode(/* visible: */ false);
       var buttons = $(editorUI.container).find('.geToolbarContainer &gt; a.geButton');
       buttons.last().remove();
       buttons.css('right', function(index, value) {
