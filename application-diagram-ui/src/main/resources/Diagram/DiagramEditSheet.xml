@@ -322,7 +322,10 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       }
       var saveButton = $('input[name=action_save' + (data &amp;&amp; data['continue'] ? 'andcontinue' : '') + ']');
       saveButton.prop('disabled', true);
-      saveFilesAsImageAttachments().always(function() {
+      saveFilesAsImageAttachments().fail(function(e) {
+        new XWiki.widgets.Notification(
+          $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
+      }).always(function() {
         saveButton.prop('disabled', false).click();
       });
     } else {
