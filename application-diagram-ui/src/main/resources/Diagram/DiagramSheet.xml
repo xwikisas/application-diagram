@@ -288,7 +288,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'mxgraph-editor': ['mxgraph-client', 'jscolor', 'sanitizer'],
       'mxgraph-viewer': ['mxgraph-client', 'sanitizer'],
       'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'rough'],
-      'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global'],
+      'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough']
     }
   })
 
