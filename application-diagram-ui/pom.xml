@@ -47,6 +47,11 @@
     </xwiki.extension.licensing.excludedDocuments>
     <xwiki.extension.name>Diagram Application (Pro)</xwiki.extension.name>
     <xwiki.extension.category>application</xwiki.extension.category>
+
+    <!-- Components -->
+    <xwiki.extension.components>
+      org.xwiki.rendering.macro.Macro/diagram
+    </xwiki.extension.components>
   </properties>
   <dependencies>
     <!-- This extension requires a license to work. -->

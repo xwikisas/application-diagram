@@ -31,6 +31,12 @@
   <name>Diagram Application (Pro) - API</name>
   <packaging>jar</packaging>
   <description>Provides script APIs for the Diagram application.</description>
+  <properties>
+    <!-- Components -->
+    <xwiki.extension.components>
+      org.xwiki.script.service.ScriptService/diagram
+    </xwiki.extension.components>
+  </properties>
   <dependencies>
     <!-- Used for diagram import. -->
     <dependency>
