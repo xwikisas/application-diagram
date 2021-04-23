@@ -44,7 +44,7 @@
     <tag>HEAD</tag>
   </scm>
   <properties>
-    <draw.io.version>14.4.3</draw.io.version>
+    <draw.io.version>14.4.3-1</draw.io.version>
     <licensing.version>1.16.1</licensing.version>
   </properties>
   <modules>
