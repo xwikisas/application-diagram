@@ -256,7 +256,9 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
     // Disable the One Drive integration.
     'od': '0',
     // Disable the Trello integration.
-    'tr': '0'
+    'tr': '0',
+    // Disable realtime collaboration.
+    'sync': 'none'
   });
 
   // Disabling the integration with these external services is not enough because the draw.io code has hard-coded
@@ -285,12 +287,12 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
     },
     shim: {
       'mxgraph-client': ['mxgraph-init'],
-      'mxgraph-editor': ['mxgraph-client', 'jscolor', 'sanitizer'],
-      'mxgraph-viewer': ['mxgraph-client', 'sanitizer'],
+      'mxgraph-editor': ['noDocWrite!mxgraph-client', 'jscolor', 'sanitizer'],
+      'mxgraph-viewer': ['noDocWrite!mxgraph-client', 'sanitizer'],
       'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'rough'],
       'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough']
     }
-  })
+  });
 
   define('pako-global', ['pako'], function(pako) {
     // draw.io expects a global variable.
@@ -305,6 +307,19 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   define('jszip-global', ['jszip'], function(JSZip) {
     // draw.io expects a global variable.
     window.JSZip = JSZip;
+  });
+
+  // Disable document.write() while loading modules that call this API in order to prevent warning messages in the
+  // JavaScript console.
+  define('noDocWrite', {
+    load: function (name, req, onload, config) {
+      var originalDocWrite = document.write;
+      document.write = function() {};
+      req([name], function (value) {
+        document.write = originalDocWrite;
+        onload(value);
+      });
+    }
   });
 });
 

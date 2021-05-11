@@ -1350,6 +1350,14 @@ define('diagram-editor', [
     // Do nothing.
   };
 
+  //
+  // Change the service name in order to disable notifications.
+  //
+  EditorUi.prototype.getServiceName = function()
+  {
+    return 'xwiki.com';
+  };
+
   // Don't change the document title.
   App.prototype.updateDocumentTitle = function() {};
 
@@ -1467,14 +1475,14 @@ define('diagram-editor', [
       if (isFullScreen) {
         // Exit full screen mode.
         fullScreen.closeFullScreen();
-        editorUI.toggleCompactMode(true);
+        editorUI.refresh();
       } else {
         // Enter full screen mode.
         fullScreen.makeFullScreen(editorUI.container);
         // The previous line hides the 'fullScreenActivator' and shows the 'Exit Full Screen' button. We want to use the
         // 'fullScreenActivator' for exiting the full screen mode. The 'Exit Full Screen' button is hidden from CSS.
         $(editorUI.fullscreenElement).show();
-        editorUI.toggleCompactMode();
+        editorUI.refresh();
       }
     });
   };
