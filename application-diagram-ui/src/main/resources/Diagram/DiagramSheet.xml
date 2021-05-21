@@ -1022,6 +1022,9 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
 .diagram {
   /* Leave space for the toolbar. */
   margin-top: 30px;
+  /* Make sure the diagram container always has some width (when not hidden) otherwise draw.io will think it's hidden
+    and thus will delay the diagram rendering until it becomes visible. */
+  min-width: 1px;
 }
 
 /**
