@@ -37,7 +37,6 @@ import org.xwiki.observation.event.Event;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.doc.XWikiLink;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 import com.xwiki.diagram.internal.handlers.StoreHandler;
@@ -94,11 +93,10 @@ public class DiagramLinksListener extends AbstractEventListener
                         // Is necessary to blank links from doc.
                         context.remove("links");
 
-                        // Get pages linked by this diagram.
+                        // Add backlinks from pages linked by this diagram.
                         for (DocumentReference linkedDocRef : contentHandler.getLinkedPages(document.getContent(),
                             document.getDocumentReference())) {
-                            XWikiLink wikiLink = storeHandler.getXWikiLink(document, linkedDocRef);
-                            session.save(wikiLink);
+                            storeHandler.addXWikiLink(session, document, linkedDocRef);
                         }
 
                         return Boolean.TRUE;

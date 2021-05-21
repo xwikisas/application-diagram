@@ -27,6 +27,7 @@ import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
 import org.xwiki.model.reference.DocumentReference;
@@ -62,28 +63,39 @@ public class StoreHandler
     @Named("hibernate")
     private Provider<XWikiStoreInterface> hibernateStoreProvider;
 
+    @Inject
+    private Logger logger;
+
     /**
-     * Get a document as XWikiLink.
+     * Add a backlink between 2 documents.
      * 
-     * @param document diagram document
+     * @param session the Hibernate Session
+     * @param document document that contains a reference to another document
      * @param linkedDocRef reference of the linked document
-     * @return document casted to XWikiLink
      */
-    public XWikiLink getXWikiLink(XWikiDocument document, DocumentReference linkedDocRef)
+    public void addXWikiLink(Session session, XWikiDocument document, DocumentReference linkedDocRef)
     {
         XWikiLink wikiLink = new XWikiLink();
+        String serializedParentDocRef = localEntityReferenceSerializer.serialize(document.getDocumentReference());
+        String serializedLinkedDocRef = compactwikiEntityReferenceSerializer.serialize(linkedDocRef);
 
         wikiLink.setDocId(document.getId());
-        wikiLink.setFullName(localEntityReferenceSerializer.serialize(document.getDocumentReference()));
-        wikiLink.setLink(compactwikiEntityReferenceSerializer.serialize(linkedDocRef));
+        wikiLink.setFullName(serializedParentDocRef);
+        wikiLink.setLink(serializedLinkedDocRef);
 
-        // Verify that the link reference isn't larger than 255 characters (and truncate it if
-        // that's the case) since otherwise that would lead to a DB error that would result in
-        // a fatal error, and the user would have a hard time understanding why his page failed
-        // to be saved.
-        wikiLink.setLink(StringUtils.substring(wikiLink.getLink(), 0, 255));
-
-        return wikiLink;
+        // Verify that the link reference isn't larger than 253 characters since otherwise that would lead to a DB
+        // error that would result in a fatal error. 253 is used instead of 255 since this is a combined identifier
+        // along with docId. The size of the field was increased starting with https://jira.xwiki.org/browse/XWIKI-18429
+        // to 768 and a new API was added to get this size programmatically, but the HibernateStore#getLimitSize has
+        // problems for combined identifiers, as stated in https://jira.xwiki.org/browse/XWIKI-18678.
+        // TODO: Modify the conditions to have the limit at 766 when the XWiki version is > 13.2 and start using
+        // HibernateStore#getLimitSize when XWiki version > 12.10.8 / 13.4.
+        if (StringUtils.length(wikiLink.getLink()) > 253) {
+            logger.warn("Failed to add a backlink to [{}] since [{}] exceeds the 253 characters limit",
+                serializedParentDocRef, serializedLinkedDocRef);
+        } else {
+            session.saveOrUpdate(wikiLink);
+        }
     }
 
     /**

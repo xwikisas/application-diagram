@@ -42,14 +42,13 @@ import org.xwiki.rendering.block.match.MacroBlockMatcher;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.doc.XWikiLink;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
 import com.xwiki.diagram.internal.handlers.StoreHandler;
 
 /**
- * Listens to created or updated pages, checks for Diagram Macro and adds backlink from the diagram referenced to
- * this page. The backlink is used in order to update the reference parameter of the diagram macro in case of diagram
- * page rename.
+ * Listens to created or updated pages, checks for Diagram Macro and adds backlink from the diagram referenced to this
+ * page. The backlink is used in order to update the reference parameter of the diagram macro in case of diagram page
+ * rename.
  * 
  * @version $Id$
  * @since 1.13.1
@@ -107,8 +106,7 @@ public class DiagramMacroListener extends AbstractEventListener
                             DocumentReference macroReference = explicitDocumentReferenceResolver
                                 .resolve(macroBlock.getParameter("reference"), document.getDocumentReference());
 
-                            XWikiLink wikiLink = storeHandler.getXWikiLink(document, macroReference);
-                            session.save(wikiLink);
+                            storeHandler.addXWikiLink(session, document, macroReference);
                         }
 
                         return Boolean.TRUE;

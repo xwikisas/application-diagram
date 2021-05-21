@@ -77,4 +77,12 @@ public class GetDiagramLinksHandler extends DefaultHandler
         return linkedPages.stream().distinct().map(link -> resolver.resolve(link, diagramReference))
             .collect(Collectors.toList());
     }
+
+    /**
+     * Clear linked pages of other documents.
+     */
+    public void resetLinkedPages()
+    {
+        this.linkedPages = new ArrayList<String>();
+    }
 }

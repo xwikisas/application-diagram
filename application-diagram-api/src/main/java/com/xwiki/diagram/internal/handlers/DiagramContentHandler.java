@@ -174,6 +174,8 @@ public class DiagramContentHandler
     public List<DocumentReference> getLinkedPages(String content, DocumentReference diagramReference)
     {
         try {
+            getDiagramLinksHandler.resetLinkedPages();
+
             SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(content.getBytes()),
                 getDiagramLinksHandler);
 
