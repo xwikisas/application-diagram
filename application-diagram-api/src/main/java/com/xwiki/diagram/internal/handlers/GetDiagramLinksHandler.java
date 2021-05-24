@@ -25,12 +25,13 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.annotation.InstantiationStrategy;
+import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 
@@ -41,7 +42,7 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
  * @since 1.13
  */
 @Component(roles = GetDiagramLinksHandler.class)
-@Singleton
+@InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
 public class GetDiagramLinksHandler extends DefaultHandler
 {
     @Inject

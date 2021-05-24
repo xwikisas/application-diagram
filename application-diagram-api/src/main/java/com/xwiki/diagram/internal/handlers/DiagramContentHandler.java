@@ -67,7 +67,7 @@ public class DiagramContentHandler
     public static final LocalDocumentReference DIAGRAM_CLASS = new LocalDocumentReference("Diagram", "DiagramClass");
 
     @Inject
-    private GetDiagramLinksHandler getDiagramLinksHandler;
+    private Provider<GetDiagramLinksHandler> getDiagramLinksHandlerProvider;
 
     @Inject
     private DiagramLinkHandler linkHandler;
@@ -174,6 +174,7 @@ public class DiagramContentHandler
     public List<DocumentReference> getLinkedPages(String content, DocumentReference diagramReference)
     {
         try {
+            GetDiagramLinksHandler getDiagramLinksHandler = getDiagramLinksHandlerProvider.get();
             SAXParserFactory.newInstance().newSAXParser().parse(new ByteArrayInputStream(content.getBytes()),
                 getDiagramLinksHandler);
 
