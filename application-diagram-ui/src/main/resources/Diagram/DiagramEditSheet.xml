@@ -1101,8 +1101,8 @@ define('diagram-link-editor', [
   };
 
   /**
-   * This function is copied from https://github.com/jgraph/drawio/blob/dev/src/main/webapp/js/grapheditor/Graph.js#L1592
-   * as a workaround for importing svg content. This needs to be deleted once the deprecated mxgraph will be replaced by
+   * TODO: This function is copied from https://github.com/jgraph/drawio/blob/dev/src/main/webapp/js/grapheditor/Graph.js
+   * as a workaround for importing svg content and needs to be deleted once the deprecated mxgraph will be replaced by
    * draw.io's grapheditor code.
    */
   Graph.clipSvgDataUri = function(dataUri) {
@@ -1158,7 +1158,7 @@ define('diagram-link-editor', [
   };
 
   /**
-   * Removes all script tags and attributes starting with on. This is needed by Graph.clipSvgDataUri and should be
+   * Removes all script tags and attributes starting with on. TODO: This is needed by Graph.clipSvgDataUri and should be
    * deleted along with it.
    */
   Graph.sanitizeSvg = function(div) {
