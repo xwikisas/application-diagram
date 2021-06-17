@@ -1099,89 +1099,6 @@ define('diagram-link-editor', [
       imgExport.drawState = originalDrawState;
     }
   };
-
-  /**
-   * TODO: This function is copied from https://github.com/jgraph/drawio/blob/dev/src/main/webapp/js/grapheditor/Graph.js
-   * as a workaround for importing svg content and needs to be deleted once the deprecated mxgraph will be replaced by
-   * draw.io's grapheditor code.
-   */
-  Graph.clipSvgDataUri = function(dataUri) {
-    // LATER Add workaround for non-default NS declarations with empty URI not allowed in IE11.
-    if (!mxClient.IS_IE &amp;&amp; !mxClient.IS_IE11 &amp;&amp; dataUri != null &amp;&amp;
-        dataUri.substring(0, 26) == 'data:image/svg+xml;base64,') {
-      try {
-        var div = document.createElement('div');
-        div.style.position = 'absolute';
-        div.style.visibility = 'hidden';
-
-        // Adds the text and inserts into DOM for updating of size.
-        var data = decodeURIComponent(escape(atob(dataUri.substring(26))));
-        var idx = data.indexOf('&lt;svg');
-
-        if (idx &gt;= 0) {
-          // Strips leading XML declaration and doctypes.
-          div.innerHTML = data.substring(idx);
-
-          // Removes all attributes starting with on.
-          Graph.sanitizeSvg(div);
-
-          // Gets the size and removes from DOM.
-          var svgs = div.getElementsByTagName('svg');
-
-          if (svgs.length &gt; 0) {
-            document.body.appendChild(div);
-
-            try {
-              var size = svgs[0].getBBox();
-
-              if (size.width &gt; 0 &amp;&amp; size.height &gt; 0) {
-                div.getElementsByTagName('svg')[0].setAttribute('viewBox', size.x +
-                                                                ' ' + size.y + ' ' + size.width + ' ' + size.height);
-                div.getElementsByTagName('svg')[0].setAttribute('width', size.width);
-                div.getElementsByTagName('svg')[0].setAttribute('height', size.height);
-              }
-            } catch (e) {
-              // ignore
-            } finally {
-              document.body.removeChild(div);
-            }
-
-            dataUri = Editor.createSvgDataUri(mxUtils.getXml(svgs[0]));
-          }
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    return dataUri;
-  };
-
-  /**
-   * Removes all script tags and attributes starting with on. TODO: This is needed by Graph.clipSvgDataUri and should be
-   * deleted along with it.
-   */
-  Graph.sanitizeSvg = function(div) {
-    // Removes all attributes starting with on.
-    var all = div.getElementsByTagName('*');
-
-    for (var i = 0; i &lt; all.length; i++) {
-      for (var j = 0; j &lt; all[i].attributes.length; j++) {
-        var attr = all[i].attributes[j];
-
-        if (attr.name.length &gt; 2 &amp;&amp; attr.name.toLowerCase().substring(0, 2) == 'on') {
-          all[i].removeAttribute(attr.name);
-        }
-      }
-    }
-
-    // Removes all script tags.
-    var scripts = div.getElementsByTagName('script');
-
-    while (scripts.length &gt; 0) {
-      scripts[0].parentNode.removeChild(scripts[0]);
-    }
-  };
 });
 
 /**
@@ -1372,17 +1289,24 @@ define('diagram-editor', [
   'diagram-store',
   'diagram-utils',
   'diagram-url-io',
+  'diagram-config',
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
   'diagram-external-services'
-], function($, diagramStore, diagramUtils, diagramUrlIO) {
+], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
   // Default values:
   // EditorUi.prototype.maxImageSize = 520;
   // EditorUi.prototype.maxImageBytes = 1000000;
+
+  // Add the required stylesheets, since on newer versions of mxClient the basePath of the stylesheets is not considered.
+  if (mxLoadStylesheets)
+  {
+    mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
+  }
 
   //
   // Diagram Editor Constructor.
