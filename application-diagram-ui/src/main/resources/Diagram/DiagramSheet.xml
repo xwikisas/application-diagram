@@ -206,12 +206,13 @@ define('diagram-config', ['jquery'], function($) {
  * Diagram application setup.
  */
 define('diagram-setup', ['diagram-config'], function(diagramConfig) {
+  var drawIOBasePath = diagramConfig.drawIOBasePath;
   // mxGraph client setup
-  window.mxBasePath = diagramConfig.drawIOBasePath + '/mxgraph';
+  window.mxBasePath = drawIOBasePath + 'mxgraph';
+  window.mxImageBasePath = drawIOBasePath + 'mxgraph/images';
   window.mxLanguage = diagramConfig.locale;
 
   // draw.io setup
-  var drawIOBasePath = diagramConfig.drawIOBasePath;
   window.RESOURCES_PATH = drawIOBasePath + 'resources';
   window.RESOURCE_BASE = RESOURCES_PATH + '/dia';
   window.STENCIL_PATH = drawIOBasePath + 'stencils';
