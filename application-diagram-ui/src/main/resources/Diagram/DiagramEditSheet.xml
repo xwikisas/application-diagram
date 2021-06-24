@@ -1303,8 +1303,7 @@ define('diagram-editor', [
   // EditorUi.prototype.maxImageBytes = 1000000;
 
   // Add the required stylesheets, since on newer versions of mxClient the basePath of the stylesheets is not considered.
-  if (mxLoadStylesheets)
-  {
+  if (mxLoadStylesheets) {
     mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
   }
 
