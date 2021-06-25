@@ -1302,11 +1302,6 @@ define('diagram-editor', [
   // EditorUi.prototype.maxImageSize = 520;
   // EditorUi.prototype.maxImageBytes = 1000000;
 
-  // Add the required stylesheets, since on newer versions of mxClient the basePath of the stylesheets is not considered.
-  if (mxLoadStylesheets) {
-    mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
-  }
-
   //
   // Diagram Editor Constructor.
   //

@@ -227,6 +227,8 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.EXPORT_URL = diagramConfig.exportURL;
   window.PROXY_URL = new XWiki.Document('DiagramProxy', 'Diagram').getURL('get');
   window.isLocalStorage = true;
+  // mxClient is not considering the basePath of the stylesheet files, so we load them after.
+  window.mxLoadStylesheets = false;
 
   window.urlParams = (function(params) {
     var pairs = window.location.search.substr(1).split('&amp;');
@@ -792,6 +794,9 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
     });
     return result;
   };
+
+  // Add the required stylesheets, since in mxClient the basePath of the stylesheets is not considered.
+  mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
 
   return {
     getDiagramXMLFromURL: getDiagramXMLFromURL,

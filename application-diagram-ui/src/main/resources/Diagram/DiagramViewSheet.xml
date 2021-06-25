@@ -175,11 +175,6 @@
     return origin;
   };
 
-  // Add the required stylesheets, since on newer versions of mxClient the basePath of the stylesheets is not considered.
-  if (mxLoadStylesheets) {
-    mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
-  }
-
   // This is required for the clipart images.
   GraphViewer.prototype.imageBaseUrl = getOrigin();
 
