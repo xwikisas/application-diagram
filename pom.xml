@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>9.11-5</version>
+    <version>11.10</version>
   </parent>
   <groupId>com.xwiki.diagram</groupId>
   <artifactId>application-diagram-parent</artifactId>
@@ -43,6 +43,127 @@
     <url>https://github.com/xwikisas/application-diagram/tree/master</url>
     <tag>HEAD</tag>
   </scm>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.revapi</groupId>
+        <artifactId>revapi-maven-plugin</artifactId>
+        <configuration>
+          <analysisConfiguration><![CDATA[
+            {
+              "revapi": {
+                "ignore" : [
+                {
+                  "code": "java.class.defaultSerializationChanged",
+                  "old": "class com.xpn.xwiki.doc.XWikiLink",
+                  "new": "class com.xpn.xwiki.doc.XWikiLink",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.field.serialVersionUIDChanged",
+                  "new": "field com.xpn.xwiki.objects.BaseElement<R extends org.xwiki.model.reference.EntityReference>.serialVersionUID",
+                  "oldSerialVersionUID": "-3688616098120062811",
+                  "newSerialVersionUID": "1",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.field.serialVersionUIDChanged",
+                  "new": "field com.xpn.xwiki.objects.BaseObject.serialVersionUID",
+                  "oldSerialVersionUID": "-1105702662951858441",
+                  "newSerialVersionUID": "1",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.field.serialVersionUIDChanged",
+                  "new": "field com.xpn.xwiki.objects.BaseProperty<R extends org.xwiki.model.reference.EntityReference>.serialVersionUID",
+                  "oldSerialVersionUID": "1014924568649400298",
+                  "newSerialVersionUID": "1",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.removed",
+                  "old": "method com.xpn.xwiki.XWikiContext com.xpn.xwiki.store.XWikiHibernateBaseStore::getXWikiContext(com.xpn.xwiki.XWikiContext)",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.removed",
+                  "old": "method void com.xpn.xwiki.store.XWikiHibernateBaseStore::initialize() throws org.xwiki.component.phase.InitializationException",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.class.nonFinalClassInheritsFromNewClass",
+                  "old": "class com.xpn.xwiki.store.XWikiHibernateBaseStore",
+                  "new": "class com.xpn.xwiki.store.XWikiHibernateBaseStore",
+                  "superClass": "com.xpn.xwiki.internal.store.AbstractXWikiStore",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.class.noLongerImplementsInterface",
+                  "old": "class com.xpn.xwiki.store.XWikiHibernateBaseStore",
+                  "new": "class com.xpn.xwiki.store.XWikiHibernateBaseStore",
+                  "interface": "org.xwiki.component.phase.Initializable",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.parameterTypeChanged",
+                  "old": "parameter java.util.List com.xpn.xwiki.store.XWikiHibernateStore::search(===org.hibernate.Query===, int, int, com.xpn.xwiki.XWikiContext) throws com.xpn.xwiki.XWikiException",
+                  "new": "parameter java.util.List com.xpn.xwiki.store.XWikiHibernateStore::search(===org.hibernate.query.Query===, int, int, com.xpn.xwiki.XWikiContext) throws com.xpn.xwiki.XWikiException",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.class.nonFinalClassInheritsFromNewClass",
+                  "old": "class com.xpn.xwiki.store.XWikiHibernateStore",
+                  "new": "class com.xpn.xwiki.store.XWikiHibernateStore",
+                  "superClass": "com.xpn.xwiki.internal.store.AbstractXWikiStore",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.addedToInterface",
+                  "new": "method int com.xpn.xwiki.store.XWikiStoreInterface::getLimitSize(com.xpn.xwiki.XWikiContext, java.lang.Class<?>, java.lang.String)",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.addedToInterface",
+                  "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createResourceURL(java.lang.String, boolean, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.addedToInterface",
+                  "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.addedToInterface",
+                  "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.method.addedToInterface",
+                  "new": "method java.net.URL com.xpn.xwiki.web.XWikiURLFactory::createSkinURL(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.xpn.xwiki.XWikiContext, java.util.Map<java.lang.String, java.lang.Object>)",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.class.nonFinalClassInheritsFromNewClass",
+                  "old": "class org.xwiki.model.reference.DocumentReference",
+                  "new": "class org.xwiki.model.reference.DocumentReference",
+                  "superClass": "org.xwiki.model.reference.AbstractLocalizedEntityReference",
+                  "justification": "Not a breakage"
+                },
+                {
+                  "code": "java.class.nonFinalClassInheritsFromNewClass",
+                  "old": "class org.xwiki.model.reference.LocalDocumentReference",
+                  "new": "class org.xwiki.model.reference.LocalDocumentReference",
+                  "superClass": "org.xwiki.model.reference.AbstractLocalizedEntityReference",
+                  "justification": "Not a breakage"
+                }
+                ]
+              }
+            }
+          ]]></analysisConfiguration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
   <properties>
     <draw.io.version>14.4.3-1</draw.io.version>
     <licensing.version>1.16.1</licensing.version>
