@@ -318,10 +318,6 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     if (!uploadInProgress) {
       uploadInProgress = true;
       event.preventDefault();
-      // This is for older versions of XWiki (&lt;10.8.1) where we had to stop the original event.
-      if (data &amp;&amp; data.originalEvent &amp;&amp; typeof data.originalEvent.stop === 'function') {
-        data.originalEvent.stop();
-      }
       var saveButton = $('input[name=action_save' + (data &amp;&amp; data['continue'] ? 'andcontinue' : '') + ']');
       saveButton.prop('disabled', true);
       saveFilesAsImageAttachments().fail(function(e) {
