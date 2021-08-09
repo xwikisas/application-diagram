@@ -1289,12 +1289,11 @@ define('diagram-editor', [
   'diagram-store',
   'diagram-utils',
   'diagram-url-io',
-  'diagram-config',
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
   'diagram-external-services'
-], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig) {
+], function($, diagramStore, diagramUtils, diagramUrlIO) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
