@@ -42,8 +42,6 @@
   #set ($diagramConfig = {
     "debug": $services.debug.minify.equals(false),
     "locale": $xcontext.locale,
-    "mxGraphClientBasePath": $services.webjars.url('org.xwiki.contrib:mxgraph-client', ''),
-    "mxGraphEditorBasePath": $services.webjars.url('org.xwiki.contrib:mxgraph-editor', ''),
     "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
     "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
     "pdfImageExportZoom": $diagramObj.getValue('pdfImageExportZoom'),
@@ -210,12 +208,13 @@ define('diagram-config', ['jquery'], function($) {
  * Diagram application setup.
  */
 define('diagram-setup', ['diagram-config'], function(diagramConfig) {
+  var drawIOBasePath = diagramConfig.drawIOBasePath;
   // mxGraph client setup
-  window.mxBasePath = diagramConfig.mxGraphClientBasePath;
+  window.mxBasePath = drawIOBasePath + 'mxgraph';
+  window.mxImageBasePath = drawIOBasePath + 'mxgraph/images';
   window.mxLanguage = diagramConfig.locale;
 
   // draw.io setup
-  var drawIOBasePath = diagramConfig.drawIOBasePath;
   window.RESOURCES_PATH = drawIOBasePath + 'resources';
   window.RESOURCE_BASE = RESOURCES_PATH + '/dia';
   window.STENCIL_PATH = drawIOBasePath + 'stencils';
@@ -230,6 +229,8 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.EXPORT_URL = diagramConfig.exportURL;
   window.PROXY_URL = new XWiki.Document('DiagramProxy', 'Diagram').getURL('get');
   window.isLocalStorage = true;
+  // mxClient is not considering the basePath of the stylesheet files, so we load them after.
+  window.mxLoadStylesheets = false;
 
   window.urlParams = (function(params) {
     var pairs = window.location.search.substr(1).split('&amp;');
@@ -269,20 +270,19 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.DriveLibrary = window.DropboxLibrary = window.GitHubLibrary = window.OneDriveLibrary = window.TrelloLibrary
     = false;
 
-  var mxGraphEditorBasePath = diagramConfig.mxGraphEditorBasePath;
   require.config({
     paths: {
-      'base64': mxGraphEditorBasePath + 'deflate/base64.min',
-      'jscolor': mxGraphEditorBasePath + 'jscolor/jscolor.min',
-      'pako': mxGraphEditorBasePath + 'deflate/pako.min',
-      'sanitizer': mxGraphEditorBasePath + 'sanitizer/sanitizer.min',
+      'base64': drawIOBasePath + 'js/deflate/base64.min',
+      'jscolor': drawIOBasePath + 'js/jscolor/jscolor.min',
+      'pako': drawIOBasePath + 'js/deflate/pako.min',
+      'sanitizer': drawIOBasePath + 'js/sanitizer/sanitizer.min',
       'spin': drawIOBasePath + 'js/spin/spin.min',
       'jszip': drawIOBasePath + 'js/jszip/jszip.min',
       'rough': drawIOBasePath + 'js/rough/rough.min',
       'mxgraph-init': drawIOBasePath + 'js/draw.io.init.min',
-      'mxgraph-client': mxBasePath + 'mxClient.bundle.min',
-      'mxgraph-editor': mxGraphEditorBasePath + 'mxGraphEditor.min',
-      'mxgraph-viewer': mxGraphEditorBasePath + 'mxGraphViewer.min',
+      'mxgraph-client': drawIOBasePath + 'mxgraph/mxClient',
+      'mxgraph-editor': drawIOBasePath + 'js/draw.io.grapheditor.min',
+      'mxgraph-viewer': drawIOBasePath + 'js/draw.io.graphviewer.min',
       'draw.io': drawIOBasePath + 'js/draw.io.min',
       'draw.io.viewer': drawIOBasePath + 'js/draw.io.viewer.min',
       'resourceSelector': new XWiki.Document('WebHome', 'Diagram.ResourceSelector').getURL('jsx', 'minify=' + !diagramConfig.debug)
@@ -796,6 +796,9 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
     });
     return result;
   };
+
+  // Add the required stylesheets, since in mxClient the basePath of the stylesheets is not considered.
+  mxClient.link('stylesheet', mxClient.basePath + '/css/common.css');
 
   return {
     getDiagramXMLFromURL: getDiagramXMLFromURL,
