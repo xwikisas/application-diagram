@@ -1445,7 +1445,7 @@ define('diagram-editor', [
   Sidebar.prototype.createVertexTemplateEntry = function(style, width, height, value, title, showLabel, showTitle, tags) {
     style = style.replace(/(image=)(img\/lib)/g, '$1' + diagramConfig.drawIOBasePath + '$2');
     return oldCreateVertexTemplateEntry.call(this, style, width, height, value, title, showLabel, showTitle, tags);
-  }
+  };
 
   //
   // Overwrite the Keyboard Shortcuts action because it uses the wrong URL.
