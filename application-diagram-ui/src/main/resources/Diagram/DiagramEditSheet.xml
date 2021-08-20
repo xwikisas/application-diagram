@@ -1292,11 +1292,12 @@ define('diagram-editor', [
   'diagram-store',
   'diagram-utils',
   'diagram-url-io',
+  'diagram-config',
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
   'diagram-external-services'
-], function($, diagramStore, diagramUtils, diagramUrlIO) {
+], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
@@ -1435,6 +1436,15 @@ define('diagram-editor', [
     // Adjust the tool tip coordinates with the editor offset.
     var offset = $(this.editorUi.container).offsetParent().offset();
     return {x: offset.left, y: offset.top};
+  };
+
+  //
+  // Consider the basePath for the shapes added in the left panel.
+  //
+  var oldCreateVertexTemplateEntry = Sidebar.prototype.createVertexTemplateEntry;
+  Sidebar.prototype.createVertexTemplateEntry = function(style, width, height, value, title, showLabel, showTitle, tags) {
+    style = style.replace(/(image=)(img\/lib)/g, '$1' + diagramConfig.drawIOBasePath + '$2');
+    return oldCreateVertexTemplateEntry.call(this, style, width, height, value, title, showLabel, showTitle, tags);
   };
 
   //
