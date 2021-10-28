@@ -166,7 +166,7 @@
   </build>
   <properties>
     <draw.io.version>14.4.3-2</draw.io.version>
-    <licensing.version>1.19</licensing.version>
+    <licensing.version>1.20</licensing.version>
   </properties>
   <modules>
     <module>application-diagram-api</module>
