@@ -81,7 +81,7 @@
       &lt;dl&gt;
         &lt;dt&gt;
           &lt;label for="xwikiDocTitleInput"&gt;
-            $services.icon.renderHTML('font') $services.localization.render('core.editors.content.titleField.label')
+            $services.localization.render('core.editors.content.titleField.label')
           &lt;/label&gt;
         &lt;/dt&gt;
         &lt;dd&gt;
