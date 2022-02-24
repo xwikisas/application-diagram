@@ -77,15 +77,15 @@
   #set ($discard = $xwiki.jsx.use('Diagram.DiagramEditSheet'))
   ## Issue #219: Cannot modify diagram title in diagram editor
   &lt;div class="row xform"&gt;
-    &lt;div class="col-xs-12 col-md-12"&gt;
+    &lt;div class="col-xs-12"&gt;
       &lt;dl&gt;
         &lt;dt&gt;
-          &lt;label for="xwikiDocTitleInput"&gt;
-            $services.localization.render('core.editors.content.titleField.label')
+          &lt;label for="xwikidoctitleinput"&gt;
+            $escapetool.xml($services.localization.render('core.editors.content.titleField.label'))
           &lt;/label&gt;
         &lt;/dt&gt;
         &lt;dd&gt;
-          &lt;input id="xwikiDocTitleInput" type="text" name="title" value="$escapetool.xml($doc.title)"&gt;
+          &lt;input id="xwikidoctitleinput" type="text" name="title" value="$escapetool.xml($tdoc.title)"&gt;
         &lt;/dd&gt;
       &lt;/dl&gt;
     &lt;/div&gt;
