@@ -1346,9 +1346,12 @@ define('diagram-editor', [
   var fixEditorUI = function(editorUI) {
     cleanMenu(editorUI);
     fixKeyboardShortcutsAction(editorUI);
-    removeCompactModeToggle(editorUI);
-    fixFullScreenToggle(editorUI);
     fixEditorButtons($(editorUI.container));
+    // These are not present on mobile.
+    if (editorUI.menubar != null) {
+      removeCompactModeToggle(editorUI);
+      fixFullScreenToggle(editorUI);
+    }
   };
 
   var fixLoadUrl = function(editorUI) {
