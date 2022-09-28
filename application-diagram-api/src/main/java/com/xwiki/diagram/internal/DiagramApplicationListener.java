@@ -19,34 +19,44 @@
  */
 package com.xwiki.diagram.internal;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.component.manager.ComponentManager;
+import org.xwiki.component.manager.NamespacedComponentManager;
+import org.xwiki.component.phase.Initializable;
 import org.xwiki.extension.event.ExtensionEvent;
+import org.xwiki.extension.event.ExtensionInstalledEvent;
 import org.xwiki.extension.event.ExtensionUpgradedEvent;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
 import org.xwiki.wiki.descriptor.WikiDescriptorManager;
 import org.xwiki.wiki.manager.WikiManagerException;
 
+import com.xpn.xwiki.XWikiContext;
+
 /**
  * Triggers the data migration when the Diagram Application is upgraded.
- * 
+ *
  * @version $Id$
  * @since 1.11
  */
 @Component
 @Named(DiagramApplicationListener.ROLE_HINT)
 @Singleton
-public class DiagramApplicationListener extends AbstractEventListener
+public class DiagramApplicationListener extends AbstractEventListener implements Initializable
 {
     protected static final String ROLE_HINT = "DiagramApplicationListener";
+
+    private static final String DIAGRAM_APPPLICATION_ID = "com.xwiki.diagram:application-diagram";
 
     @Inject
     private Logger logger;
@@ -60,26 +70,59 @@ public class DiagramApplicationListener extends AbstractEventListener
     @Inject
     private WikiDescriptorManager wikiDescriptorManager;
 
+    @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Inject
+    private ComponentManager componentManager;
+
     /**
      * Default constructor.
      */
     public DiagramApplicationListener()
     {
-        super(ROLE_HINT, new ExtensionUpgradedEvent("com.xwiki.diagram:application-diagram"));
+        super(ROLE_HINT,
+            Arrays.<Event>asList(new ExtensionUpgradedEvent(DIAGRAM_APPPLICATION_ID), new ExtensionInstalledEvent()));
+    }
+
+    /**
+     * The migration should be done at ExtensionUpgradedEvent, but for avoiding XCOMMONS-751: Getting wrong component
+     * instance during JAR extension upgrade, it is done also at initialization step, since when an extension is
+     * upgraded its listeners are initialized too. After the issue is fixed and diagram starts depending on a version of
+     * XWiki >= the version where is fixed, then only the migration from inside the event should be executed.
+     */
+    @Override
+    public void initialize()
+    {
+        // Don't trigger the migration process at xwiki startup time.
+        if (this.contextProvider.get() != null) {
+            boolean hasNamespace = componentManager instanceof NamespacedComponentManager;
+            getTargetWikis(
+                hasNamespace ? ((NamespacedComponentManager) componentManager).getNamespace() : null).forEach(
+                this::migrate);
+        }
     }
 
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        ExtensionEvent extensionEvent = (ExtensionEvent) event;
-        getTargetWikis(extensionEvent).forEach(this::migrate);
+        if (event instanceof ExtensionUpgradedEvent || isDiagramInstallEvent(event)) {
+            ExtensionEvent extensionEvent = (ExtensionEvent) event;
+            getTargetWikis(extensionEvent.hasNamespace() ? extensionEvent.getNamespace() : null).forEach(this::migrate);
+        }
     }
 
-    private Collection<String> getTargetWikis(ExtensionEvent event)
+    private static boolean isDiagramInstallEvent(Event event)
+    {
+        return event instanceof ExtensionInstalledEvent && DIAGRAM_APPPLICATION_ID.equals(
+            ((ExtensionEvent) event).getExtensionId().getId());
+    }
+
+    private Collection<String> getTargetWikis(String namespace)
     {
         // Checking also for null namespace since it could mean that the upgrade is done on farm level.
-        if (event.hasNamespace() && event.getNamespace() != null && event.getNamespace().startsWith("wiki:")) {
-            return Collections.singleton(event.getNamespace().substring(5));
+        if (namespace != null && namespace.startsWith("wiki:")) {
+            return Collections.singleton(namespace.substring(5));
         } else {
             try {
                 return this.wikiDescriptorManager.getAllIds();
