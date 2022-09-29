@@ -81,6 +81,9 @@ public class DiagramApplicationListener extends AbstractEventListener implements
      */
     public DiagramApplicationListener()
     {
+        // TODO: Filter also ExtensionInstalledEvent by diagram extension id after XCOMMONS-2526: Provide constructors
+        //  for ExtensionInstalledEvent that does not take namespace is fixed and diagram starts depending on a
+        //  version of XWiki >= the version where is fixed.
         super(ROLE_HINT,
             Arrays.<Event>asList(new ExtensionUpgradedEvent(DIAGRAM_APPPLICATION_ID), new ExtensionInstalledEvent()));
     }
