@@ -275,7 +275,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'base64': drawIOBasePath + 'js/deflate/base64.min',
       'jscolor': drawIOBasePath + 'js/jscolor/jscolor.min',
       'pako': drawIOBasePath + 'js/deflate/pako.min',
-      'sanitizer': drawIOBasePath + 'js/sanitizer/sanitizer.min',
+      'sanitizer': drawIOBasePath + 'js/sanitizer/purify.min',
       'spin': drawIOBasePath + 'js/spin/spin.min',
       'jszip': drawIOBasePath + 'js/jszip/jszip.min',
       'rough': drawIOBasePath + 'js/rough/rough.min',
@@ -289,8 +289,8 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
     },
     shim: {
       'mxgraph-client': ['mxgraph-init'],
-      'mxgraph-editor': ['noDocWrite!mxgraph-client', 'jscolor', 'sanitizer'],
-      'mxgraph-viewer': ['noDocWrite!mxgraph-client', 'sanitizer'],
+      'mxgraph-editor': ['noDocWrite!mxgraph-client', 'jscolor', 'sanitizer-global'],
+      'mxgraph-viewer': ['noDocWrite!mxgraph-client', 'sanitizer-global'],
       'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'rough'],
       'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough']
     }
@@ -309,6 +309,11 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   define('jszip-global', ['jszip'], function(JSZip) {
     // draw.io expects a global variable.
     window.JSZip = JSZip;
+  });
+
+  define('sanitizer-global', ['sanitizer'], function(sanitizer) {
+    // draw.io expects a global variable.
+    window.DOMPurify = sanitizer;
   });
 
   // Disable document.write() while loading modules that call this API in order to prevent warning messages in the

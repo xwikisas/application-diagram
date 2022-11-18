@@ -199,7 +199,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var XWikiFile = function(ui, input, title, documentReference) {
-    DrawioFile.call(this, ui);
+    this.input = input;
+    DrawioFile.call(this, ui, input);
     this.input = input;
     this.title = title;
     this.documentReference = documentReference;
@@ -218,7 +219,11 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       return this.input.val();
     },
     setData: function(data) {
-      this.input.val(data);
+      if (typeof data === 'object') {
+        this.input.val(data[0].value);
+      } else {
+        this.input.val(data);
+      }
     },
     // We overwrite the base implementation because we don't want to support files that contain multiple diagrams.
     updateFileData: function() {
@@ -1347,6 +1352,7 @@ define('diagram-editor', [
     cleanMenu(editorUI);
     fixKeyboardShortcutsAction(editorUI);
     fixEditorButtons($(editorUI.container));
+    removeThemeButton();
     // These are not present on mobile.
     if (editorUI.menubar != null) {
       removeCompactModeToggle(editorUI);
@@ -1451,10 +1457,12 @@ define('diagram-editor', [
   //
   // Fix the side bar tool tip: the tool tip position is computed as if the editor takes the full screen.
   //
-  Sidebar.prototype.getTooltipOffset = function() {
+  var originalGetTooltipOffset = Sidebar.prototype.getTooltipOffset;
+  Sidebar.prototype.getTooltipOffset = function(elt, bounds) {
+    var fullScreenCoordinates = originalGetTooltipOffset.apply(this, arguments);
     // Adjust the tool tip coordinates with the editor offset.
     var offset = $(this.editorUi.container).offsetParent().offset();
-    return {x: offset.left, y: offset.top};
+    return new mxPoint(fullScreenCoordinates.x + offset.left, fullScreenCoordinates.y + offset.top);
   };
 
   //
@@ -1527,6 +1535,10 @@ define('diagram-editor', [
     editor.find('button:not([type])').each(function() {
       $(this).attr('type', 'button');
     });
+  };
+
+  var removeThemeButton = function() {
+    $('.geAdaptiveAsset[title="Theme"]').remove();
   };
 
   // mxRuler adds the ruler to the document body instead of adding it to the editor container.
