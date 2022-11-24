@@ -1003,14 +1003,25 @@ define('diagram-link-editor', [
   'draw.io',
   'resourceSelector'
 ], function($, diagramLinkHandler, svgHandler) {
-  EditorUi.prototype.showLinkDialog = function(value, selectLabel, callback) {
+  /**
+   * Override in order to change the Element type check from a.constructor !== Element, which was failing due to a
+   * collision with the PrototypeJS's own implementation of the standard Element.
+   * See http://api.prototypejs.org/dom/Element/new/index.html. This code is taken from the minified version of
+   * mxClient.js and should be removed after PrototypeJS is no longer loaded.
+   */
+  mxUtils.isNode = function(a, b, c, d) {
+    return null == a || a.nodeType !== Node.ELEMENT_NODE || null != b &amp;&amp;
+      a.nodeName.toLowerCase() != b.toLowerCase() ? !1 : null == c || a.getAttribute(c) == d;
+  };
+
+  EditorUi.prototype.showLinkDialog = function(value, selectLabel, callback, showNewWindowOption, linkTarget) {
     var resourceReference = diagramLinkHandler.getResourceReferenceFromCustomLink(value);
     // We append the modal to the body element in order to fix Issue #108: "Inserting a link in full screen mode is not
     // possible".
     $('#diagramLinkModal').appendTo('body').selectResource(resourceReference, {
       selectLabel: selectLabel
     }).done(function(resourceReference) {
-      callback(diagramLinkHandler.getCustomLinkFromResourceReference(resourceReference));
+      callback(diagramLinkHandler.getCustomLinkFromResourceReference(resourceReference), null, linkTarget);
     });
   };
 
@@ -1178,7 +1189,8 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
 
   // Add support for inserting images by specifying the XWiki attachment reference.
   var originalShowImageDialog = EditorUi.prototype.showImageDialog;
-  EditorUi.prototype.showImageDialog = function(title, value, fn, ignoreExisting, convertDataUri) {
+  EditorUi.prototype.showImageDialog = function(title, value, fn, ignoreExisting, convertDataUri, withCrop,
+      initClipPath) {
     var showImageDialogArgs = Array.prototype.slice.call(arguments);
     var customLink = diagramLinkHandler.getCustomLinkFromURL(value);
     if (customLink) {
@@ -1242,7 +1254,8 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
 
   // Custom diagram export as URL (using the current host).
   var originalCreateLink = EditorUi.prototype.createLink;
-  EditorUi.prototype.createLink = function() {
+  EditorUi.prototype.createLink = function(linkTarget, linkColor, allPages, lightbox, editLink, layers, url, ignoreFile,
+      params, useOpenParameter) {
     let rawURL = originalCreateLink.apply(this, arguments);
     // Do not include '#' because it's automatically added by getURL function below.
     let documentFragmentIndex = rawURL.indexOf('#');
@@ -1285,7 +1298,7 @@ define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], fun
   // This is used from File -&gt; Export as.
   var originalCreateDownloadRequest = EditorUi.prototype.createDownloadRequest;
   EditorUi.prototype.createDownloadRequest = function(filename, format, ignoreSelection, base64, transparent,
-      currentPage, scale, border, grid, includeXml) {
+      currentPage, scale, border, grid, includeXml, pageRange, w, h) {
     if (diagramConfig.disableExternalServices) {
       showDisabledServicesDialog(this);
       return;
@@ -1295,7 +1308,7 @@ define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], fun
 
   // This is used from File -&gt; Export as -&gt; Advanced...
   var originalExportFile = ExportDialog.exportFile;
-  ExportDialog.exportFile = function(editorUi, name, format, bg, s, b, dpi) {
+  ExportDialog.exportFile = function(editorUi, name, format, bg, s, b, dpi, grid) {
     if (diagramConfig.disableExternalServices &amp;&amp; (format == 'pdf' ||
         (['png', 'jpg', 'jpeg'].indexOf(format) != -1 &amp;&amp; !editorUi.isExportToCanvas()))) {
       showDisabledServicesDialog(editorUi);
@@ -1394,7 +1407,7 @@ define('diagram-editor', [
   // Add support for disabling an entire sub-menu.
   //
   var originalAddSubmenu = Menus.prototype.addSubmenu;
-  Menus.prototype.addSubmenu = function(name, menu, parent) {
+  Menus.prototype.addSubmenu = function(name, menu, parent, label) {
     var subMenu = this.get(name);
     if (subMenu &amp;&amp; subMenu.visible !== false) {
       originalAddSubmenu.apply(this, arguments);
@@ -1469,9 +1482,11 @@ define('diagram-editor', [
   // Consider the basePath for the shapes added in the left panel.
   //
   var oldCreateVertexTemplateEntry = Sidebar.prototype.createVertexTemplateEntry;
-  Sidebar.prototype.createVertexTemplateEntry = function(style, width, height, value, title, showLabel, showTitle, tags) {
+  Sidebar.prototype.createVertexTemplateEntry = function(style, width, height, value, title, showLabel, showTitle,
+      allowCellsInserted, showTooltip, clickFn, thumbWidth, thumbHeight) {
     style = style.replace(/(image=)(img\/lib)/g, '$1' + diagramConfig.drawIOBasePath + '$2');
-    return oldCreateVertexTemplateEntry.call(this, style, width, height, value, title, showLabel, showTitle, tags);
+    return oldCreateVertexTemplateEntry.call(this, style, width, height, value, title, showLabel, showTitle,
+      allowCellsInserted, showTooltip, clickFn, thumbWidth, thumbHeight);
   };
 
   //
