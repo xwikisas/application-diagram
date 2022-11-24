@@ -201,7 +201,6 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   var XWikiFile = function(ui, input, title, documentReference) {
     this.input = input;
     DrawioFile.call(this, ui, input);
-    this.input = input;
     this.title = title;
     this.documentReference = documentReference;
   };
