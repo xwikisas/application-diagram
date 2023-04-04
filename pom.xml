@@ -44,6 +44,14 @@
     <tag>HEAD</tag>
   </scm>
   <build>
+    <extensions>
+      <!-- Needed to add support for the "xip" packaging -->
+      <extension>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-tool-extension-plugin</artifactId>
+        <version>${commons.version}</version>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <groupId>org.revapi</groupId>
@@ -172,5 +180,6 @@
     <module>application-diagram-api</module>
     <module>application-diagram-export</module>
     <module>application-diagram-ui</module>
+    <module>application-diagram-xip</module>
   </modules>
 </project>
