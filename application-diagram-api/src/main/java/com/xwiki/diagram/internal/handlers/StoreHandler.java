@@ -83,14 +83,7 @@ public class StoreHandler
         wikiLink.setFullName(serializedParentDocRef);
         wikiLink.setLink(serializedLinkedDocRef);
 
-        // Verify that the link reference isn't larger than 253 characters since otherwise that would lead to a DB
-        // error that would result in a fatal error. 253 is used instead of 255 since this is a combined identifier
-        // along with docId. The size of the field was increased starting with https://jira.xwiki.org/browse/XWIKI-18429
-        // to 768 and a new API was added to get this size programmatically, but the HibernateStore#getLimitSize has
-        // problems for combined identifiers, as stated in https://jira.xwiki.org/browse/XWIKI-18678.
-        // TODO: Modify the conditions to have the limit at 766 when the XWiki version is > 13.2 and start using
-        // HibernateStore#getLimitSize when XWiki version > 12.10.8 / 13.4.
-        if (StringUtils.length(wikiLink.getLink()) > 253) {
+        if (StringUtils.length(wikiLink.getLink()) > 766) {
             logger.warn("Failed to add a backlink to [{}] since [{}] exceeds the 253 characters limit",
                 serializedParentDocRef, serializedLinkedDocRef);
         } else {

@@ -8,7 +8,7 @@ This application integrates [jgraph/draw.io](https://github.com/jgraph/draw.io/)
 * Project Lead: [Oana-Lavinia Florean](https://github.com/oanalavinia)
 * [Documentation](https://store.xwiki.com/xwiki/bin/view/Extension/DiagramApplication)
 * [Development Practices](http://dev.xwiki.org)
-* Minimal XWiki version supported: XWiki 11.10
+* Minimal XWiki version supported: XWiki 13.10
 * License: LGPL 2.1+ for the application code. Note that the draw.io code the application depends on is licensed under Apache 2.0 license.
 * Translations: N/A
 * Sonar Dashboard: N/A
