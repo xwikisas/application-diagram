@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>11.10</version>
+    <version>13.10</version>
   </parent>
   <groupId>com.xwiki.diagram</groupId>
   <artifactId>application-diagram-parent</artifactId>
@@ -166,7 +166,7 @@
   </build>
   <properties>
     <draw.io.version>14.4.3-2</draw.io.version>
-    <licensing.version>1.22</licensing.version>
+    <licensing.version>1.24.1</licensing.version>
   </properties>
   <modules>
     <module>application-diagram-api</module>
