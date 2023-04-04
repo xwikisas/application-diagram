@@ -25,6 +25,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.slf4j.Logger;
@@ -37,13 +38,13 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.doc.XWikiLink;
-import com.xpn.xwiki.store.XWikiHibernateBaseStore;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
+import com.xpn.xwiki.store.XWikiHibernateStore;
 import com.xpn.xwiki.store.XWikiStoreInterface;
 
 /**
  * Handler for XWikiStore operations.
- * 
+ *
  * @version $Id$
  * @since 1.13
  */
@@ -68,12 +69,14 @@ public class StoreHandler
 
     /**
      * Add a backlink between 2 documents.
-     * 
+     *
      * @param session the Hibernate Session
      * @param document document that contains a reference to another document
      * @param linkedDocRef reference of the linked document
+     * @param context the context in which the code is executed.
      */
-    public void addXWikiLink(Session session, XWikiDocument document, DocumentReference linkedDocRef)
+    public void addXWikiLink(Session session, XWikiDocument document, DocumentReference linkedDocRef,
+        XWikiContext context)
     {
         XWikiLink wikiLink = new XWikiLink();
         String serializedParentDocRef = localEntityReferenceSerializer.serialize(document.getDocumentReference());
@@ -83,17 +86,22 @@ public class StoreHandler
         wikiLink.setFullName(serializedParentDocRef);
         wikiLink.setLink(serializedLinkedDocRef);
 
-        if (StringUtils.length(wikiLink.getLink()) > 766) {
-            logger.warn("Failed to add a backlink to [{}] since [{}] exceeds the 253 characters limit",
-                serializedParentDocRef, serializedLinkedDocRef);
-        } else {
-            session.saveOrUpdate(wikiLink);
+        try {
+            if (StringUtils.length(wikiLink.getLink()) > getStore().getLimitSize(context, XWikiLink.class, "link")) {
+                logger.warn("Failed to add a backlink to [{}] since [{}] exceeds the 253 characters limit",
+                    serializedParentDocRef, serializedLinkedDocRef);
+            } else {
+                session.saveOrUpdate(wikiLink);
+            }
+        } catch (ComponentLookupException e) {
+            logger.warn("Failed to add a backlink to [{}]. Cause [{}].", serializedParentDocRef,
+                ExceptionUtils.getRootCauseMessage(e));
         }
     }
 
     /**
      * Delete backlinks from this document.
-     * 
+     *
      * @param docId the id of the document
      * @param context the current request context
      * @throws XWikiException fail during delete action
@@ -121,12 +129,12 @@ public class StoreHandler
 
     /**
      * Get instance of XWikiHibernateStore.
-     * 
+     *
      * @return store system for execute store-specific actions.
      * @throws ComponentLookupException if the store could not be reached
      */
-    public XWikiHibernateBaseStore getStore() throws ComponentLookupException
+    public XWikiHibernateStore getStore() throws ComponentLookupException
     {
-        return (XWikiHibernateBaseStore) hibernateStoreProvider.get();
+        return (XWikiHibernateStore) hibernateStoreProvider.get();
     }
 }
