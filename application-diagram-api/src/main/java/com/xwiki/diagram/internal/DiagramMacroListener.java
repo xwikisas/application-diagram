@@ -106,7 +106,7 @@ public class DiagramMacroListener extends AbstractEventListener
                             DocumentReference macroReference = explicitDocumentReferenceResolver
                                 .resolve(macroBlock.getParameter("reference"), document.getDocumentReference());
 
-                            storeHandler.addXWikiLink(session, document, macroReference);
+                            storeHandler.addXWikiLink(session, document, macroReference, context);
                         }
 
                         return Boolean.TRUE;

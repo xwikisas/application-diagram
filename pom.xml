@@ -25,11 +25,11 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>11.10</version>
+    <version>13.10-3</version>
   </parent>
   <groupId>com.xwiki.diagram</groupId>
   <artifactId>application-diagram-parent</artifactId>
-  <version>1.17.4-SNAPSHOT</version>
+  <version>1.18.1-SNAPSHOT</version>
   <name>Diagram Application (Pro) - Parent POM</name>
   <packaging>pom</packaging>
   <description>Create easy to use diagrams and flowcharts using draw.io. Import Gliffy diagrams. Include diagrams in other pages. Export them as PDFs or images. The app can be purchased individually or part of the XWiki Pro package. Try it free.</description>
@@ -44,6 +44,14 @@
     <tag>HEAD</tag>
   </scm>
   <build>
+    <extensions>
+      <!-- Needed to add support for the "xip" packaging -->
+      <extension>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-tool-extension-plugin</artifactId>
+        <version>${commons.version}</version>
+      </extension>
+    </extensions>
     <plugins>
       <plugin>
         <groupId>org.revapi</groupId>
@@ -166,11 +174,12 @@
   </build>
   <properties>
     <draw.io.version>20.5.0</draw.io.version>
-    <licensing.version>1.22</licensing.version>
+    <licensing.version>1.24.1</licensing.version>
   </properties>
   <modules>
     <module>application-diagram-api</module>
     <module>application-diagram-export</module>
     <module>application-diagram-ui</module>
+    <module>application-diagram-xip</module>
   </modules>
 </project>
