@@ -96,7 +96,7 @@ public class DiagramLinksListener extends AbstractEventListener
                         // Add backlinks from pages linked by this diagram.
                         for (DocumentReference linkedDocRef : contentHandler.getLinkedPages(document.getContent(),
                             document.getDocumentReference())) {
-                            storeHandler.addXWikiLink(session, document, linkedDocRef);
+                            storeHandler.addXWikiLink(session, document, linkedDocRef, context);
                         }
 
                         return Boolean.TRUE;
