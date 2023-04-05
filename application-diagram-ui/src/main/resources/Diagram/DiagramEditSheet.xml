@@ -200,7 +200,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var XWikiFile = function(ui, input, title, documentReference) {
     this.input = input;
-    DrawioFile.call(this, ui, input);
+    DrawioFile.call(this, ui, input.val());
     this.title = title;
     this.documentReference = documentReference;
   };
@@ -218,11 +218,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       return this.input.val();
     },
     setData: function(data) {
-      if (typeof data === 'object') {
-        this.input.val(data[0].value);
-      } else {
-        this.input.val(data);
-      }
+      this.input.val(data);
     },
     // We overwrite the base implementation because we don't want to support files that contain multiple diagrams.
     updateFileData: function() {
