@@ -40,6 +40,9 @@
 #set ($diagramObj = $doc.getObject('Diagram.DiagramClass'))
 #if ($diagramObj || "$!request.source" != '')
   #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+  ## Make sure that the version loaded with RequireJS is not a cached one. See XWIKI-12981: Add the document version
+  ## of skin extensions in the generated URLs.
+  #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
   #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
   #set ($toolbar = 'zoom layers pages lightbox')
   #if ("$!request.source" == '' &amp;&amp; $services.security.authorization.hasAccess('edit'))

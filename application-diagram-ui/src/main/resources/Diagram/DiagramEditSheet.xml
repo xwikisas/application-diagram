@@ -74,6 +74,9 @@
   ## editor doesn't use standard text fields for entering the labels for the various shapes the diagram is made of)
   #set ($keyboardShortcutsEnabled = false)
   #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+  ## Make sure that the version loaded with RequireJS is not a cached one. See XWIKI-12981: Add the document version
+  ## of skin extensions in the generated URLs.
+  #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
   #set ($discard = $xwiki.jsx.use('Diagram.DiagramEditSheet'))
   ## Issue #219: Cannot modify diagram title in diagram editor
   &lt;div class="row xform"&gt;
