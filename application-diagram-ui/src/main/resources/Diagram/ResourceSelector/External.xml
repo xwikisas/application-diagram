@@ -140,6 +140,9 @@
   var resourceSelector = externalResourceSelector.closest('.resource-selector');
   resourceSelector.on('xwiki:resourceSelector:select', function(event, resource) {
     if (resource.type === 'url') {
+      $('#resource-selector-browse').removeClass('active');
+      externalResourceSelector.addClass('active');
+
       externalResourceSelector.find('#resource-selector-external-url').val(resource.reference);
     }
   });
