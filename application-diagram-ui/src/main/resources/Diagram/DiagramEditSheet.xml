@@ -1705,9 +1705,22 @@ define('diagram-editor', [
       <cache>long</cache>
     </property>
     <property>
-      <code>require.config({
+      <code>/*!
+## Make sure that the version loaded with RequireJS is not a cached one.
+#set ($version = $services.extension.installed.getInstalledExtension('com.xwiki.diagram:application-diagram',
+  "wiki:$xcontext.database").version.value)
+#set ($params = $escapetool.url({
+  'minify': $!services.debug.minify,
+  'appVersion': $version
+}))
+#[[*/
+// Start JavaScript-only code.
+(function(params) {
+  "use strict";
+
+require.config({
   paths: {
-    'diagram-setup': new XWiki.Document('DiagramSheet', 'Diagram').getURL('jsx', 'minify=$!services.debug.minify')
+    'diagram-setup': new XWiki.Document('DiagramSheet', 'Diagram').getURL('jsx', params)
   },
   map: {
     'diagram-utils': {
@@ -1725,7 +1738,10 @@ require(['diagram-setup'], function() {
       $('.diagram-editor').editDiagram();
     });
   });
-});</code>
+});
+
+// End JavaScript-only code.
+}).apply(']]#', $jsontool.serialize([$params]));</code>
     </property>
     <property>
       <name>Startup</name>
