@@ -99,7 +99,7 @@
     <dependency>
       <groupId>com.xwiki.defaultPageTemplate</groupId>
       <artifactId>application-defaultPageTemplate</artifactId>
-      <version>1.4</version>
+      <version>1.4.1</version>
       <scope>runtime</scope>
       <type>xar</type>
     </dependency>
