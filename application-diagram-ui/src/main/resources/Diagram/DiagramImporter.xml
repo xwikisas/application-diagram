@@ -50,8 +50,7 @@
 
 {{velocity wiki="false"}}
 ## The following code replicates, as much as possible, the behavior of draw.io's OpenServlet.
-#set ($fileParamName = 'upfile')
-#set ($fileName = $xwiki.fileupload.getFileName($fileParamName))
+#set ($fileName = $request.filename)
 #if ($xcontext.action != 'get')
   #stop
 #elseif ("$!xcontext.userReference" == '')
@@ -59,11 +58,11 @@
   #set ($discard = $response.sendError(403, 'You are not allowed to perform this action.'))
 #elseif ("$!fileName" == '')
   ## Bad Request
-  #set ($message = "The '$fileParamName' request parameter is missing. Either you didn't submit any file or the size of"
+  #set ($message = "The filename request parameter is missing. Either you didn't submit any file or the size of"
     + 'the submitted file exceeds the configured maximum upload size.')
   #set ($discard = $response.sendError(400, $message))
 #else
-  #set ($diagramContent = $xwiki.fileupload.getFileItemAsString($fileParamName))
+  #set ($diagramContent = $request.data)
   #set ($format = $request.format)
   #if ("$!format" == '')
     #set ($format = 'html')
