@@ -521,7 +521,7 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
   };
 
   var findImageNodes = function(node) {
-    return $(node).find('mxCell[style^="image;"], mxCell[style^="shape=image;"]');
+    return $(node).find('mxCell[style*="image;"], mxCell[style*="shape=image;"]');
   };
 
   var findLinkNodes = function(node) {

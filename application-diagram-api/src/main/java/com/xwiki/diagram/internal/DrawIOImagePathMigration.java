@@ -45,7 +45,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DrawIOImagePathMigration extends AbstractDiagramMigration
 {
-    private static final Pattern IMAGE_WEBJAR_PATH = Pattern.compile("image=[\\w/%.]*\\/img/");
+    private static final Pattern IMAGE_WEBJAR_PATH = Pattern.compile("image=[\\w/%.-]*\\/img/");
 
     private static final String IMAGE_WAR_PATH = "image=img/";
 
