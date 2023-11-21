@@ -278,6 +278,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'sanitizer': drawIOBasePath + 'js/sanitizer/purify.min',
       'spin': drawIOBasePath + 'js/spin/spin.min',
       'jszip': drawIOBasePath + 'js/jszip/jszip.min',
+      'mermaid': drawIOBasePath + 'js/mermaid/mermaid.min',
       'rough': drawIOBasePath + 'js/rough/rough.min',
       'mxgraph-init': drawIOBasePath + 'js/draw.io.init.min',
       'mxgraph-client': drawIOBasePath + 'mxgraph/mxClient',
@@ -291,7 +292,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'mxgraph-client': ['mxgraph-init'],
       'mxgraph-editor': ['noDocWrite!mxgraph-client', 'jscolor', 'sanitizer-global'],
       'mxgraph-viewer': ['noDocWrite!mxgraph-client', 'sanitizer-global'],
-      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'rough'],
+      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'mermaid-global', 'rough'],
       'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough']
     }
   });
@@ -314,6 +315,11 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   define('sanitizer-global', ['sanitizer'], function(sanitizer) {
     // draw.io expects a global variable.
     window.DOMPurify = sanitizer;
+  });
+
+  define('mermaid-global', ['mermaid'], function(mermaid) {
+    // draw.io expects a global variable.
+    window.mermaid = mermaid;
   });
 
   // Disable document.write() while loading modules that call this API in order to prevent warning messages in the
