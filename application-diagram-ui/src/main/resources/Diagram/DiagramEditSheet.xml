@@ -333,8 +333,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   $(document).on('xwiki:actions:beforeSave', function(event, data) {
     if (!uploadInProgress) {
       uploadInProgress = true;
-      event.preventDefault();
-      var saveButton = $('input[name=action_save' + (data &amp;&amp; data['continue'] ? 'andcontinue' : '') + ']');
+      event.stopPropagation();
+      var saveButton = $(event.target);
       saveButton.prop('disabled', true);
       saveFilesAsImageAttachments().fail(function(e) {
         new XWiki.widgets.Notification(
