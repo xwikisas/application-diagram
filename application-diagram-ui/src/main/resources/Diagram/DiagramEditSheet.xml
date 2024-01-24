@@ -265,7 +265,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var saveBlobAsImageAttachment = function(blob, fileName, documentReference) {
     var attachmentReference = new XWiki.AttachmentReference(fileName, documentReference);
-    var uploadAttachment = $.proxy(xutils.uploadAttachment, null, blob, attachmentReference);
+    var uploadMethod = (diagramConfig.isTemporaryUploadSupported) ? xutils.temporaryUploadAttachment : xutils.uploadAttachment;
+    var uploadAttachment = $.proxy(uploadMethod, null, blob, attachmentReference);
     // Avoid creating too many versions of the attachment. Upload the attachment even if we failed to delete it first.
     return xutils.deleteAttachment(attachmentReference).then(uploadAttachment, uploadAttachment);
   };

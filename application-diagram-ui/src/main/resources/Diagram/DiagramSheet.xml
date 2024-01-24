@@ -39,13 +39,15 @@
   <content>{{velocity}}
 #set ($diagramObj = $doc.getObject('Diagram.DiagramClass'))
 #if ($diagramObj)
+  #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''));
   #set ($diagramConfig = {
     "debug": $services.debug.minify.equals(false),
     "locale": $xcontext.locale,
     "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
     "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
     "pdfImageExportZoom": $diagramObj.getValue('pdfImageExportZoom'),
-    "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices')
+    "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
+    "isTemporaryUploadSupported": $temporaryUploadSupported
   })
   #if ($xcontext.action == 'edit')
     {{include reference="Diagram.DiagramEditSheet" /}}
@@ -159,6 +161,39 @@ define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
       (queryString ? '?' + queryString : '');
     return attachmentURL;
   };
+  
+  var temporaryUploadAttachment = function (blob, attachment) {
+    var documentReference = xm.documentReference;
+    if (typeof attachment !== 'string') {
+      documentReference = attachment.parent;
+      attachment = attachment.name;
+    }
+    var doc = new XWiki.Document(documentReference);
+    var formData = new FormData();
+    formData.append('upload', blob);
+    const params = {
+      'form_token': xm.form_token,
+      'sheet': 'CKEditor.FileUploader',
+      'outputSyntax': 'plain',
+      'filename': attachment
+    };
+    var form = $('#mainContentArea').find('form').first();
+    return $.ajax({
+      url : doc.getURL('get', new URLSearchParams(params).toString()),
+      data : formData,
+      method: 'POST',
+      processData : false,
+      contentType : false, // Sets the 'multipart/form-data' automatically
+      headers: {
+        'X-XWiki-Temporary-Attachment-Support': true
+      }
+    }).then(function (response) {
+      form.append($('&lt;input&gt;')
+          .prop('type', 'hidden')
+          .prop('name', 'uploadedFiles')
+          .prop('value', response.fileName))
+    }, null);
+  };
 
   var uploadAttachment = function(blob, attachment) {
     var documentReference = xm.documentReference;
@@ -193,7 +228,8 @@ define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
   return {
     getAttachmentURL: getAttachmentURL,
     uploadAttachment: uploadAttachment,
-    deleteAttachment: deleteAttachment
+    deleteAttachment: deleteAttachment,
+    temporaryUploadAttachment: temporaryUploadAttachment
   };
 });
 
