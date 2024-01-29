@@ -39,7 +39,7 @@
   <content>{{velocity}}
 #set ($diagramObj = $doc.getObject('Diagram.DiagramClass'))
 #if ($diagramObj)
-  #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''));
+  #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
   #set ($diagramConfig = {
     "debug": $services.debug.minify.equals(false),
     "locale": $xcontext.locale,
@@ -177,7 +177,7 @@ define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
       'outputSyntax': 'plain',
       'filename': attachment
     };
-    var form = $('#mainContentArea').find('form').first();
+    var form = $('form#inline');
     return $.ajax({
       url : doc.getURL('get', new URLSearchParams(params).toString()),
       data : formData,
