@@ -36,9 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>false</hidden>
-  <content>{{include reference="Licenses.Code.VelocityMacros"/}}
-
-{{velocity output="false"}}
+  <content>{{velocity output="false"}}
 #macro (diagramLiveTable)
   #set ($columnsProperties = {
     'doc.location': {"type":"text","size":20,"html":true},
@@ -64,7 +62,7 @@
     $services.model.createDocumentReference('', 'Diagram', 'DiagramClass')))
   #diagramLiveTable()
 #else
-  {{error}}#getMissingLicenseMessage('diagram.extension.name'){{/error}}
+  {{missingLicenseMessage extensionName="diagram.extension.name"/}}
 #end
 {{/velocity}}</content>
   <object>

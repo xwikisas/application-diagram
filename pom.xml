@@ -174,7 +174,7 @@
   </build>
   <properties>
     <draw.io.version>20.5.0</draw.io.version>
-    <licensing.version>1.24.3</licensing.version>
+    <licensing.version>1.25</licensing.version>
   </properties>
   <modules>
     <module>application-diagram-api</module>
