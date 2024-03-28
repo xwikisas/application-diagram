@@ -315,6 +315,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'spin': drawIOBasePath + 'js/spin/spin.min',
       'jszip': drawIOBasePath + 'js/jszip/jszip.min',
       'mermaid': drawIOBasePath + 'js/mermaid/mermaid.min',
+      'freehand': drawIOBasePath + 'js/freehand/perfect-freehand',
       'rough': drawIOBasePath + 'js/rough/rough.min',
       'mxgraph-init': drawIOBasePath + 'js/draw.io.init.min',
       'mxgraph-client': drawIOBasePath + 'mxgraph/mxClient',
@@ -328,7 +329,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
       'mxgraph-client': ['mxgraph-init'],
       'mxgraph-editor': ['noDocWrite!mxgraph-client', 'jscolor', 'sanitizer-global'],
       'mxgraph-viewer': ['noDocWrite!mxgraph-client', 'sanitizer-global'],
-      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'mermaid-global', 'rough'],
+      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'mermaid-global', 'freehand', 'rough'],
       'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough']
     }
   });
