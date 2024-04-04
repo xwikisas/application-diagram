@@ -280,8 +280,6 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   })({
     // Don't show the splash screen.
     'splash': '0',
-    // Disable the tabbed UI.
-    'pages': '0',
     // Disable the GitHub integration.
     'gh': '0',
     // Disable the GitLab integration.

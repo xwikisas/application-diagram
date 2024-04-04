@@ -218,11 +218,8 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       return this.input.val();
     },
     setData: function(data) {
+      this.ui.pages = this.ui.getPagesForXml(data);
       this.input.val(data);
-    },
-    // We overwrite the base implementation because we don't want to support files that contain multiple diagrams.
-    updateFileData: function() {
-      this.setData(mxUtils.getPrettyXml(this.ui.editor.getGraphXml(true, true)));
     },
     open: function() {
       var graphXML = this.getData() || '&lt;mxGraphModel/&gt;';
@@ -1379,13 +1376,6 @@ define('diagram-editor', [
       }
       return originalLoadUrl.apply(this, arguments);
     };
-  };
-
-  //
-  // Disable the tabbed UI (setting urlParams['pages'] to '0' is not enough..)
-  //
-  EditorUi.prototype.initPages = function() {
-    // Do nothing.
   };
 
   //
