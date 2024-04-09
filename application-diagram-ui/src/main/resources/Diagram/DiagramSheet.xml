@@ -284,6 +284,8 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
     'gh': '0',
     // Disable the GitLab integration.
     'gl': '0',
+    // Explicitly enable the tabbed UI.
+    'pages': '1',
     // Disable the Dropbox integration.
     'db': '0',
     // Disable the Google Drive integration.

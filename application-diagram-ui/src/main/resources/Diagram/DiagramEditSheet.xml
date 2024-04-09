@@ -218,7 +218,6 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       return this.input.val();
     },
     setData: function(data) {
-      this.ui.pages = this.ui.getPagesForXml(data);
       this.input.val(data);
     },
     open: function() {
@@ -226,6 +225,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       var graphNode = mxUtils.parseXml(graphXML).documentElement;
       graphNode.fromStorage = true;
       this.ui.editor.setGraphXml(graphNode);
+      this.ui.currentPage = this.ui.pages[0];
       this.changeListener = mxUtils.bind(this, function(sender, eventObject) {
         this.setModified(true);
       });
