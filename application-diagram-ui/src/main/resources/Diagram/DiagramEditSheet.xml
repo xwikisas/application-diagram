@@ -219,6 +219,10 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     },
     setData: function(data) {
       this.input.val(data);
+      let pages = this.ui.getPagesForXml(data);
+      if (pages.length &gt; 0) {
+        this.ui.pages = this.ui.getPagesForXml(data);
+      }
     },
     open: function() {
       var graphXML = this.getData() || '&lt;mxGraphModel/&gt;';
