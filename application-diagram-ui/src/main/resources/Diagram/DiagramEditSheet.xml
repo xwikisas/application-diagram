@@ -218,18 +218,23 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       return this.input.val();
     },
     setData: function(data) {
-      this.input.val(data);
       let pages = this.ui.getPagesForXml(data);
       if (pages.length &gt; 0) {
-        this.ui.pages = this.ui.getPagesForXml(data);
+        this.ui.pages = pages;
       }
+      this.input.val(data);
+    },
+    isCompressed: function() {
+      return false;
+    },
+    createData: function() {
+      var result = this.ui.getFileData(null, null, null, null,
+          null, null, null, null, this, !this.isCompressed(), true);
+      return result;
     },
     open: function() {
       var graphXML = this.getData() || '&lt;mxGraphModel/&gt;';
-      var graphNode = mxUtils.parseXml(graphXML).documentElement;
-      graphNode.fromStorage = true;
-      this.ui.editor.setGraphXml(graphNode);
-      this.ui.currentPage = this.ui.pages[0];
+      this.ui.setFileData(graphXML);
       this.changeListener = mxUtils.bind(this, function(sender, eventObject) {
         this.setModified(true);
       });
@@ -249,7 +254,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     forEachOpenedFile(function(file) {
       // This is a workaround for https://github.com/jgraph/drawio/issues/490
       // Stop editing for getting the latest content from diagram
-      file.ui.editor.graph.stopEditing(false);
+      file.ui.editor.graph.stopEditing();
       file.updateFileData();
     });
   };
