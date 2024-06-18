@@ -58,7 +58,7 @@ rendering.macro.diagram.description=Affiche un diagramme.
 rendering.macro.diagram.name=Diagramme
 rendering.macro.diagram.parameter.cached.description=Afficher le diagramme sous la forme d'une image mise en cache (plus rapide) plutôt que d'un dessin vectoriel (plus lent).
 rendering.macro.diagram.parameter.cached.name=Mise en cache
-rendering.macro.diagram.parameter.reference.description=rendering.macro.diagram.parameter.reference.description=La référence vers la page qui contient le diagramme à afficher. Ex : pour "http:~/~/.../Diagram/Mon%20Diagramme/", saisir "Diagram.Mon Diagramme.WebHome". Si ce champ est laissé vide, la macro recherche une page descendante nommée "Diagramme" et, en cas d'absence, affiche un formulaire de création de diagramme.
+rendering.macro.diagram.parameter.reference.description=La référence vers la page qui contient le diagramme à afficher. Ex : pour "http:~/~/.../Diagram/Mon%20Diagramme/", saisir "Diagram.Mon Diagramme.WebHome". Si ce champ est laissé vide, la macro recherche une page descendante nommée "Diagramme" et, en cas d'absence, affiche un formulaire de création de diagramme.
 rendering.macro.diagram.parameter.reference.name=Référence
 diagram.macro.create=Créer un diagramme
 diagram.macro.createNotAllowed=Vous n'êtes pas autorisé(e) à créer ce diagramme.
