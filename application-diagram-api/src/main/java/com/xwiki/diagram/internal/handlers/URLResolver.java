@@ -48,7 +48,7 @@ import com.xpn.xwiki.XWikiContext;
 import liquibase.repackaged.org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
- * Handles the transformation link into XWiki references
+ * Handles the transformation link into XWiki references.
  *
  * @version $Id$
  * @since 1.13
@@ -75,16 +75,16 @@ public class URLResolver
     private EntityReferenceResolver<String> defaultStringResolver;
 
     /**
-     * Transforms an URL to a XWiki reference
-     * @param URL URL of the page
+     * Transforms an URL to a XWiki reference.
+     * @param url URL of the page
      * @param type of the reference
      * @return an entity reference
      */
-    public EntityReference getReferenceFromXWikiLink(String URL, EntityType type)
+    public EntityReference getReferenceFromXWikiLink(String url, EntityType type)
     {
         XWikiContext xcontext = this.xcontextProvider.get();
         try {
-            ExtendedURL extendedURL = new ExtendedURL(new URL(URL), xcontext.getRequest().getContextPath());
+            ExtendedURL extendedURL = new ExtendedURL(new URL(url), xcontext.getRequest().getContextPath());
             ResourceType resourceType = this.typeResolver.resolve(extendedURL, Collections.emptyMap());
             ResourceReference reference =
                 this.resourceResolver.resolve(extendedURL, resourceType, Collections.emptyMap());
@@ -96,9 +96,9 @@ public class URLResolver
                  | UnsupportedResourceReferenceException
                  | CreateResourceTypeException
                  | MalformedURLException e) {
-            logger.warn("Failed to extract an EntityReference from [{}]. Root cause is [{}].", URL,
+            logger.warn("Failed to extract an EntityReference from [{}]. Root cause is [{}].", url,
                 ExceptionUtils.getRootCauseMessage(e));
         }
-        return defaultStringResolver.resolve(URL, type);
+        return defaultStringResolver.resolve(url, type);
     }
 }
