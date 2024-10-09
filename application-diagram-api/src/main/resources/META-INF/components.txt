@@ -12,3 +12,4 @@ com.xwiki.diagram.internal.handlers.DiagramLinkHandler
 com.xwiki.diagram.internal.handlers.StoreHandler
 com.xwiki.diagram.internal.DiagramMacroListener
 com.xwiki.diagram.script.DiagramScriptService
+com.xwiki.diagram.internal.handlers.URLResolver
