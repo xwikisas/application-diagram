@@ -313,8 +313,10 @@
 
 #macro (executeDiagramMacro)
   #set ($reference = $xcontext.macro.params.reference)
+  #set ($reference = $services.modelvalidation.transformName($reference))
   #if ($stringtool.isEmpty($reference))
-    #set ($reference = $services.model.createDocumentReference('Diagram', $doc.documentReference.parent))
+    #set ($validName = $services.modelvalidation.transformName('Diagram'))
+    #set ($reference = $services.model.createDocumentReference($validName, $doc.documentReference.parent))
   #else
     #set ($reference = $services.model.resolveDocument($reference))
   #end
