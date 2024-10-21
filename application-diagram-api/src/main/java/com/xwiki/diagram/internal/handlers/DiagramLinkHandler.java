@@ -26,6 +26,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import javax.inject.Provider;
+
+import org.xwiki.model.EntityType;
+
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.xml.parsers.ParserConfigurationException;
@@ -39,6 +44,11 @@ import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.xml.html.HTMLCleaner;
+
+import java.net.MalformedURLException;
+
+import com.xpn.xwiki.XWikiContext;
+
 
 /**
  * Handles links to wiki pages, contained by diagrams.
@@ -70,6 +80,14 @@ public class DiagramLinkHandler
      */
     private static final String CUSTOM_LINK_PREFIX = "data:xwiki/reference,";
 
+    private static final String SEPARATOR = ":";
+
+    @Inject
+    private Provider<XWikiContext> xcontextProvider;
+
+    @Inject
+    private URLResolver resolver;
+
     @Inject
     private HTMLCleaner defaultHTMLCleaner;
 
@@ -77,63 +95,38 @@ public class DiagramLinkHandler
     private Logger logger;
 
     /**
-     * Get custom link for a resource reference.
-     * 
-     * @param resourceReference the resource reference
-     * @return the custom link
-     */
-    private String getCustomLinkFromResourceReference(String resourceReference)
-    {
-        return CUSTOM_LINK_PREFIX + "doc:" + resourceReference;
-    }
-
-    /**
-     * Remove the custom part of inserted links.
-     * 
-     * @param href the value of a link attribute
-     * @return the reference to the page
-     */
-    private String getResourceReferenceFromCustomLink(String href)
-    {
-        String resourceReference = href.substring(CUSTOM_LINK_PREFIX.length());
-        Integer typeSeparatorIndex = resourceReference.indexOf(":");
-        return resourceReference.substring(typeSeparatorIndex + 1);
-    }
-
-    /**
-     * Check if the link is diagram custom link.
-     * 
-     * @param href the value of a link attribute
-     * @return true if the link is custom.
-     */
-    private Boolean isXWikiCustomLink(String href)
-    {
-        return href.substring(0, CUSTOM_LINK_PREFIX.length()).contentEquals(CUSTOM_LINK_PREFIX);
-    }
-
-    /**
      * Modify content of UserObject node of the diagram, to contain the new name of the link.
-     * 
+     *
      * @param node UserObject node
      * @param newDocumentRef document's reference after rename
      * @param oldDocumentRef document's reference before rename
      */
     public void updateUserObjectNode(Node node, DocumentReference newDocumentRef, DocumentReference oldDocumentRef)
     {
-        if (node.hasChildNodes()) {
-            Node linkNode = node.getAttributes().getNamedItem("link");
-            String oldSource = linkNode.getNodeValue();
-            if (isXWikiCustomLink(oldSource)
-                && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
-                String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
-                linkNode.setTextContent(newSource);
+        try {
+            if (node.hasChildNodes()) {
+                Node linkNode = node.getAttributes().getNamedItem("link");
+                String oldSource = linkNode.getNodeValue();
+                if (isXWikiCustomLink(oldSource) && oldDocumentRef.toString()
+                    .equals(getResourceReferenceFromCustomLink(oldSource))) {
+                    String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
+                    linkNode.setTextContent(newSource);
+                } else if (linkNode.getNodeValue().equals(oldSource)) {
+                    XWikiContext xcontext = this.xcontextProvider.get();
+                    String url = xcontext.getWiki().getServerURL(xcontext.getWikiId(), xcontext) + xcontext.getWiki()
+                        .getURL(newDocumentRef, xcontext);
+
+                    linkNode.setTextContent(url);
+                }
             }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
         }
     }
 
     /**
      * Modify content of mxCell node of the diagram, to contain the new name of the link.
-     * 
+     *
      * @param node mxCell node
      * @param newDocumentRef document's reference after rename
      * @param oldDocumentRef document's reference before rename
@@ -157,33 +150,39 @@ public class DiagramLinkHandler
 
             // The value attribute contains the text element, which could contain one or more links.
             for (String oldSource : getLinksFromEmbeddedNode(value)) {
-                if (oldSource != null && isXWikiCustomLink(oldSource)
-                    && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
+                if (oldSource != null && isXWikiCustomLink(oldSource) && oldDocumentRef.toString()
+                    .equals(getResourceReferenceFromCustomLink(oldSource)))
+                {
                     String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
                     linkNode.setNodeValue(value.replace(oldSource, newSource));
                 }
             }
-
         }
     }
 
     /**
      * Get link from inside UserObject node of the diagram.
-     * 
+     *
      * @param link value from the attribute
      * @return resource reference
      */
     public String getUserObjectNodeLink(String link)
     {
-        if (link == null || !isXWikiCustomLink(link)) {
+        if (link == null) {
             return null;
+        }
+        // We have to cases where we have the full link with the protocol and the address or a relative link with
+        // only the page.
+        if (!isXWikiCustomLink(link)) {
+            String reference = resolver.getReferenceFromXWikiLink(link, EntityType.DOCUMENT).toString();
+            return reference.substring(reference.indexOf(SEPARATOR) + 1);
         }
         return getResourceReferenceFromCustomLink(link);
     }
 
     /**
      * Get links from inside mxCell node of the diagram.
-     * 
+     *
      * @param value text element content in string format
      * @return resource references inside text element
      */
@@ -206,8 +205,45 @@ public class DiagramLinkHandler
     }
 
     /**
+     * Get custom link for a resource reference.
+     *
+     * @param resourceReference the resource reference
+     * @return the custom link
+     */
+    private String getCustomLinkFromResourceReference(String resourceReference)
+    {
+        return CUSTOM_LINK_PREFIX + "doc:" + resourceReference;
+    }
+
+    /**
+     * Remove the custom part of inserted links.
+     *
+     * @param href the value of a link attribute
+     * @return the reference to the page
+     */
+    private String getResourceReferenceFromCustomLink(String href)
+    {
+        String resourceReference = href.substring(CUSTOM_LINK_PREFIX.length());
+        Integer typeSeparatorIndex = resourceReference.indexOf(SEPARATOR);
+        return resourceReference.substring(typeSeparatorIndex + 1);
+    }
+
+    /**
+     * Check if the link is diagram custom link.
+     *
+     * @param href the value of a link attribute
+     * @return true if the link is custom.
+     */
+    private Boolean isXWikiCustomLink(String href)
+    {
+        return href.substring(0, CUSTOM_LINK_PREFIX.length()).contentEquals(CUSTOM_LINK_PREFIX);
+    }
+
+
+
+    /**
      * Get links from the content of a text element.
-     * 
+     *
      * @param value value of the text element.
      * @return links inside text element
      * @throws ParserConfigurationException if document builder cannot be created
