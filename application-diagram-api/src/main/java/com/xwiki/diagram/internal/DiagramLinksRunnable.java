@@ -28,6 +28,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.query.QueryManager;
+import org.xwiki.search.solr.internal.SolrSearchCoreUtils;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -46,12 +48,18 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
     @Inject
     private Logger logger;
 
+
     @Inject
     private DiagramContentHandler contentHandler;
 
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    @Inject
+    private SolrSearchCoreUtils solrSearchCoreUtils;
+
+    @Inject
+    private QueryManager queryManager;
     /**
      * @see com.xpn.xwiki.util.AbstractXWikiRunnable#runInternal()
      */
@@ -74,6 +82,7 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
                 // the new document.
                 List<DocumentReference> backlinks =
                     context.getWiki().getDocument(originalDocRef, context).getBackLinkedReferences(context);
+
 
                 XWikiDocument backlinkDoc;
                 for (DocumentReference backlinkRef : backlinks) {

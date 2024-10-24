@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,6 +40,8 @@ import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.search.solr.internal.api.SolrInstance;
+import org.xwiki.search.solr.internal.metadata.SolrMetadataExtractor;
 import org.xwiki.xml.XMLUtils;
 
 import com.xpn.xwiki.XWikiContext;
@@ -56,6 +59,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DiagramContentHandler
 {
+
     /**
      * View action.
      */
@@ -65,6 +69,13 @@ public class DiagramContentHandler
      * Reference to Diagram's class.
      */
     public static final LocalDocumentReference DIAGRAM_CLASS = new LocalDocumentReference("Diagram", "DiagramClass");
+
+    @Inject
+    @Named("diagram")
+    private SolrMetadataExtractor diagramSolrDocumentUpdated;
+
+    @Inject
+    private SolrInstance solrInstance;
 
     @Inject
     private Provider<GetDiagramLinksHandler> getDiagramLinksHandlerProvider;
