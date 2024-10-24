@@ -83,7 +83,7 @@ public class DiagramLinksListener extends AbstractEventListener
         if (document.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
             try {
                 // We need to delete existing links before saving the page's ones.
-                storeHandler.deleteLinks(document.getId(), context);
+                storeHandler.deleteLinks(document.getDocumentReference(), context);
 
                 storeHandler.getStore().executeWrite(context, new HibernateCallback<Object>()
                 {

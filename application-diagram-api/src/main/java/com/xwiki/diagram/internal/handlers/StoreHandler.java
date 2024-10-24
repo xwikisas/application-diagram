@@ -19,28 +19,38 @@
  */
 package com.xwiki.diagram.internal.handlers;
 
+
+import java.io.IOException;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLookupException;
+import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
+import org.xwiki.query.QueryManager;
+import org.xwiki.search.solr.internal.SolrSearchCoreUtils;
+import org.xwiki.search.solr.internal.api.SolrInstance;
+import org.xwiki.search.solr.internal.metadata.SolrLinkSerializer;
+import org.xwiki.search.solr.internal.metadata.SolrMetadataExtractor;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.doc.XWikiLink;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
 import com.xpn.xwiki.store.XWikiHibernateStore;
 import com.xpn.xwiki.store.XWikiStoreInterface;
+import com.xwiki.diagram.internal.DiagramSolrMetadataExtractor;
 
 /**
  * Handler for XWikiStore operations.
@@ -52,6 +62,25 @@ import com.xpn.xwiki.store.XWikiStoreInterface;
 @Singleton
 public class StoreHandler
 {
+    @Inject
+    protected SolrLinkSerializer linkSerializer;
+
+    @Inject
+    private SolrSearchCoreUtils seachUtils;
+
+    @Inject
+    private ComponentManager manager;
+
+    @Inject
+    @Named("diagram")
+    private SolrMetadataExtractor diagramSolrDocumentUpdated;
+
+    @Inject
+    private EntityReferenceSerializer<String> entityReferenceSerializer;
+
+    @Inject
+    private QueryManager queryManager;
+
     @Inject
     @Named("local")
     private EntityReferenceSerializer<String> localEntityReferenceSerializer;
@@ -67,6 +96,11 @@ public class StoreHandler
     @Inject
     private Logger logger;
 
+    @Inject
+    private SolrInstance solrInstance;
+    @Inject
+    private SolrSearchCoreUtils solrSearchCoreUtils;
+
     /**
      * Add a backlink between 2 documents.
      *
@@ -78,25 +112,45 @@ public class StoreHandler
     public void addXWikiLink(Session session, XWikiDocument document, DocumentReference linkedDocRef,
         XWikiContext context)
     {
-        XWikiLink wikiLink = new XWikiLink();
-        String serializedParentDocRef = localEntityReferenceSerializer.serialize(document.getDocumentReference());
-        String serializedLinkedDocRef = compactwikiEntityReferenceSerializer.serialize(linkedDocRef);
 
-        wikiLink.setDocId(document.getId());
-        wikiLink.setFullName(serializedParentDocRef);
-        wikiLink.setLink(serializedLinkedDocRef);
+        DocumentReference documentReference = document.getDocumentReference();
+        EntityReference originDocEntity =  new EntityReference(documentReference.getName(),
+            documentReference.getType(), documentReference.getParent());
+        EntityReference linkedDocEntity =  new EntityReference(linkedDocRef.getName(), linkedDocRef.getType(),
+            linkedDocRef.getParent());
 
+        SolrInputDocument solrInputDocument =
+            ((DiagramSolrMetadataExtractor) diagramSolrDocumentUpdated).updateSolrDocument(originDocEntity,
+            linkedDocEntity);
         try {
-            if (StringUtils.length(wikiLink.getLink()) > getStore().getLimitSize(context, XWikiLink.class, "link")) {
-                logger.warn("Failed to add a backlink to [{}] since [{}] exceeds the 253 characters limit",
-                    serializedParentDocRef, serializedLinkedDocRef);
-            } else {
-                session.saveOrUpdate(wikiLink);
-            }
-        } catch (ComponentLookupException e) {
-            logger.warn("Failed to add a backlink to [{}]. Cause [{}].", serializedParentDocRef,
-                ExceptionUtils.getRootCauseMessage(e));
+            solrInstance.add(solrInputDocument);
+            solrInstance.commit();
+
+        } catch (SolrServerException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+
+//        XWikiLink wikiLink = new XWikiLink();
+//        String serializedParentDocRef = localEntityReferenceSerializer.serialize(document.getDocumentReference());
+//        String serializedLinkedDocRef = compactwikiEntityReferenceSerializer.serialize(linkedDocRef);
+//
+//        wikiLink.setDocId(document.getId());
+//        wikiLink.setFullName(serializedParentDocRef);
+//        wikiLink.setLink(serializedLinkedDocRef);
+//
+//        try {
+//            if (StringUtils.length(wikiLink.getLink()) > getStore().getLimitSize(context, XWikiLink.class, "link")) {
+//                logger.warn("Failed to add a backlink to [{}] since [{}] exceeds the 253 characters limit",
+//                    serializedParentDocRef, serializedLinkedDocRef);
+//            } else {
+//                session.saveOrUpdate(wikiLink);
+//            }
+//        } catch (ComponentLookupException e) {
+//            logger.warn("Failed to add a backlink to [{}]. Cause [{}].", serializedParentDocRef,
+//                ExceptionUtils.getRootCauseMessage(e));
+//        }
     }
 
     /**
@@ -137,4 +191,5 @@ public class StoreHandler
     {
         return (XWikiHibernateStore) hibernateStoreProvider.get();
     }
+
 }
