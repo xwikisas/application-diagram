@@ -33,7 +33,7 @@ import org.xwiki.search.solr.internal.metadata.DocumentSolrMetadataExtractor;
 import org.xwiki.search.solr.internal.metadata.LengthSolrInputDocument;
 
 /**
- * Handler for diagram content operations.
+ * Handles the extraction of the SolrDocument of a diagram page and adds the link of the diagram in the document.
  *
  * @version $Id$
  * @since 1.13
@@ -41,6 +41,7 @@ import org.xwiki.search.solr.internal.metadata.LengthSolrInputDocument;
 @Component
 @Named("diagram")
 @Singleton
+
 public class DiagramSolrMetadataExtractor extends DocumentSolrMetadataExtractor
 {
     /**

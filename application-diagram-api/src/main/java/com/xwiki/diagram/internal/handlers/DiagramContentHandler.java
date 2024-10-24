@@ -106,7 +106,6 @@ public class DiagramContentHandler
 
         if (attachment != null) {
             backlinkDoc.setAttachment(getUpdatedAttachment(attachment, oldDocRef, newDocRef));
-            context.getWiki().saveDocument(backlinkDoc, "Updated attachment after page rename", context);
         }
     }
 
@@ -172,7 +171,6 @@ public class DiagramContentHandler
         }
 
         backlinkDoc.setContent(XMLUtils.serialize(document));
-        context.getWiki().saveDocument(backlinkDoc, "Updated diagram after page rename", context);
     }
 
     /**

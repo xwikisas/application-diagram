@@ -11,5 +11,6 @@ com.xwiki.diagram.internal.handlers.DiagramContentHandler
 com.xwiki.diagram.internal.handlers.DiagramLinkHandler
 com.xwiki.diagram.internal.handlers.StoreHandler
 com.xwiki.diagram.internal.DiagramSolrMetadataExtractor
+com.xwiki.diagram.internal.handlers.BackLinkHandler
 com.xwiki.diagram.internal.DiagramMacroListener
 com.xwiki.diagram.script.DiagramScriptService

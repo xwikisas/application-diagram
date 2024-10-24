@@ -93,6 +93,10 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
 
                         contentHandler.updateAttachment(backlinkDoc, originalDocRef, currentDocRef);
                     }
+                    context.getWiki().saveDocument(backlinkDoc, "Updated diagram&attachment after page rename",
+                        context);
+
+
                 }
             } catch (Exception e) {
                 logger.warn("Update diagram backlinks thread interrupted", e);
