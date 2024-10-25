@@ -28,8 +28,6 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.query.QueryManager;
-import org.xwiki.search.solr.internal.SolrSearchCoreUtils;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -55,11 +53,6 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
     @Inject
     private Provider<XWikiContext> contextProvider;
 
-    @Inject
-    private SolrSearchCoreUtils solrSearchCoreUtils;
-
-    @Inject
-    private QueryManager queryManager;
     /**
      * @see com.xpn.xwiki.util.AbstractXWikiRunnable#runInternal()
      */

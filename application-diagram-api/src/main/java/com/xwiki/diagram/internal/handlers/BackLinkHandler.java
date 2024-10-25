@@ -73,7 +73,6 @@ public class BackLinkHandler
                 referencedDocument.getParent());
 
         try {
-            Thread.sleep(5000);
             SolrInputDocument solrInputDocument =
                 ((DiagramSolrMetadataExtractor) diagramSolrDocumentUpdated).updateSolrDocument(
                     soruceEntityReference, referencedEntityReference);
@@ -83,8 +82,13 @@ public class BackLinkHandler
             logger.warn(
                 "Failed to add backreference. Source document: {}, Referenced document: {}. Exception message: {}",
                 sourceDocument, referencedDocument, e.getMessage(), e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            try{
+                solrInstance.rollback();
+            }catch (Exception e2)
+            {
+                logger.warn("Failed to rollback the index change.", e2);
+            }
+
         }
     }
 
