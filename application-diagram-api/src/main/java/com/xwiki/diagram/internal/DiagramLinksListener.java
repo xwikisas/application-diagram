@@ -20,7 +20,6 @@
 package com.xwiki.diagram.internal;
 
 import java.util.Arrays;
-import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,51 +31,45 @@ import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.bridge.event.DocumentUpdatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.event.Event;
-import org.xwiki.rendering.block.Block;
-import org.xwiki.rendering.block.Block.Axes;
-import org.xwiki.rendering.block.match.MacroBlockMatcher;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
+import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 import com.xwiki.diagram.internal.handlers.StoreHandler;
 
 /**
- * Listens to created or updated pages, checks for Diagram Macro and adds backlink from the diagram referenced to this
- * page. The backlink is used in order to update the reference parameter of the diagram macro in case of diagram page
- * rename.
- * 
+ * Listens to created or updated diagrams and adds backlinks from pages linked inside them.
+ *
  * @version $Id$
- * @since 1.13.1
+ * @since 1.13
  */
 @Component
-@Named(DiagramMacroListener.ROLE_HINT)
+@Named(DiagramLinksListener.ROLE_HINT)
 @Singleton
-public class DiagramMacroListener extends AbstractEventListener
+public class DiagramLinksListener extends AbstractEventListener
 {
     /**
      * The role hint used for this component.
      */
-    protected static final String ROLE_HINT = "DiagramMacroListener";
+    protected static final String ROLE_HINT = "DiagramCreatedListener";
 
     @Inject
-    @Named("explicit")
-    private DocumentReferenceResolver<String> explicitDocumentReferenceResolver;
-
-    @Inject
-    private Logger logger;
+    private DiagramContentHandler contentHandler;
 
     @Inject
     private StoreHandler storeHandler;
 
+    @Inject
+    private Logger logger;
+
     /**
      * Constructor.
      */
-    public DiagramMacroListener()
+    public DiagramLinksListener()
     {
         super(ROLE_HINT, Arrays.<Event>asList(new DocumentUpdatedEvent(), new DocumentCreatedEvent()));
     }
@@ -87,9 +80,7 @@ public class DiagramMacroListener extends AbstractEventListener
         XWikiDocument document = (XWikiDocument) source;
         XWikiContext context = (XWikiContext) data;
 
-        List<Block> macroBlocks = document.getXDOM().getBlocks(new MacroBlockMatcher("diagram"), Axes.CHILD);
-
-        if (!macroBlocks.isEmpty()) {
+        if (document.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
             try {
                 // We need to delete existing links before saving the page's ones.
                 storeHandler.deleteLinks(document.getId(), context);
@@ -102,20 +93,18 @@ public class DiagramMacroListener extends AbstractEventListener
                         // Is necessary to blank links from doc.
                         context.remove("links");
 
-                        for (Block macroBlock : macroBlocks) {
-                            DocumentReference macroReference = explicitDocumentReferenceResolver
-                                .resolve(macroBlock.getParameter("reference"), document.getDocumentReference());
-
-                            storeHandler.addXWikiLink(session, document, macroReference, context);
+                        // Add backlinks from pages linked by this diagram.
+                        for (DocumentReference linkedDocRef : contentHandler.getLinkedPages(document.getContent(),
+                            document.getDocumentReference())) {
+                            storeHandler.addXWikiLink(session, document, linkedDocRef, context);
                         }
 
                         return Boolean.TRUE;
                     }
                 });
             } catch (Exception e) {
-                logger.warn("Failed to update backlinks of diagram macro", e);
+                logger.warn("Failed to update backlinks from diagram content", e);
             }
         }
-
     }
 }

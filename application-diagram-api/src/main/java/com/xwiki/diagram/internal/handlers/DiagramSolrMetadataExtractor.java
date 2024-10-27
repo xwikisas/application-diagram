@@ -32,9 +32,6 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.rendering.block.Block;
-import org.xwiki.rendering.block.MacroBlock;
-import org.xwiki.rendering.block.match.MacroBlockMatcher;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 import org.xwiki.search.solr.internal.api.FieldUtils;
 
