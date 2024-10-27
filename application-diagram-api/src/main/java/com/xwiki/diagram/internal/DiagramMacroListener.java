@@ -43,7 +43,6 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xpn.xwiki.store.XWikiHibernateBaseStore.HibernateCallback;
-import com.xwiki.diagram.internal.handlers.StoreHandler;
 
 /**
  * Listens to created or updated pages, checks for Diagram Macro and adds backlink from the diagram referenced to this

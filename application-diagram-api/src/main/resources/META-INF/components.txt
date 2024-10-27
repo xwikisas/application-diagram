@@ -9,6 +9,7 @@ com.xwiki.diagram.internal.DiagramMacroRunnable
 com.xwiki.diagram.internal.handlers.GetDiagramLinksHandler
 com.xwiki.diagram.internal.handlers.DiagramContentHandler
 com.xwiki.diagram.internal.handlers.DiagramLinkHandler
+com.xwiki.diagram.internal.handlers.DiagramSolrMetadataExtractor
 com.xwiki.diagram.internal.handlers.StoreHandler
 com.xwiki.diagram.internal.DiagramMacroListener
 com.xwiki.diagram.script.DiagramScriptService
