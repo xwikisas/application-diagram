@@ -19,30 +19,37 @@
  */
 package com.xwiki.diagram.internal.handlers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.rendering.block.Block;
+import org.xwiki.rendering.block.match.MacroBlockMatcher;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Handles the backlinks of a diagram.
+ * Handles the backlinks of the diagram macro.
  *
  * @version $Id$
  * @since 1.20.8
  */
 @Component
+@Named("macrodiagram")
 @Singleton
-public class DiagramSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
+public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
     @Inject
-    private DiagramContentHandler diagramContentHandler;
+    @Named("explicit")
+    private DocumentReferenceResolver<String> explicitDocumentReferenceResolver;
 
     @Inject
     private LinkRegistry linkRegistry;
@@ -50,11 +57,22 @@ public class DiagramSolrMetadataExtractor implements SolrEntityMetadataExtractor
     @Override
     public boolean extract(XWikiDocument document, SolrInputDocument solrDocument)
     {
-        // Updates for the diagram directly.
-        if (document.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
-            List<DocumentReference> references =
-                diagramContentHandler.getLinkedPages(document.getContent(), document.getDocumentReference());
-            return linkRegistry.registerBacklinks(solrDocument, references);
+
+
+        List<Block> macroBlocks =
+            document.getXDOM().getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
+        if (macroBlocks != null && macroBlocks.size() > 0)
+        {
+            List<DocumentReference> macroReferences = new ArrayList<>();
+            for (Block macroBlock : macroBlocks) {
+                DocumentReference macroReference = explicitDocumentReferenceResolver.resolve(
+                    macroBlock.getParameter("reference"), document.getDocumentReference()
+                );
+                macroReferences.add(macroReference);
+            }
+            return linkRegistry.registerBacklinks(solrDocument, macroReferences);
+
+
         }
         return false;
     }
