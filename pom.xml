@@ -25,11 +25,11 @@
   <parent>
     <groupId>com.xwiki.parent</groupId>
     <artifactId>xwikisas-parent-platform</artifactId>
-    <version>14.10-1</version>
+    <version>13.10-3</version>
   </parent>
   <groupId>com.xwiki.diagram</groupId>
   <artifactId>application-diagram-parent</artifactId>
-  <version>1.51-SNAPSHOT</version>
+  <version>1.19.2</version>
   <name>Diagram Application (Pro) - Parent POM</name>
   <packaging>pom</packaging>
   <description>Create easy to use diagrams and flowcharts using draw.io. Import Gliffy diagrams. Include diagrams in other pages. Export them as PDFs or images. The app can be purchased individually or part of the XWiki Pro package. Try it free.</description>
