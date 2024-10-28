@@ -38,10 +38,10 @@ import org.xwiki.search.solr.internal.api.FieldUtils;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Test to register component.
+ * Handles the storage of the backlinks of a diagram.
  *
  * @version $Id$
- * @since 1.13
+ * @since 1.20.8
  */
 @Component
 @Singleton
