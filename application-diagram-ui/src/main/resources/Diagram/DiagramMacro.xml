@@ -301,7 +301,8 @@
 #macro (createDiagram $reference)
   {{html clean="false"}}
   #set ($createURL = $xwiki.getURL($reference, 'edit', $escapetool.url({
-    'template': 'Diagram.DiagramTemplate'
+    'template': 'Diagram.DiagramTemplate',
+    'form_token': $escapetool.xml($services.csrf.token)
   })))
   &lt;div&gt;
     &lt;a class="diagram-create btn btn-default" href="$createURL"&gt;
