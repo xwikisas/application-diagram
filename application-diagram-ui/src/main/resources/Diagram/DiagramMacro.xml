@@ -301,7 +301,8 @@
 #macro (createDiagram $reference)
   {{html clean="false"}}
   #set ($createURL = $xwiki.getURL($reference, 'edit', $escapetool.url({
-    'template': 'Diagram.DiagramTemplate'
+    'template': 'Diagram.DiagramTemplate',
+    'form_token': $escapetool.xml($services.csrf.token)
   })))
   &lt;div&gt;
     &lt;a class="diagram-create btn btn-default" href="$createURL"&gt;
@@ -313,8 +314,10 @@
 
 #macro (executeDiagramMacro)
   #set ($reference = $xcontext.macro.params.reference)
+  #set ($reference = $services.modelvalidation.transformName($reference))
   #if ($stringtool.isEmpty($reference))
-    #set ($reference = $services.model.createDocumentReference('Diagram', $doc.documentReference.parent))
+    #set ($validName = $services.modelvalidation.transformName('Diagram'))
+    #set ($reference = $services.model.createDocumentReference($validName, $doc.documentReference.parent))
   #else
     #set ($reference = $services.model.resolveDocument($reference))
   #end
