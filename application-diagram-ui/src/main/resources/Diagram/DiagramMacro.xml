@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Diagram.DiagramMacro" locale="">
+<xwikidoc version="1.5" reference="Diagram.DiagramMacro" locale="">
   <web>Diagram</web>
   <name>DiagramMacro</name>
   <language/>
@@ -77,7 +77,7 @@
         <separators>|, </separators>
         <size>5</size>
         <unmodifiable>0</unmodifiable>
-        <values>action=Action|doc.reference=Document|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.parameters=Request parameters|request.url=Request URL|request.wiki=Request wiki|user=User|wiki=Wiki</values>
+        <values>action=Action|doc.reference=Document|doc.revision|icon.theme=Icon theme|locale=Language|rendering.defaultsyntax=Default syntax|rendering.restricted=Restricted|rendering.targetsyntax=Target syntax|request.base=Request base URL|request.cookies|request.headers|request.parameters=Request parameters|request.remoteAddr|request.session|request.url=Request URL|request.wiki=Request wiki|sheet|user=User|wiki=Wiki</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </async_context>
       <async_enabled>
@@ -97,6 +97,7 @@
         <name>code</name>
         <number>10</number>
         <prettyName>Macro code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -109,6 +110,7 @@
         <name>contentDescription</name>
         <number>9</number>
         <prettyName>Content description (Not applicable for "No content" type)</prettyName>
+        <restricted>0</restricted>
         <rows>5</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -152,15 +154,24 @@
         <values>Optional|Mandatory|No content</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </contentType>
-      <defaultCategory>
+      <defaultCategories>
+        <cache>0</cache>
         <disabled>0</disabled>
-        <name>defaultCategory</name>
+        <displayType>input</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>1</multiSelect>
+        <name>defaultCategories</name>
         <number>4</number>
-        <prettyName>Default category</prettyName>
-        <size>30</size>
+        <prettyName>Default categories</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
         <unmodifiable>0</unmodifiable>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </defaultCategory>
+        <values/>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </defaultCategories>
       <description>
         <contenttype>PureText</contenttype>
         <disabled>0</disabled>
@@ -168,6 +179,7 @@
         <name>description</name>
         <number>3</number>
         <prettyName>Macro description</prettyName>
+        <restricted>0</restricted>
         <rows>5</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -231,116 +243,116 @@
       </visibility>
     </class>
     <property>
-      <async_cached/>
+      <async_cached>0</async_cached>
     </property>
     <property>
       <async_context/>
     </property>
     <property>
-      <async_enabled/>
+      <async_enabled>0</async_enabled>
     </property>
     <property>
       <code>{{velocity output="false"}}
-#macro (displayDiagram $reference)
-  #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-  #set ($showCaption = true)
-  #if ($services.security.authorization.hasAccess('view', $reference))
-    #set ($diagram = $xwiki.getDocument($reference))
-    #set ($diagramTitle = $diagram.plainTitle)
-    #set ($diagramObj = $diagram.getObject('Diagram.DiagramClass'))
-    #if ($diagramObj)
-      #if ($xcontext.action == 'edit' || $xcontext.action == 'export' || $request.xpage == 'print'
-          || $xcontext.macro.params.cached == 'true')
+        #macro (displayDiagram $reference)
+        #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+        #set ($showCaption = true)
+        #if ($services.security.authorization.hasAccess('view', $reference))
+        #set ($diagram = $xwiki.getDocument($reference))
+        #set ($diagramTitle = $diagram.plainTitle)
+        #set ($diagramObj = $diagram.getObject('Diagram.DiagramClass'))
+        #if ($diagramObj)
+        #if ($xcontext.action == 'edit' || $xcontext.action == 'export' || $request.xpage == 'print'
+        || $xcontext.macro.params.cached == 'true')
         #set ($fileName = 'diagram.svg')
         #set ($pngFileName = 'diagram.png')
         #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
-            &amp;&amp; $diagram.getAttachment($pngFileName))
-          #set ($fileName = $pngFileName)
+        &amp;&amp; $diagram.getAttachment($pngFileName))
+        #set ($fileName = $pngFileName)
         #end
         #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
         #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
-      #else
+        #else
         #set ($output = "{{display reference='$services.rendering.escape($reference, $xcontext.macro.doc.syntax)' /}}")
         #set ($showCaption = false)
-      #end
-    #else
-      #set ($output = "{{warning}}$services.localization.render('diagram.macro.invalidReference'){{/warning}}")
-    #end
-  #else
-    #set ($output = "{{warning}}$services.localization.render('diagram.macro.viewNotAllowed'){{/warning}}")
-    #if ($reference.name == $services.model.getEntityReference('DOCUMENT', 'default'))
-      #set ($diagramTitle = $reference.parent.name)
-    #else
-      #set ($diagramTitle = $reference.name)
-    #end
-  #end
-  #if ($showCaption)
-    (% class="diagram-container" %)(((
-      (% class="thumbnail" %)(((
-  #end
-  $output
-  #if ($showCaption)
+        #end
+        #else
+        #set ($output = "{{warning}}$services.localization.render('diagram.macro.invalidReference'){{/warning}}")
+        #end
+        #else
+        #set ($output = "{{warning}}$services.localization.render('diagram.macro.viewNotAllowed'){{/warning}}")
+        #if ($reference.name == $services.model.getEntityReference('DOCUMENT', 'default'))
+        #set ($diagramTitle = $reference.parent.name)
+        #else
+        #set ($diagramTitle = $reference.name)
+        #end
+        #end
+        #if ($showCaption)
+        (% class="diagram-container" %)(((
+        (% class="thumbnail" %)(((
+        #end
+        $output
+        #if ($showCaption)
 
         {{html clean="false"}}
         &lt;div class="caption"&gt;
-          &lt;a class="diagram-title" href="$xwiki.getURL($reference)"
-            title="$escapetool.xml($services.localization.render('diagram.macro.view'))"
-            &gt;$escapetool.xml($diagramTitle)&lt;/a&gt;
-          #if ($services.security.authorization.hasAccess('edit', $reference))
-            &lt;a class="diagram-edit" href="$xwiki.getURL($reference, 'edit', $NULL)"
-              title="$escapetool.xml($services.localization.render('diagram.macro.edit'))"
-              target="_blank"&gt;$services.icon.renderHTML('pencil')&lt;/a&gt;
-          #end
+        &lt;a class="diagram-title" href="$xwiki.getURL($reference)"
+        title="$escapetool.xml($services.localization.render('diagram.macro.view'))"
+        &gt;$escapetool.xml($diagramTitle)&lt;/a&gt;
+        #if ($services.security.authorization.hasAccess('edit', $reference))
+        &lt;a class="diagram-edit" href="$xwiki.getURL($reference, 'edit', $NULL)"
+        title="$escapetool.xml($services.localization.render('diagram.macro.edit'))"
+        target="_blank"&gt;$services.icon.renderHTML('pencil')&lt;/a&gt;
+        #end
         &lt;/div&gt;
         {{/html}}
-      )))
-    )))
-  #end
-#end
+        )))
+        )))
+        #end
+        #end
 
-#macro (createDiagram $reference)
-  {{html clean="false"}}
-  #set ($createURL = $xwiki.getURL($reference, 'edit', $escapetool.url({
-    'template': 'Diagram.DiagramTemplate',
-    'form_token': $escapetool.xml($services.csrf.token)
-  })))
-  &lt;div&gt;
-    &lt;a class="diagram-create btn btn-default" href="$createURL"&gt;
-      $escapetool.xml($services.localization.render('diagram.macro.create'))
-    &lt;/a&gt;
-  &lt;/div&gt;
-  {{/html}}
-#end
+        #macro (createDiagram $reference)
+        {{html clean="false"}}
+        #set ($createURL = $xwiki.getURL($reference, 'edit', $escapetool.url({
+        'template': 'Diagram.DiagramTemplate',
+        'form_token': $escapetool.xml($services.csrf.token)
+        })))
+        &lt;div&gt;
+        &lt;a class="diagram-create btn btn-default" href="$createURL"&gt;
+        $escapetool.xml($services.localization.render('diagram.macro.create'))
+        &lt;/a&gt;
+        &lt;/div&gt;
+        {{/html}}
+        #end
 
-#macro (executeDiagramMacro)
-  #set ($reference = $xcontext.macro.params.reference)
-  #set ($reference = $services.modelvalidation.transformName($reference))
-  #if ($stringtool.isEmpty($reference))
-    #set ($validName = $services.modelvalidation.transformName('Diagram'))
-    #set ($reference = $services.model.createDocumentReference($validName, $doc.documentReference.parent))
-  #else
-    #set ($reference = $services.model.resolveDocument($reference))
-  #end
-  #if ($xwiki.exists($reference))
-    #displayDiagram($reference)
-  #elseif ($services.security.authorization.hasAccess('edit', $reference))
-    #createDiagram($reference)
-  #else
-    {{warning}}$services.localization.render('diagram.macro.createNotAllowed'){{/warning}}
-  #end
-#end
-{{/velocity}}
+        #macro (executeDiagramMacro)
+        #set ($reference = $xcontext.macro.params.reference)
+        #set ($reference = $services.modelvalidation.transformName($reference))
+        #if ($stringtool.isEmpty($reference))
+        #set ($validName = $services.modelvalidation.transformName('Diagram'))
+        #set ($reference = $services.model.createDocumentReference($validName, $doc.documentReference.parent))
+        #else
+        #set ($reference = $services.model.resolveDocument($reference))
+        #end
+        #if ($xwiki.exists($reference))
+        #displayDiagram($reference)
+        #elseif ($services.security.authorization.hasAccess('edit', $reference))
+        #createDiagram($reference)
+        #else
+        {{warning}}$services.localization.render('diagram.macro.createNotAllowed'){{/warning}}
+        #end
+        #end
+        {{/velocity}}
 
-{{velocity}}
-## We need to check if there is a valid license because the macro is registered even if the user doesn't have view right
-## on the macro definition page. See XWIKI-14828: Rendering macros defined in wiki pages are available to users that
-## don't have view right on those pages.
-#if ($services.licensing.licensor.hasLicensureForEntity($xcontext.macro.doc.documentReference))
-  #executeDiagramMacro
-#else
-  {{missingLicenseMessage extensionName="diagram.extension.name"/}}
-#end
-{{/velocity}}</code>
+        {{velocity}}
+        ## We need to check if there is a valid license because the macro is registered even if the user doesn't have view right
+        ## on the macro definition page. See XWIKI-14828: Rendering macros defined in wiki pages are available to users that
+        ## don't have view right on those pages.
+        #if ($services.licensing.licensor.hasLicensureForEntity($xcontext.macro.doc.documentReference))
+        #executeDiagramMacro
+        #else
+        {{missingLicenseMessage extensionName="diagram.extension.name"/}}
+        #end
+        {{/velocity}}</code>
     </property>
     <property>
       <contentDescription/>
@@ -350,6 +362,9 @@
     </property>
     <property>
       <contentType>No content</contentType>
+    </property>
+    <property>
+      <defaultCategories/>
     </property>
     <property>
       <defaultCategory>Content</defaultCategory>
@@ -401,6 +416,7 @@
         <name>description</name>
         <number>2</number>
         <prettyName>Parameter description</prettyName>
+        <restricted>0</restricted>
         <rows>5</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>
@@ -436,7 +452,7 @@
       </type>
     </class>
     <property>
-      <defaultValue/>
+      <defaultValue>Diagram</defaultValue>
     </property>
     <property>
       <description>The reference of the page that contains the diagram to display. If the reference is empty the macro looks for a child page named "Diagram".</description>
@@ -479,6 +495,7 @@
         <name>description</name>
         <number>2</number>
         <prettyName>Parameter description</prettyName>
+        <restricted>0</restricted>
         <rows>5</rows>
         <size>40</size>
         <unmodifiable>0</unmodifiable>

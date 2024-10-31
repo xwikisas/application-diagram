@@ -30,6 +30,8 @@ import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.validation.EntityNameValidationConfiguration;
+import org.xwiki.model.validation.EntityNameValidationManager;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.match.MacroBlockMatcher;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
@@ -47,6 +49,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
+    private static final String REFERENCE = "reference";
+
     @Inject
     @Named("explicit")
     private DocumentReferenceResolver<String> explicitDocumentReferenceResolver;
@@ -54,20 +58,28 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
     @Inject
     private LinkRegistry linkRegistry;
 
+    @Inject
+    private EntityNameValidationManager entityNameValidationManager;
+
+    @Inject
+    private EntityNameValidationConfiguration entityNameValidationConfiguration;
+
     @Override
     public boolean extract(XWikiDocument document, SolrInputDocument solrDocument)
     {
 
-
-        List<Block> macroBlocks =
-            document.getXDOM().getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
-        if (macroBlocks != null && macroBlocks.size() > 0)
-        {
+        List<Block> macroBlocks = document.getXDOM().getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
+        if (macroBlocks != null && macroBlocks.size() > 0) {
             List<DocumentReference> macroReferences = new ArrayList<>();
             for (Block macroBlock : macroBlocks) {
-                DocumentReference macroReference = explicitDocumentReferenceResolver.resolve(
-                    macroBlock.getParameter("reference"), document.getDocumentReference()
-                );
+                String referenceName =
+                    macroBlock.getParameter(REFERENCE) != null ? macroBlock.getParameter(REFERENCE)
+                        : "Diagram";
+
+                String transformedNamed = this.transformName(referenceName);
+
+                DocumentReference macroReference =
+                    explicitDocumentReferenceResolver.resolve(transformedNamed, document.getDocumentReference());
                 macroReferences.add(macroReference);
             }
             return linkRegistry.registerBacklinks(solrDocument, macroReferences);
@@ -75,5 +87,16 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
 
         }
         return false;
+    }
+
+    private String transformName(String name)
+    {
+        if (this.entityNameValidationConfiguration.useTransformation()
+            && this.entityNameValidationManager.getEntityReferenceNameStrategy() != null)
+        {
+            return this.entityNameValidationManager.getEntityReferenceNameStrategy().transform(name);
+        } else {
+            return name;
+        }
     }
 }
