@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.diagram</groupId>
     <artifactId>application-diagram-parent</artifactId>
-    <version>1.21-rc-2-SNAPSHOT</version>
+    <version>1.21-rc-3-SNAPSHOT</version>
   </parent>
 
   <artifactId>application-diagram-xip</artifactId>
@@ -63,5 +63,13 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <extensions>
+      <!-- Needed to add support for the "xip" packaging -->
+      <extension>
+        <groupId>org.xwiki.commons</groupId>
+        <artifactId>xwiki-commons-tool-extension-plugin</artifactId>
+        <version>${commons.version}</version>
+      </extension>
+    </extensions>
   </build>
 </project>
