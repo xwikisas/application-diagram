@@ -1396,8 +1396,8 @@ define('diagram-editor', [
   var originalAddSubmenu = Menus.prototype.addSubmenu;
   Menus.prototype.addSubmenu = function(name, menu, parent, label) {
     var subMenu = this.get(name);
-    if (subMenu &amp;&amp; subMenu.visible !== false) {
-      originalAddSubmenu.apply(this, arguments);
+    if (subMenu &amp;&amp; subMenu.isEnabled() !== false) {
+     return originalAddSubmenu.apply(this, arguments);
     }
   };
 
