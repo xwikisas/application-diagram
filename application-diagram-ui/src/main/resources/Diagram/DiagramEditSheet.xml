@@ -223,7 +223,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     isCompressed: function() {
       return false;
     },
-    // TODO: When upgrading the draw.io version, ensure that this method is copied from the draw.io code and the
+    // TODO: When upgrading the drawio version, ensure that this method is copied from the drawio code and the
     // `resolveReferences` parameter of the getFileData is set to `true` to prevent incorrect formatting of links to
     // wiki pages in the diagram content. https://github.com/xwikisas/application-diagram/issues/295
     createData: function() {
