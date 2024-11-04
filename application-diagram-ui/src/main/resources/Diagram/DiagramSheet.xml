@@ -251,7 +251,6 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.mxLanguage = diagramConfig.locale;
 
   // draw.io setup
-  window.DRAWIO_SERVER_URL = "https://app.diagrams.net/";
   window.RESOURCES_PATH = drawIOBasePath + 'resources';
   window.RESOURCE_BASE = RESOURCES_PATH + '/dia';
   window.STENCIL_PATH = drawIOBasePath + 'stencils';
@@ -1109,7 +1108,34 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
   padding: 2%;
   overflow: auto;
   line-height: 1.3em;
-}</code>
+}
+
+/* TODO when upgrading the parent
+Right now, there is no defined LESS value for the background color. If, in the future, a LESS variable is defined in https://github.com/xwiki/xwiki-platform/blob/master/xwiki-platform-core/xwiki-platform-flamingo/xwiki-platform-flamingo-skin/xwiki-platform-flamingo-skin-resources/src/main/resources/flamingo/less/variablesInit.vm#L22-L27, we should swap to that. */
+.geEditor button.btn-primary:hover, .geEditor #tmDrawerActivator:hover {
+  background-color: #2F6EAD;
+}
+
+/* This is not the ideal solution, but it's the only one that worked. I also tried using revert, revert-layer, and unset, but nothing else worked except this. */
+.geEditor button.close {
+  font-size: x-large;
+}
+
+/* Solves the weird placement of buttons inside the More Shapes modal */
+.geEditor .geDialogFooter button {
+  line-height: revert;
+}
+
+/* Draw.io added a gray border to all the panels, and this rule reverts the color back to transparent. */
+.geEditor .panel {
+  border-color: transparent;
+}
+
+/* Disabled the button that changed the light/dark mode because I couldn't position it to make it look good. You can still modify the appearance in the Extras -&gt; Appearance tab. */
+.geToolbarButton.geAdaptiveAsset {
+  display: none;
+}
+</code>
     </property>
     <property>
       <contentType>CSS</contentType>
@@ -1231,9 +1257,15 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
     <property>
       <code>/* Overwrite the graph editor styles that affect the XWiki UI */
 body.geEditor {
- font-family: @font-family-base;
- font-size: @font-size-base;
-}</code>
+  font-family: @font-family-base;
+  font-size: @font-size-base;
+}
+
+/* Overwrite the .geEditor button to make all the primary buttons and the drawer button the right color. */
+.geEditor button.btn-primary, .geEditor #tmDrawerActivator {
+  background-color: @btn-primary-bg;
+}
+</code>
     </property>
     <property>
       <contentType>LESS</contentType>
