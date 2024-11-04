@@ -223,6 +223,34 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     isCompressed: function() {
       return false;
     },
+    // TODO: When upgrading the draw.io version, ensure that this method is copied from the draw.io code and the
+    // `resolveReferences` parameter of the getFileData is set to `true` to prevent incorrect formatting of links to
+    // wiki pages in the diagram content. https://github.com/xwikisas/application-diagram/issues/295
+    createData: function() {
+      var actualPages = this.ui.pages;
+
+      if (this.isRealtime()) {
+        // Uses ownPages for getting file data below
+        this.ui.pages = this.ownPages;
+
+        // Updates view state in own current page
+        if (this.ui.currentPage != null) {
+          var ownPage = this.ui.getPageById(
+            this.ui.currentPage.getId(),
+            this.ownPages);
+
+          if (ownPage != null) {
+            ownPage.viewState = this.ui.editor.graph.getViewState();
+            ownPage.needsUpdate = true;
+          }
+        }
+      }
+
+      var result = this.ui.getFileData(null, null, null, null, null, null, null, null, this,
+        !this.isCompressed(), true);
+      this.ui.pages = actualPages;
+      return result;
+    },
     open: function() {
       var graphXML = this.getData() || '&lt;mxGraphModel/&gt;';
       this.ui.setFileData(graphXML);
