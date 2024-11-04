@@ -39,10 +39,11 @@ import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Handles the backlinks of the diagram macro.
+ * Handles the backlinks of the diagram macro. Ensure that the diagram macro always has a valid reference even if the
+ * page is renamed or moved.
  *
  * @version $Id$
- * @since 1.20.8
+ * @since 1.21
  */
 @Component
 @Named("macrodiagram")

@@ -93,14 +93,17 @@ public class LinkRegistry
         }
         return updated;
     }
-
+    // Reference org.xwiki.search.solr.internal.metadata.SolrLinkSerializer
     private String serialize(EntityReference reference)
     {
         return ENTITY_PREFIX + this.entitySerializer.serialize(reference);
     }
 
+    // Reference org.xwiki.search.solr.internal.metadata.AbstractSolrMetadataExtractor
     private void extendLink(EntityReference reference, Set<String> linksExtended)
     {
+        // Ensures that the links are added with their parent to the extended link list so the links are properly
+        // linked.
         for (EntityReference parent = reference.getParameters().isEmpty() ? reference
             : new EntityReference(reference.getName(), reference.getType(), reference.getParent(), null);
             parent != null; parent = parent.getParent()) {

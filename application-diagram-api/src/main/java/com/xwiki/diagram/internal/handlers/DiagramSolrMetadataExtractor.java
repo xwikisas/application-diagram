@@ -32,7 +32,8 @@ import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
- * Handles the backlinks of a diagram.
+ * Handles the backlinks of a diagram. Ensure that the diagram links are updated and point to the correct page
+ * whenever a page is moved or renamed.
  *
  * @version $Id$
  * @since 1.20.8
