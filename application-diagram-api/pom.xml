@@ -71,6 +71,11 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-search-solr-api</artifactId>
+      <version>${platform.version}</version>
+    </dependency>
+    <dependency>
       <!-- We need to get the list of wikis when the Diagram application is upgraded on farm. -->
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-wiki-api</artifactId>
