@@ -605,7 +605,6 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
     };
     return converter;
   };
-
   // Copied from the drawio version 24.5.4 to include a fix for importing a file in an empty diagram. This method should
   // be removed once we upgrade to a drawio version &gt;= 24.4.0. Being a big method, the structure was altered just to
   // make it shorter.
@@ -917,7 +916,6 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
       doImportFiles();
     }
   };
-
   // Override for uploading the image as attachment instead of encode it to Base64.
   var originalImportFiles = EditorUi.prototype.importFiles;
   EditorUi.prototype.importFiles = function(files, x, y, maxSize, fn, resultFn, filterFn, barrierFn, resizeDialog,
