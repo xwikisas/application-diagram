@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Diagram.DiagramEditSheet" locale="">
+<xwikidoc version="1.5" reference="Diagram.DiagramEditSheet" locale="">
   <web>Diagram</web>
   <name>DiagramEditSheet</name>
   <language/>
@@ -138,6 +138,7 @@
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -223,31 +224,33 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     isCompressed: function() {
       return false;
     },
-   createData: function() {
-	var actualPages = this.ui.pages;
+    // TODO: When upgrading the drawio version, ensure that this method is copied from the drawio code and the
+    // `resolveReferences` parameter of the getFileData is set to `true` to prevent incorrect formatting of links to
+    // wiki pages in the diagram content. https://github.com/xwikisas/application-diagram/issues/295
+    createData: function() {
+      var actualPages = this.ui.pages;
 
-	if (this.isRealtime()) {
-		// Uses ownPages for getting file data below
-		this.ui.pages = this.ownPages;
+      if (this.isRealtime()) {
+        // Uses ownPages for getting file data below
+        this.ui.pages = this.ownPages;
 
-		// Updates view state in own current page
-		if (this.ui.currentPage != null) {
-			var ownPage = this.ui.getPageById(
-				this.ui.currentPage.getId(),
-				this.ownPages);
+        // Updates view state in own current page
+        if (this.ui.currentPage != null) {
+          var ownPage = this.ui.getPageById(
+            this.ui.currentPage.getId(),
+            this.ownPages);
 
-			if (ownPage != null) {
-				ownPage.viewState = this.ui.editor.graph.getViewState();
-				ownPage.needsUpdate = true;
-			}
-		}
-	}
+          if (ownPage != null) {
+            ownPage.viewState = this.ui.editor.graph.getViewState();
+            ownPage.needsUpdate = true;
+          }
+        }
+      }
 
-	var result = this.ui.getFileData(null, null, null, null,
-		null, null, null, null, this, !this.isCompressed(), true);
-	this.ui.pages = actualPages;
-
-	return result;
+      var result = this.ui.getFileData(null, null, null, null, null, null, null, null, this,
+        !this.isCompressed(), true);
+      this.ui.pages = actualPages;
+      return result;
     },
     open: function() {
       var graphXML = this.getData() || '&lt;mxGraphModel/&gt;';
@@ -452,6 +455,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -499,529 +503,15 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       <cache>long</cache>
     </property>
     <property>
-      <code>define('svg-handler', ['jquery'], function($) {
-  var lineHeight = 15;
-  var spaceWidth = 5;
-  var listBorder = 35;
-  var addTagSpecificStyle = function(element, s, w, h, htmlConverter, str, alt) {
-    switch (getTagName(element)){
-      case 'h1':
-        alt.setAttribute('font-size', Math.round(s.fontSize + 0.6 * s.fontSize) + 'px');
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'h2':
-        alt.setAttribute('font-size', Math.round(s.fontSize + 0.3 * s.fontSize) + 'px');
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'h3':
-        alt.setAttribute('font-size', Math.round(s.fontSize + 0.15 * s.fontSize) + 'px');
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'h4':
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'h5':
-        alt.setAttribute('font-size', Math.round(s.fontSize - 0.15 * s.fontSize) + 'px');
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'h6':
-        alt.setAttribute('font-size', Math.round(s.fontSize - 0.3 * s.fontSize) + 'px');
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'b':
-        alt.setAttribute('font-weight', 'bold');
-        break;
-      case 'i':
-        alt.setAttribute('font-style', 'italic');
-        break;
-      case 'li':
-        // Because of the space that is reserved for the bullets delimiters, the list's text is moved more to the
-        // right. For simulating the same behavior in svg, the text-anchor is removed for all the elements inside this
-        // container, meaning also for ul and ol elements.
-        alt.removeAttribute('text-anchor');
-
-        // Adapt elements for XWiki PDF export since links are not displayed when 'a' tag is placed inside a 'text'
-        // element.
-        var isLinkTag = getTagName(alt) === 'a';
-
-        // Have a bullet for each row.
-        var delimiter = document.createElementNS('http://www.w3.org/2000/svg', isLinkTag ? 'text' : 'tspan');
-        delimiter.textContent = "•";
-        delimiter.setAttribute('x', w - 2 * spaceWidth);
-        delimiter.setAttribute('y', h);
-
-        // Move all to a container.
-        var container = document.createElementNS('http://www.w3.org/2000/svg', isLinkTag ? 'g' : 'text');
-        container.setAttribute('x', w);
-        container.setAttribute('y', h);
-        container.appendChild(delimiter);
-
-        if (isLinkTag) {
-          // The text inside alt is distributed to 'tspan' elements and since they are showned only if are placed
-          // under a 'text' parent, we add it between them and the link.
-          var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          // Copy only first child since it refers to the actual text content which, dependending on whether the
-          // text needed wrapping or not, is a 'tspan' with either just text inside or with multiple children
-          // representing the wrapped text.
-          text.appendChild($(alt).children()[0]);
-          $(alt).empty();
-          alt.appendChild(text);
-        }
-
-        // If alt comes from a container, we should preserve the original parent.
-        var parent = alt.parentElement;
-        container.appendChild(alt);
-        if (parent != null) {
-          parent.appendChild(container);
-          parent.removeAttribute('text-anchor');
-        }
-        return container;
-      case 'ul':
-        // See comment from case 'li'.
-        alt.removeAttribute('text-anchor');
-        break;
-      case 'ol':
-        // See comment from care 'li'.
-        alt.removeAttribute('text-anchor');
-        break;
-      case 'u':
-        alt.setAttribute('text-decoration', 'underline');
-        break;
-      case 'a':
-        var link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
-        link.setAttribute('x', w);
-        link.setAttribute('y', h);
-        link.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', element.href);
-        // Add link decorations for the text. Some styles added to a 'g' are not distributed to it's children by FOP,
-        // so we do it manually.
-        if (getTagName(alt) == 'g') {
-          var childNodes = $(alt).children();
-          childNodes.each(function() {
-            this.setAttribute('fill', '#0000EE');
-            this.setAttribute('text-decoration', 'underline');
-          });
-        } else {
-          alt.setAttribute('fill', '#0000EE');
-          alt.setAttribute('text-decoration', 'underline');
-        }
-        alt.removeAttribute('text-anchor');
-        // If alt comes from a container, we should preserve the original parent.
-        var parent = alt.parentElement;
-        link.appendChild(alt);
-        if (parent != null) {
-          parent.appendChild(link);
-        }
-        return link;
-      default:
-        return alt;
-    }
-    return alt;
-  };
-
-  var getStrWidth = function(str, s) {
-    return $('&lt;span&gt;&lt;/span&gt;')
-      .css({display: 'none', whiteSpace: 'nowrap'})
-      .appendTo($('body'))
-      .text(str)
-      .width();
-  };
-
-  var takenCoordinates;
-  // Creates a row inside a text element that should be wrapped. The coordinates of the first row are already saved.
-  var createRow = function(w, h, rowNb) {
-    var row = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-    row.setAttribute('x', w);
-    row.setAttribute('y', h);
-    if (rowNb &gt; 0) {
-      takenCoordinates.push({'w': w, 'h': h});
-    }
-    return row;
-  };
-
-  var wrapText = function(alt, s, w, h, content, contentWidth, maxWidth) {
-    var words = content.split(/[\s+]/);
-    var wordWidth, rowWidth = 0, rowNb = 0;
-    var row = createRow(w, h, rowNb);
-    alt.appendChild(row);
-    words.each(function(word) {
-      word += ' ';
-      wordWidth = getStrWidth(word, s);
-      if (rowWidth + wordWidth &gt; maxWidth) {
-        h += lineHeight;
-        row = createRow(w, h, ++rowNb);
-        row.textContent = word;
-        alt.appendChild(row);
-        rowWidth = wordWidth;
-      } else {
-        row.textContent += word;
-        rowWidth += wordWidth;
-      }
-    });
-  };
-
-  /*
-   * Consider containerWidth as the maximal width to do the word wrap when needed. Add the inner html only if the
-   * element is not a list, since the text should be distributed to children instead of being shown at once. The same
-   * is applied for when the text is longer then the containerWidth, since it will be distributed to tspan elements.
-   * Shorten the containerWidth send to text wrapper for 'li' elements since in their case an adittional space is
-   * added for the bullet delimiter and it shouldn't be included.
-  */
-  var addTextContent= function(element, htmlConverter, s, containerWidth, alt, w, h) {
-    htmlConverter.innerHTML = element.innerText;
-    var content = htmlConverter.value;
-    var contentWidth = getStrWidth(content, s);
-    if (!isListElement(element)) {
-      if (contentWidth &gt; containerWidth) {
-        containerWidth = isListItem(element) ? containerWidth - listBorder : containerWidth;
-        wrapText(alt, s, w, h, content, contentWidth, containerWidth);
-      } else {
-        alt.textContent = htmlConverter.value;
-      }
-    }
-  };
-
-  var getTagName = function(element) {
-    return element &amp;&amp; element.tagName &amp;&amp; element.tagName.toLowerCase();
-  };
-
-  var isTextNode = function(node) {
-    return node &amp;&amp; node.nodeType === 3;
-  };
-
-  var isHeadingElement = function(element) {
-    return  ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].indexOf(getTagName(element)) &gt;= 0;
-  };
-
-  var isBlockElement = function(element) {
-    return ['p', 'div'].indexOf(getTagName(element)) &gt;= 0 || isHeadingElement(element);
-  };
-
-  var isListElement = function(element) {
-    return ['ul', 'ol'].indexOf(getTagName(element)) &gt;= 0;
-  };
-
-  var isInlineElement = function(element) {
-    return  ['b', 'i', 'span'].indexOf(getTagName(element)) &gt;= 0;
-  };
-
-  var isListItem = function(element) {
-    return getTagName(element) === 'li';
-  };
-
-  var isNodeWithPartialStyle = function(node, nbOfSiblings) {
-    return isTextNode(node) || ((isInlineElement(node) || isBlockElement(node)) &amp;&amp; nbOfSiblings &gt; 1);
-  };
-
-  var isParagraphWithPartialStyle = function(node, nbOfSiblings) {
-    if (isNodeWithPartialStyle(node, nbOfSiblings)) {
-      return true;
-    }
-
-    // Consider also indirect children.
-    var childNodes = $(node).contents();
-    if ($(node).children().length &gt; 0) {
-      for (var i = 0; i &lt; childNodes.length; i++) {
-        var child = childNodes[i];
-        if (isParagraphWithPartialStyle(child, childNodes.length) == true) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  var isStyleElement = function(element) {
-    if (element == null) { return false; }
-    return ['b', 'i', 'u', 'a'].indexOf(getTagName(element)) != -1 || isHeadingElement(element);
-  };
-
-  /*
-   * Get multiple styles of an element (i.e. b, i, u, a tags)
-  */
-  var getStylesFromElement = function(element) {
-    var styles = [];
-    // Partially styled elements are not supported, so consider only the styles of the main element.
-    var parentTextLength = element.parentElement.textContent.length;
-    if (element.textContent.length == parentTextLength) {
-      styles.push(element);
-    }
-    // Consider also indirect children.
-    var childElements = element.getElementsByTagName("*");
-    for (i = 0; i &lt; childElements.length; i++) {
-      var child = childElements[i];
-      if (child.textContent.length == parentTextLength) {
-        styles.push(child);
-      }
-    }
-    return styles;
-  };
-
-  // For the current block of text take into consideration if those coordinates are already in use.
-  // This is used when we are manually computing the container of children elements.
-  var maybeChangeHeight = function(w, h, element) {
-    // They didn't took into consideration the size of an heading tag.
-    h = isHeadingElement(element) ? h - lineHeight : h;
-    var thisCoordinates = {'w': w, 'h': h};
-    takenCoordinates.each(function(coordinates) {
-      if (coordinates['w'] == thisCoordinates['w'] &amp;&amp; coordinates['h'] == thisCoordinates['h']) {
-        h += lineHeight;
-        thisCoordinates['h'] = h;
-      }
-    });
-    takenCoordinates.push(thisCoordinates);
-    return h;
-  };
-
-  var getAdjustedInitialCoordinates = function(w, h, fontSize) {
-    w = Math.round(w / 2);
-    // For smaller heights the result seems to corespond to the one in the original view, but for the others the font
-    // size is relevant.
-    // TODO: investigate the reasons behind this behavior.
-    if (h &lt; lineHeight) {
-      h = Math.round(h / 2);
-    } else {
-      h = Math.round(h / 2 - fontSize / 2);
-    }
-    return {'w': w, 'h': h};
-  }
-
-  // Create the basis of a svg element. Calculate new coordinates if is needed.
-  var createSvgElement = function(s, w, h, tag, element, addAnchor, isPartiallyStyledElement) {
-    var alt = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    if (element &amp;&amp; (isBlockElement(element) || isListItem(element) || isPartiallyStyledElement)) {
-      h = maybeChangeHeight(w, h, element);
-    }
-    alt.setAttribute('x', w);
-    alt.setAttribute('y', h);
-    alt.setAttribute('fill', s.fontColor || 'black');
-    if (addAnchor) {
-      alt.setAttribute('text-anchor', 'middle');
-    }
-    alt.setAttribute('font-size', Math.round(s.fontSize) + 'px');
-    alt.setAttribute('font-family', s.fontFamily);
-
-    if ((s.fontStyle &amp; mxConstants.FONT_BOLD) == mxConstants.FONT_BOLD)
-    {
-      alt.setAttribute('font-weight', 'bold');
-    }
-
-    if ((s.fontStyle &amp; mxConstants.FONT_ITALIC) == mxConstants.FONT_ITALIC)
-    {
-      alt.setAttribute('font-style', 'italic');
-    }
-
-    if ((s.fontStyle &amp; mxConstants.FONT_UNDERLINE) == mxConstants.FONT_UNDERLINE)
-    {
-      alt.setAttribute('text-decoration', 'underline');
-    }
-    return alt;
-  };
-
-  var convertTextElementToSvg = function(element, s, w, h, htmlConverter, str, containerWidth, isFirstChild) {
-    if (getTagName(element) == 'br') {
-      return document.createElementNS('http://www.w3.org/2000/svg', "text");
-    }
-    if (isFirstChild) {
-      takenCoordinates = [];
-    }
-    var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
-    w = coordinates.w;
-    h = coordinates.h;
-
-    // Use 'tspan' for 'li' elements since they will be move inside a 'text' container along with a row delimiter.
-    // Update h in case it was manually modified to take into consideration other inserted elements.
-    var tag = isListItem(element) ? 'tspan' : 'text';
-    var alt = createSvgElement(s, w, h, tag, element, true);
-    h = parseInt(alt.getAttribute('y'));
-
-    addTextContent(element, htmlConverter, s, containerWidth, alt, w, h);
-
-    // Convert recursively the children. Have a container that will hold the elements in case there are other children.
-    // Consider the case when multiple styles are added to an element (e.g. &lt;i&gt;&lt;b&gt;txt&lt;/b&gt;&lt;/i&gt;).
-    // Traverse all children and keep the styles to just one element.
-    if (element.childElements().length &gt; 0) {
-      var container = createSvgElement(s, w, h, 'g', null, !isListElement(element));
-      // TODO: Don't append alt element, unless it has a content.
-      container.appendChild(alt);
-      element.childElements().each(function(child) {
-        if (isStyleElement(child)) {
-          var styles = getStylesFromElement(child);
-          styles.each(function(style) {
-            alt = addTagSpecificStyle(style, s, w, h, htmlConverter, str, alt, true);
-          });
-        } else {
-          var childSvg = convertTextElementToSvg(child, s, w, h, htmlConverter, str, containerWidth, false);
-          if (childSvg != undefined) {
-            container.appendChild(childSvg);
-          }
-        }
-      });
-    }
-
-    // TODO: apply the defined style of the element.
-    alt = addTagSpecificStyle(element, s, w, h, htmlConverter, str, alt);
-    if (element.childElements().length &gt; 0) {
-      return container;
-    } else {
-      return alt;
-    }
-  };
-
-
-  /*
-   * Converts a partially styled element (e.g. link added to just a word of a phrase) to svg kepping as much as
-   * possible from the original element.
-   * When different types of elements are separated vertically (see Example 1), as long as each element is not a
-   * composite one, the result is mainly as the input. But, for cases when the styled element is inside a phrase (see
-   * Example 2), the result is a fallback to simple text.
-   * TODO: In the case of Example 3, when a child of a partially styled paragraph is itself a partially styled
-   * paragraph with "Text" nodes a fallback must be added. For now, elementsContainer.contents() separates the nodes
-   * that are connected and there isn't a smooth solution to get which elements were on the same line (maybe consider
-   * &lt;/br&gt; as divider). Even though it looks the same in html, Example 4 works compared to 3 since there are
-   * no text nodes, but this depends on how the user inserts the text.
-   *
-   * Example 1: &lt;div&gt; "Simple text" &lt;/br&gt; &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
-   * Example 2: &lt;div&gt; "Simple text" &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
-   * Example 3: &lt;div&gt; "Simple text" &lt;/br&gt; "Simple text" &lt;b&gt;Bolded text&lt;/b&gt; &lt;/div&gt;
-   * Example 4:
-   * &lt;div&gt;
-   * "Simple text" &lt;/br&gt;
-   * &lt;span&gt;"Simple text" &lt;b&gt;Bolded text&lt;/b&gt;&lt;/span&gt;
-   * &lt;/div&gt;
-  */
-  var convertPartiallyStyledParagraphToSVG = function(childNodes, s, w, h, htmlConverter, str, containerWidth) {
-    takenCoordinates = [];
-    var initialWidth = w;
-    var initialHeight = h;
-    var coordinates = getAdjustedInitialCoordinates(w, h, s.fontSize);
-    w = coordinates.w;
-    h = coordinates.h;
-
-    var container = createSvgElement(s, w, h, /* tag */ 'g', /* element */ null,
-        /* addAnchor */ !isListElement(childNodes[0]));
-    // Go to last level of child nodes in case there is a style added to the root element. Keep the styles to add
-    // them after assembling the element with its children.
-    var styles = [];
-    while (childNodes.length == 1 &amp;&amp; $(childNodes[0]).children().length &gt; 0) {
-      var rootNode = childNodes[0];
-      if (isStyleElement(rootNode)) {
-        styles.push(rootNode);
-      }
-      childNodes = $(rootNode).contents();
-    }
-
-    // Resolve the basic case where the element is just a phrase with a styled element. Remove this after fixing
-    // the TODO described in the comment above.
-    var simpleNodes= childNodes.filter(function() {
-      return isTextNode(this) || isInlineElement(this);
-    });
-
-    if(simpleNodes.length == childNodes.length) {
-      var element = $('&lt;span&gt;&lt;/span&gt;').html(str)[0];
-      // We use the unmodified coordinates to prevent adjusting them twice.
-      var alt = convertTextElementToSvg(element, s, initialWidth, initialHeight, htmlConverter, str, containerWidth,
-          /* isFirstChild */ true);
-      return alt;
-    }
-
-    // Look only on first-level children since for now it is not supported to partially style paragraphs inside a
-    // partially styled paragraph.
-    childNodes.each(function(index) {
-      var element = $(this).clone()[0];
-      // Convert text content to element for consistency.
-      if (isTextNode(element)) {
-        element = $('&lt;span&gt;&lt;/span&gt;').html(element.textContent)[0];
-      }
-
-      // Don't do anything for &lt;/br&gt; tags or empty elements.
-      if (getTagName(element) == 'br' || element.innerText == '') {
-        return;
-      }
-
-      // Consider that list elements will be moved to a 'text' container and in this case 'tspan' should be used as
-      // child tag. Specify that it is a partially styled element because in this case it could contain '&lt;br&gt;'
-      // tags and the children would need to have changed coordinates (heights) when they are created.
-      var alt = createSvgElement(s, w, h, /* tag */ isListItem(element) ? 'tspan' : 'text', /* element */ element,
-          /* addAnchor */ true, /* isPartiallyStyledElement */ true);
-      h = parseInt(alt.getAttribute('y'));
-
-      addTextContent(element, htmlConverter, s, containerWidth, alt, w, h);
-
-      alt = addTagSpecificStyle(element, s, w, h, htmlConverter, str, alt);
-      container.appendChild(alt);
-    });
-    // Consider the case when multiple styles are added to the root element.
-    styles.each(function(style) {
-      container = addTagSpecificStyle(style, s, w, h, htmlConverter, str, container, true);
-    });
-    return container;
-
-  };
-
-  // Fix the transform attribute of the element that is used when foreignObjects are not supported and the view
-  // fallbacks to svg. This code is taken from an older draw.io version, since starting with 12.5.0 the transform
-  // attribute doesn't take into consideration the coordinates, but only the foOffset.
-  var adjustAlternateTextCoordinates = function(group, x, y , w , h, s, align, valign, overflow, rotation, foOffset) {
-    x += s.dx;
-    y += s.dy;
-    var dx = 0;
-    var dy = 0;
-
-    if (align == mxConstants.ALIGN_CENTER) {
-      dx -= w / 2;
-    } else if (align == mxConstants.ALIGN_RIGHT) {
-      dx -= w;
-    }
-    x += dx;
-
-    if (valign == mxConstants.ALIGN_MIDDLE) {
-      dy -= h / 2;
-    } else if (valign == mxConstants.ALIGN_BOTTOM) {
-      dy -= h;
-    }
-
-    if (overflow != 'fill' &amp;&amp; mxClient.IS_FF &amp;&amp; mxClient.IS_WIN) {
-      dy -= 2;
-    }
-    y += dy;
-
-    var tr = (s.scale != 1) ? 'scale(' + s.scale + ')' : '';
-
-    if (s.rotation != 0 &amp;&amp; this.rotateHtml) {
-      tr += 'rotate(' + (s.rotation) + ',' + (w / 2) + ',' + (h / 2) + ')';
-      var pt = this.rotatePoint((x + w / 2) * s.scale, (y + h / 2) * s.scale, s.rotation, s.rotationCx, s.rotationCy);
-      x = pt.x - w * s.scale / 2;
-      y = pt.y - h * s.scale / 2;
-    } else {
-      x *= s.scale;
-      y *= s.scale;
-    }
-
-    if (rotation != 0) {
-      tr += 'rotate(' + (rotation) + ',' + (-dx) + ',' + (-dy) + ')';
-    }
-
-    var transform = 'translate(' + (Math.round(x) + foOffset) + ',' + (Math.round(y) + foOffset) + ')' + tr;
-    group.setAttribute('transform', transform);
-  };
-
-  return {
-    convertTextElementToSvg: convertTextElementToSvg,
-    isParagraphWithPartialStyle: isParagraphWithPartialStyle,
-    convertPartiallyStyledParagraphToSVG: convertPartiallyStyledParagraphToSVG,
-    adjustAlternateTextCoordinates: adjustAlternateTextCoordinates
-  };
-});
-/**
+      <code>/**
  * Overrides the link dialog in order to support creating links to wiki pages.
  */
 define('diagram-link-editor', [
   'jquery',
   'diagram-link-handler',
-  'svg-handler',
   'draw.io',
   'resourceSelector'
-], function($, diagramLinkHandler, svgHandler) {
+], function($, diagramLinkHandler) {
   /**
    * Override in order to change the Element type check from a.constructor !== Element, which was failing due to a
    * collision with the PrototypeJS's own implementation of the standard Element.
@@ -1082,66 +572,8 @@ define('diagram-link-editor', [
           // Keep only the text content.
           str = $('&lt;div/&gt;').html(str).text() || this.foAltText;
         }
-        // Update links inside foreignObject to use absolute URLs, since the generated SVG needs to be portable.
-        $(fo).find('a').each(function() {
-          var oldLink = $(this).attr('href');
-          if (diagramLinkHandler.isXWikiCustomLink(oldLink)) {
-            var newLink = diagramLinkHandler.getURLFromCustomLink(oldLink);
-            $(this).attr('href', newLink);
-          }
-        });
-
-        if (this.foAltText != null) {
-          var s = this.state;
-          var htmlConverter = document.createElement('textarea');
-          var content = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          var temporaryContent = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          var elementsContainer = $(fo).children().first().children().first();
-          var childNodes = elementsContainer.contents();
-          // Consider the container width to be the width of the closest rect parent node. For some shapes, like Actor
-          // or any non squared shape, there is no rect and we fallback to the initial width of the text node, which is
-          // less accurate.
-          var containerWidth = this.state.initialWidth;
-          var prevNode = $(fo.parentNode).prev()[0];
-          if (prevNode &amp;&amp; prevNode.nodeName == 'rect') {
-            var containerWidth = prevNode.width.baseVal.valueAsString;
-          }
-          try {
-            if (childNodes.length &gt; 0) {
-              var isPartiallyStyledElement = false;
-              var alt;
-              childNodes.each(function(index) {
-                // Make a clone of the node, to not alter the original child.
-                var node = $(this).clone()[0];
-                // If this paragraph has partially styled nodes (i.e. link added to just a part of the text) create a
-                // fallback version of it, since not all the cases are supported and the created svg could not be
-                // compatible with the already created elements. This is done since is too complex to calculate the
-                // coordinates of the styled node, considering the last element added and that it may be needed to wrap
-                // the text.
-                if (svgHandler.isParagraphWithPartialStyle(node, childNodes.length)) {
-                  alt = svgHandler.convertPartiallyStyledParagraphToSVG(childNodes, s, w, h, htmlConverter, str,
-                    containerWidth);
-                  isPartiallyStyledElement = true;
-                  return false;
-                } else {
-                  alt = svgHandler.convertTextElementToSvg(node, s, w, h, htmlConverter, str, containerWidth, index == 0);
-                  temporaryContent.appendChild(alt);
-                }
-              });
-              content.appendChild(isPartiallyStyledElement ? alt : temporaryContent)
-              svgHandler.adjustAlternateTextCoordinates(content, x, y, w, h, s, align, valign, overflow, rotation,
-                this.foOffset);
-              return content;
-            } else {
-              return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format,
-                overflow, clip, rotation);
-            }
-          } catch (e) {
-            return originalCreateAlternateContent.apply(this, arguments);
-          }
-        } else {
-          return originalCreateAlternateContent.apply(this, arguments);
-        }
+        return originalCreateAlternateContent.call(this, fo, x, y, w, h, str, align, valign, wrap, format, overflow,
+          clip, rotation);
       };
       return originalDrawState.apply(this, arguments);
     };
@@ -1485,7 +917,7 @@ define('diagram-image-editor', ['xwiki-utils', 'diagram-link-handler', 'draw.io'
       doImportFiles();
     }
   };
-  
+
   // Override for uploading the image as attachment instead of encode it to Base64.
   var originalImportFiles = EditorUi.prototype.importFiles;
   EditorUi.prototype.importFiles = function(files, x, y, maxSize, fn, resultFn, filterFn, barrierFn, resizeDialog,
@@ -1987,6 +1419,7 @@ define('diagram-editor', [
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
