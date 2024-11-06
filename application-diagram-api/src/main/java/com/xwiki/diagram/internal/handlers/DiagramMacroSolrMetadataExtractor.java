@@ -96,38 +96,45 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
         return false;
     }
 
+    /**
+     * Checks and updates the references of all the diagram macro calls to make sure that all of them respect the
+     * current name strategy.
+     *
+     * @param document document with all the macro calls
+     * @param xdom of the @document
+     * @param macroBlocks list of all the diagram macro calls
+     * @return true if all the references are valid, false otherwise.
+     */
     private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
     {
         try {
 
             XWikiContext context = contextProvider.get();
-            boolean modfied = false;
+            boolean modified = false;
             for (Block macroBlock : macroBlocks) {
                 String referenceName =
                     macroBlock.getParameter(REFERENCE) != null ? macroBlock.getParameter(REFERENCE) : "Diagram";
                 // For backwards compatibility we check if the page already exists so we won't modify it.
                 DocumentReference macroReference =
                     explicitDocumentReferenceResolver.resolve(referenceName, document.getDocumentReference());
-                boolean backwards = context.getWiki().exists(macroReference, context);
-                if (!backwards) {
+                boolean diagramAlreadyExists = context.getWiki().exists(macroReference, context);
+                if (!diagramAlreadyExists) {
                     // First we check if the name is valid in the current naming strategy.
                     boolean isValid = this.isValid(referenceName);
                     // If the name is valid then we can use it, otherwise we transform the name in a valid
-                    // reference and update the macro block.
-                    String transformedNamed = isValid ? referenceName : this.transformName(referenceName);
-                    // Update the macro block to contain the valid reference.
+                    // one and update the macro block.
                     if (!isValid) {
-                        macroBlock.setParameter(REFERENCE, transformedNamed);
-                        modfied = true;
+                        String transformedName = this.transformName(referenceName);
+                        macroBlock.setParameter(REFERENCE, transformedName);
+                        modified = true;
                     }
                 }
             }
-            if (modfied) {
-
+            if (modified) {
                 document.setContent(xdom);
-                context.getWiki().saveDocument(document,
-                    "Updated diagram macro references to respect the name strategy.", context);
-                return modfied;
+                context.getWiki()
+                    .saveDocument(document, "Updated diagram macro references to respect the name strategy.", context);
+                return modified;
             }
         } catch (XWikiException e) {
             logger.error(e.getMessage(), e);
@@ -138,6 +145,9 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
 
     private String transformName(String name)
     {
+        // this.entityNameValidationConfiguration.useTransformation() is a property that MUST be set by the user in the
+        // Administration -> Editing -> Name Strategies -> transform names automatically, if the property is disabled
+        // the code will always return the original name and not the transformed one.
         if (this.entityNameValidationConfiguration.useTransformation()
             && this.entityNameValidationManager.getEntityReferenceNameStrategy() != null)
         {
@@ -149,6 +159,9 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
 
     private boolean isValid(String name)
     {
+        // this.entityNameValidationConfiguration.useValidation() is a property that MUST be set by the user in the
+        // Administration -> Editing -> Name Strategies -> validate names before saving, if the property is disabled
+        // this code will always return false.
         if (this.entityNameValidationConfiguration.useValidation()
             && this.entityNameValidationManager.getEntityReferenceNameStrategy() != null)
         {
