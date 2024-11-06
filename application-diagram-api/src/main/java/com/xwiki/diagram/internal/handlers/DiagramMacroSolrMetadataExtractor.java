@@ -82,7 +82,7 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
 
         XDOM xdom = document.getXDOM();
         List<Block> macroBlocks = xdom.getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
-        if (macroBlocks != null && macroBlocks.size() > 0 && !updateMacroReference(document, xdom, macroBlocks)) {
+        if (macroBlocks != null && !macroBlocks.isEmpty() && !updateMacroReference(document, xdom, macroBlocks)) {
             List<DocumentReference> macroReferences = new ArrayList<>();
             for (Block macroBlock : macroBlocks) {
 
@@ -103,7 +103,7 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
      * @param document document with all the macro calls
      * @param xdom of the @document
      * @param macroBlocks list of all the diagram macro calls
-     * @return true if all the references are valid, false otherwise.
+     * @return true if any reference is invalid, false otherwise
      */
     private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
     {
@@ -125,6 +125,8 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
                     // one and update the macro block.
                     if (!isValid) {
                         String transformedName = this.transformName(referenceName);
+                        logger.debug("The reference [{}] was updated to [{}] to respect the current name strategy. "
+                            + "Document: [{}]", referenceName, transformedName, document.getDocumentReference());
                         macroBlock.setParameter(REFERENCE, transformedName);
                         modified = true;
                     }
@@ -137,8 +139,9 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
                 return modified;
             }
         } catch (XWikiException e) {
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e);
+            logger.error("Failed to update diagram macro references of [{}] to respect the naming strategy.",
+                document, e);
+            return false;
         }
         return false;
     }
