@@ -46,6 +46,7 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -53,9 +54,14 @@ import static org.mockito.Mockito.when;
  * Unit test for {@link DiagramMacroSolrMetadataExtractor}
  */
 @ComponentTest
-public class TestDiagramMacroSolrMetadataExtractor
+public class DiagramMacroSolrMetadataExtractorTest
 {
+
     private static final String REFERENCE = "reference";
+
+    private static final String STRATEGY = "Strategy";
+
+    private static final String DIAGRAM = "Diagram";
 
     @InjectMockComponents
     private DiagramMacroSolrMetadataExtractor extractor;
@@ -94,49 +100,43 @@ public class TestDiagramMacroSolrMetadataExtractor
     @Mock
     private SolrInputDocument solrDocument;
 
-    /**
-     * The diagram was created in another version, but the reference doesn't respect the name strategy, but we want to
-     * keep the reference so we don't break the macros that already exist.
-     */
-    @Test
-    public void updateReferenceCase1() throws XWikiException
+    @BeforeEach
+    void setup()
     {
-        MacroBlock block = this.createMacroBlock("Strategy");
-        when(this.xwikiDocument.getXDOM().getBlocks(any(), any())).thenReturn(List.of(block));
-        when(explicitDocumentReferenceResolver.resolve("Strategy", xwikiDocument.getDocumentReference())).thenReturn(
-            documentReference);
-        when(xwikiContext.getWiki().exists(documentReference, xwikiContext)).thenReturn(true);
-        when(entityNameValidationManager.getEntityReferenceNameStrategy().isValid("Strategy")).thenReturn(false);
-        when(entityNameValidationManager.getEntityReferenceNameStrategy().transform("Strategy")).thenReturn(
-            "Strategy2");
-        extractor.extract(this.xwikiDocument, this.solrDocument);
-        assertEquals("Strategy", block.getParameter(REFERENCE));
+        when(this.xwikiDocument.getXDOM()).thenReturn(xdom);
+        when(this.contextProvider.get()).thenReturn(this.xwikiContext);
+        when(this.xwikiContext.getWiki()).thenReturn(this.wiki);
+        when(this.xwikiDocument.getDocumentReference()).thenReturn(documentReference);
+        when(entityNameValidationConfiguration.useValidation()).thenReturn(true);
+        when(entityNameValidationConfiguration.useTransformation()).thenReturn(true);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy()).thenReturn(entityNameValidation);
     }
 
     /**
-     * The macro has the default settings where the reference is missing and there is a naming strategy that updates
-     * the name.
+     * The diagram was created in another version, but the reference doesn't respect the name strategy, but we want to
+     * keep the reference so we don't break the macros that already exist.
      *
      */
     @Test
-    public void updateReferenceCase3() throws XWikiException
+    void updateReferenceCase1() throws XWikiException
     {
-        MacroBlock block = this.createMacroBlock(null);
+        MacroBlock block = this.createMacroBlock(STRATEGY);
         when(this.xwikiDocument.getXDOM().getBlocks(any(), any())).thenReturn(List.of(block));
-        when(explicitDocumentReferenceResolver.resolve("Strategy", xwikiDocument.getDocumentReference())).thenReturn(
+        when(explicitDocumentReferenceResolver.resolve(STRATEGY, xwikiDocument.getDocumentReference())).thenReturn(
             documentReference);
-        when(xwikiContext.getWiki().exists(documentReference, xwikiContext)).thenReturn(false);
-        when(entityNameValidationManager.getEntityReferenceNameStrategy().isValid("Diagram")).thenReturn(false);
-        when(entityNameValidationManager.getEntityReferenceNameStrategy().transform("Diagram")).thenReturn("Anagram");
+        when(xwikiContext.getWiki().exists(documentReference, xwikiContext)).thenReturn(true);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy().isValid(STRATEGY)).thenReturn(false);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy().transform(STRATEGY)).thenReturn(
+            "Strategy2");
         extractor.extract(this.xwikiDocument, this.solrDocument);
-        assertEquals("Anagram", block.getParameter(REFERENCE));
+        assertEquals(STRATEGY, block.getParameter(REFERENCE));
     }
 
     /**
      * The diagram was created, it respects the name strategy, but the reference doesn't respect the name strategy.
      */
     @Test
-    public void updateReferenceCase2() throws XWikiException
+    void updateReferenceCase2() throws XWikiException
     {
         MacroBlock block = this.createMacroBlock("AAAA");
         when(this.xwikiDocument.getXDOM().getBlocks(any(), any())).thenReturn(List.of(block));
@@ -149,16 +149,53 @@ public class TestDiagramMacroSolrMetadataExtractor
         assertEquals("BBBB", block.getParameter(REFERENCE));
     }
 
-    @BeforeEach
-    void setup()
+    /**
+     * The macro has the default settings where the reference is missing and there is a naming strategy that updates the
+     * name.
+     *
+     */
+    @Test
+    void updateReferenceCase3() throws XWikiException
     {
-        when(this.xwikiDocument.getXDOM()).thenReturn(xdom);
-        when(this.contextProvider.get()).thenReturn(this.xwikiContext);
-        when(this.xwikiContext.getWiki()).thenReturn(this.wiki);
-        when(this.xwikiDocument.getDocumentReference()).thenReturn(documentReference);
-        when(entityNameValidationConfiguration.useValidation()).thenReturn(true);
-        when(entityNameValidationConfiguration.useTransformation()).thenReturn(true);
-        when(entityNameValidationManager.getEntityReferenceNameStrategy()).thenReturn(entityNameValidation);
+        MacroBlock block = this.createMacroBlock(null);
+        when(this.xwikiDocument.getXDOM().getBlocks(any(), any())).thenReturn(List.of(block));
+        when(explicitDocumentReferenceResolver.resolve(STRATEGY, xwikiDocument.getDocumentReference())).thenReturn(
+            documentReference);
+        when(xwikiContext.getWiki().exists(documentReference, xwikiContext)).thenReturn(false);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy().isValid(DIAGRAM)).thenReturn(false);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy().transform(DIAGRAM)).thenReturn("Anagram");
+        extractor.extract(this.xwikiDocument, this.solrDocument);
+        assertEquals("Anagram", block.getParameter(REFERENCE));
+    }
+
+    /**
+     * Tests that the diagram macros are updated only when both Transform names automatically &  Validate names before
+     * saving are set to true.
+     *
+     */
+    @Test
+    void updateReferenceCase4() throws XWikiException
+    {
+        assertTrue(this.testNameStrategyConfiguration(false, false));
+        assertTrue(this.testNameStrategyConfiguration(true, false));
+        assertTrue(this.testNameStrategyConfiguration(false, true));
+    }
+
+    private boolean testNameStrategyConfiguration(boolean transformsNameAutomatically,
+        boolean validateNamesBeforeSaving) throws XWikiException
+    {
+
+        MacroBlock block = this.createMacroBlock(DIAGRAM);
+        when(this.xwikiDocument.getXDOM().getBlocks(any(), any())).thenReturn(List.of(block));
+        when(explicitDocumentReferenceResolver.resolve(DIAGRAM, xwikiDocument.getDocumentReference())).thenReturn(
+            documentReference);
+        when(xwikiContext.getWiki().exists(documentReference, xwikiContext)).thenReturn(false);
+        when(entityNameValidationConfiguration.useValidation()).thenReturn(validateNamesBeforeSaving);
+        when(entityNameValidationConfiguration.useTransformation()).thenReturn(transformsNameAutomatically);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy().isValid(DIAGRAM)).thenReturn(false);
+        when(entityNameValidationManager.getEntityReferenceNameStrategy().transform(DIAGRAM)).thenReturn("Anagram");
+        extractor.extract(this.xwikiDocument, this.solrDocument);
+        return DIAGRAM.equals(block.getParameter(REFERENCE));
     }
 
     private MacroBlock createMacroBlock(String name)
