@@ -24,18 +24,23 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.apache.solr.common.SolrInputDocument;
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.validation.EntityNameValidationConfiguration;
 import org.xwiki.model.validation.EntityNameValidationManager;
 import org.xwiki.rendering.block.Block;
+import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.block.match.MacroBlockMatcher;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
@@ -53,6 +58,9 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
     private static final String REFERENCE = "reference";
 
     @Inject
+    private Provider<XWikiContext> contextProvider;
+
+    @Inject
     @Named("explicit")
     private DocumentReferenceResolver<String> explicitDocumentReferenceResolver;
 
@@ -65,38 +73,105 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
     @Inject
     private EntityNameValidationConfiguration entityNameValidationConfiguration;
 
+    @Inject
+    private Logger logger;
+
     @Override
     public boolean extract(XWikiDocument document, SolrInputDocument solrDocument)
     {
 
-        List<Block> macroBlocks = document.getXDOM().getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
-        if (macroBlocks != null && macroBlocks.size() > 0) {
+        XDOM xdom = document.getXDOM();
+        List<Block> macroBlocks = xdom.getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
+        if (macroBlocks != null && !macroBlocks.isEmpty() && !updateMacroReference(document, xdom, macroBlocks)) {
             List<DocumentReference> macroReferences = new ArrayList<>();
             for (Block macroBlock : macroBlocks) {
-                String referenceName =
-                    macroBlock.getParameter(REFERENCE) != null ? macroBlock.getParameter(REFERENCE) : "Diagram";
-
-                String transformedNamed = this.transformName(referenceName);
 
                 DocumentReference macroReference =
-                    explicitDocumentReferenceResolver.resolve(transformedNamed, document.getDocumentReference());
+                    explicitDocumentReferenceResolver.resolve(macroBlock.getParameter(REFERENCE),
+                        document.getDocumentReference());
                 macroReferences.add(macroReference);
             }
             return linkRegistry.registerBacklinks(solrDocument, macroReferences);
+        }
+        return false;
+    }
 
+    /**
+     * Checks and updates the references of all the diagram macro calls to make sure that all of them respect the
+     * current name strategy.
+     *
+     * @param document document with all the macro calls
+     * @param xdom of the @document
+     * @param macroBlocks list of all the diagram macro calls
+     * @return rue if any reference was invalid and has been updated, false if there weren't any invalid references or
+     * if an error occurred while updating the document
+     */
+    private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
+    {
+        try {
 
+            XWikiContext context = contextProvider.get();
+            boolean modified = false;
+            for (Block macroBlock : macroBlocks) {
+                String referenceName =
+                    macroBlock.getParameter(REFERENCE) != null ? macroBlock.getParameter(REFERENCE) : "Diagram";
+                // For backwards compatibility we check if the page already exists so we won't modify it.
+                DocumentReference macroReference =
+                    explicitDocumentReferenceResolver.resolve(referenceName, document.getDocumentReference());
+                boolean diagramAlreadyExists = context.getWiki().exists(macroReference, context);
+                if (!diagramAlreadyExists) {
+                    // First we check if the name is valid in the current naming strategy.
+                    boolean isValid = this.isValid(referenceName);
+                    // If the name is valid then we can use it, otherwise we transform the name in a valid
+                    // one and update the macro block.
+                    if (!isValid) {
+                        String transformedName = this.transformName(referenceName);
+                        logger.debug("The reference [{}] was updated to [{}] to respect the current name strategy. "
+                            + "Document: [{}]", referenceName, transformedName, document.getDocumentReference());
+                        macroBlock.setParameter(REFERENCE, transformedName);
+                        modified = true;
+                    }
+                }
+            }
+            if (modified) {
+                document.setContent(xdom);
+                context.getWiki()
+                    .saveDocument(document, "Updated diagram macro references to respect the name strategy.", context);
+                return modified;
+            }
+        } catch (XWikiException e) {
+            logger.error("Failed to update diagram macro references of [{}] to respect the naming strategy.", document,
+                e);
+            return false;
         }
         return false;
     }
 
     private String transformName(String name)
     {
+        // this.entityNameValidationConfiguration.useTransformation() is a property that MUST be set by the user in the
+        // Administration -> Editing -> Name Strategies -> transform names automatically, if the property is disabled
+        // the code will always return the original name and not the transformed one.
         if (this.entityNameValidationConfiguration.useTransformation()
             && this.entityNameValidationManager.getEntityReferenceNameStrategy() != null)
         {
             return this.entityNameValidationManager.getEntityReferenceNameStrategy().transform(name);
         } else {
             return name;
+        }
+    }
+
+    private boolean isValid(String name)
+    {
+        // this.entityNameValidationConfiguration.useValidation() is a property that MUST be set by the user in the
+        // Administration -> Editing -> Name Strategies -> validate names before saving, if the property is disabled
+        // this code will always return false.
+        if (this.entityNameValidationConfiguration.useValidation()
+            && this.entityNameValidationManager.getEntityReferenceNameStrategy() != null)
+        {
+            return this.entityNameValidationManager.getEntityReferenceNameStrategy().isValid(name);
+        } else {
+            return true;
         }
     }
 }

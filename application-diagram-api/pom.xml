@@ -32,6 +32,7 @@
   <packaging>jar</packaging>
   <description>Provides script APIs for the Diagram application.</description>
   <properties>
+    <xwiki.jacoco.instructionRatio>0.11</xwiki.jacoco.instructionRatio>
     <!-- Components -->
     <xwiki.extension.components>
       org.xwiki.script.service.ScriptService/diagram
@@ -92,6 +93,13 @@
       <groupId>org.xwiki.platform</groupId>
       <artifactId>xwiki-platform-oldcore</artifactId>
       <version>${platform.version}</version>
+    </dependency>
+    <!-- Testing dependencies -->
+    <dependency>
+      <groupId>org.xwiki.commons</groupId>
+      <artifactId>xwiki-commons-tool-test-component</artifactId>
+      <version>${commons.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
