@@ -103,7 +103,8 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
      * @param document document with all the macro calls
      * @param xdom of the @document
      * @param macroBlocks list of all the diagram macro calls
-     * @return true if any reference is invalid, false otherwise
+     * @return rue if any reference was invalid and has been updated, false if there weren't any invalid references or
+     * if an error occurred while updating the document
      */
     private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
     {
@@ -139,8 +140,8 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
                 return modified;
             }
         } catch (XWikiException e) {
-            logger.error("Failed to update diagram macro references of [{}] to respect the naming strategy.",
-                document, e);
+            logger.error("Failed to update diagram macro references of [{}] to respect the naming strategy.", document,
+                e);
             return false;
         }
         return false;
