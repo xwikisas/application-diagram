@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Diagram.DiagramConfig" locale="">
+<xwikidoc version="1.5" reference="Diagram.DiagramConfig" locale="">
   <web>Diagram</web>
   <name>DiagramConfig</name>
   <language/>
@@ -317,9 +317,6 @@
     </property>
     <property>
       <configurationClass/>
-    </property>
-    <property>
-      <configureGlobally>1</configureGlobally>
     </property>
     <property>
       <displayBeforeCategory/>

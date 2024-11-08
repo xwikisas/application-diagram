@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.4" reference="Diagram.DiagramSheet" locale="">
+<xwikidoc version="1.5" reference="Diagram.DiagramSheet" locale="">
   <web>Diagram</web>
   <name>DiagramSheet</name>
   <language/>
@@ -96,6 +96,7 @@
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -905,6 +906,7 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
@@ -1191,6 +1193,7 @@ Right now, there is no defined LESS value for the background color. If, in the f
         <name>code</name>
         <number>2</number>
         <prettyName>Code</prettyName>
+        <restricted>0</restricted>
         <rows>20</rows>
         <size>50</size>
         <unmodifiable>0</unmodifiable>
