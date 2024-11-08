@@ -251,6 +251,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   window.mxLanguage = diagramConfig.locale;
 
   // draw.io setup
+  window.DRAWIO_SERVER_URL = "https://app.diagrams.net/";
   window.RESOURCES_PATH = drawIOBasePath + 'resources';
   window.RESOURCE_BASE = RESOURCES_PATH + '/dia';
   window.STENCIL_PATH = drawIOBasePath + 'stencils';
