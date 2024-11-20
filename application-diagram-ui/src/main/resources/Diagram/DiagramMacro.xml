@@ -269,12 +269,6 @@
             &amp;&amp; $diagram.getAttachment($pngFileName))
           #set ($fileName = $pngFileName)
         #elseif ($xcontext.action == 'export')
-          #set ($reference = $xcontext.macro.params.reference)
-          #if ($stringtool.isEmpty($reference))
-            #set ($reference = $services.model.createDocumentReference('Diagram', $doc.documentReference.parent))
-          #else
-            #set ($reference = $services.model.resolveDocument($reference))
-          #end
           #set ($diagram = $xwiki.getDocument($reference))
           #set ($output = "{{html}}&lt;div&gt;$diagram.getAttachment('diagram.svg').getContentAsString()&lt;/div&gt;{{/html}}")
         #else
