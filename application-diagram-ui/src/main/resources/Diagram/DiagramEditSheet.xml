@@ -1126,6 +1126,7 @@ define('diagram-editor', [
 
   var fixEditorUI = function(editorUI) {
     cleanMenu(editorUI);
+    renameMenu(editorUI);
     fixKeyboardShortcutsAction(editorUI);
     fixEditorButtons($(editorUI.container));
     removeThemeButton();
@@ -1189,6 +1190,24 @@ define('diagram-editor', [
   };
 
   //
+  // Rename menu options to fit our needs.
+  //
+  var renameMenu = function(editorUI) {
+    const menuItems = [
+      // File menu
+      ['print', 'Export PDF']
+    ];
+
+    // Iterate over the array of tuples
+    menuItems.forEach(function([menuKey, newLabel]) {
+      var action = editorUI.actions.actions[menuKey];
+      if (action) {
+        action.label = newLabel;
+      }
+    });
+  };
+
+  //
   // Clean the editor menu by removing the features that are not needed.
   //
   var cleanMenu = function(editorUI) {
@@ -1201,7 +1220,7 @@ define('diagram-editor', [
        // Help menu
       'downloadDesktop', 'useOffline',
       // ExportAs
-      'exportHtml'
+      'exportHtml', 'exportPdf'
     ].forEach(function(actionName) {
       var action = editorUI.actions.actions[actionName];
       if (action) {
