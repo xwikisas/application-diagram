@@ -268,10 +268,13 @@
         #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
             &amp;&amp; $diagram.getAttachment($pngFileName))
           #set ($fileName = $pngFileName)
+          #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
+          #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
         #elseif ($xcontext.action == 'export')
           #set ($diagram = $xwiki.getDocument($reference))
           #set ($output = "{{html}}&lt;div&gt;$diagram.getAttachment('diagram.svg').getContentAsString()&lt;/div&gt;{{/html}}")
         #else
+          ## If we reached this branch it means that we are in 'view' mode, and we should use the svg.
           #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
           #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
         #end
