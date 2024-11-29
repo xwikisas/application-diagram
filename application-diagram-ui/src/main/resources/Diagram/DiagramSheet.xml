@@ -795,7 +795,8 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
       let hash = url.substring(hashIndex+2);
       try {
         let decodedData = decodeURIComponent(hash);
-        // Drawio uses a combination of URL encoding and base64 encoding in the hash and this breaks the import. Since we decompress the diagram in our code when we save the page we can get rid of the
+        // Drawio uses a combination of URL encoding and base64 encoding in the hash and this breaks the import.
+        // Since we decompress the diagram in our code when we save the page we can get rid of the
         // graph.decompress method and just return the serialized DOM with the imported diagram.
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(decodedData, "application/xml");
