@@ -47,7 +47,14 @@
   #end
   {{html clean="false"}}
   ## Check if the query contains the parameter for getting the diagram from URL.
-  &lt;div class="diagram"
+  #set ($displayDiv = "")
+  #if ($xcontext.action == 'export')
+    #set ($displayDiv  =  'hidden')
+    &lt;div&gt;
+      $doc.getAttachment('diagram.svg').getContentAsString()
+    &lt;div&gt;
+  #end
+  &lt;div class="diagram $displayDiv"
     data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
     data-toolbar="$escapetool.xml($toolbar)"
     #if ("$!request.source" == '')
