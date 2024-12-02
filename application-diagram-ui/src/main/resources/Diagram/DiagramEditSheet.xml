@@ -1171,6 +1171,46 @@ define('diagram-editor', [
     }
   };
 
+
+  /*
+   * Map with all the menu items that we want to have a title.
+   */
+
+  const titleMap = new Map([
+      ['print', 'When you click this button, a popup will appear, allowing you to select which part of the diagram you want to print or export as a PDF.\
+        After clicking the "Print button, a new window will open, displaying a preview of the document. In this window, you can choose to either print the document or save it as a PDF']
+  ]);
+
+/**
+ * Modify the original method a bit to allow us to add titles to menu items.
+ */
+  Menus.prototype.addMenuItem = function(menu, key, parent, trigger, sprite, label)
+  {
+      var action = this.editorUi.actions.get(key);
+      var addTitle = titleMap.has(key);
+      if (action != null &amp;&amp; (menu.showDisabled || action.isEnabled()) &amp;&amp; action.visible)
+      {
+          var item = menu.addItem(label || action.label, null, function(evt)
+          {
+              action.funct(trigger, evt);
+          }, parent, sprite, action.isEnabled());
+          if (addTitle)
+          {
+            item.title = titleMap.get(key);
+          }
+          // Adds checkmark image
+          if (action.toggleAction &amp;&amp; action.isSelected())
+          {
+              menu.addCheckmark(item, Editor.checkmarkImage);
+          }
+
+          this.addShortcut(item, action);
+
+          return item;
+      }
+
+      return null;
+  };
   // Remove the language picker because the diagram editor is configured to use the XWiki language.
   var originalCreateMenubar = Menus.prototype.createMenubar;
   Menus.prototype.createMenubar = function(container) {
@@ -1195,7 +1235,7 @@ define('diagram-editor', [
   var renameMenu = function(editorUI) {
     const menuItems = [
       // File menu
-      ['print', 'Export PDF']
+      ['print', 'Print / Export as PDF']
     ];
 
     // Iterate over the array of tuples
