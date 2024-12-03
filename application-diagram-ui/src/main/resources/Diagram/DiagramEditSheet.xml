@@ -1082,9 +1082,9 @@ define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], fun
 });
 
 define('diagramMenuTranslations', {
-  prefix: 'diagram.menu.',
+  prefix: 'diagram.editor.menu.',
   keys: [
-    //File menu
+    // File menu.
     'print.label',
     'print.title'
   ]
@@ -1196,7 +1196,7 @@ define('diagram-editor', [
   Menus.prototype.addMenuItem = function(menu, key, parent, trigger, sprite, label) {
     let item = originalAddMenuItem.apply(this, arguments);
     if (item != null &amp;&amp; titleMap.has(key)) {
-        item.title = titleMap.get(key);
+      item.title = titleMap.get(key);
     }
     return item;
   };
