@@ -1185,7 +1185,6 @@ define('diagram-editor', [
   /*
    * Map with all the menu items that we want to have a title.
    */
-
   const titleMap = new Map([
       ['print', l10n['print.title']]
   ]);
