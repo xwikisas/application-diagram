@@ -1189,9 +1189,9 @@ define('diagram-editor', [
       ['print', l10n['print.title']]
   ]);
 
-/*
- * Update the title of the menu items.
- */
+  /*
+   * Update the title of the menu items.
+   */
   var originalAddMenuItem = Menus.prototype.addMenuItem;
   Menus.prototype.addMenuItem = function(menu, key, parent, trigger, sprite, label) {
     let item = originalAddMenuItem.apply(this, arguments);
