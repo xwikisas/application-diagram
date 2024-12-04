@@ -1081,6 +1081,15 @@ define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], fun
   };
 });
 
+define('diagramMenuTranslations', {
+  prefix: 'diagram.editor.menu.',
+  keys: [
+    // File menu.
+    'print.label',
+    'print.title'
+  ]
+});
+
 /**
  * Integrates draw.io diagram editor in XWiki.
  */
@@ -1090,11 +1099,12 @@ define('diagram-editor', [
   'diagram-utils',
   'diagram-url-io',
   'diagram-config',
+  'xwiki-l10n!diagramMenuTranslations',
   'diagram-graph-xml-filter',
   'diagram-link-editor',
   'diagram-image-editor',
   'diagram-external-services'
-], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig) {
+], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig, l10n) {
 
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
@@ -1171,6 +1181,26 @@ define('diagram-editor', [
     }
   };
 
+
+  /*
+   * Map with all the menu items that we want to have a title.
+   */
+  const titleMap = new Map([
+      ['print', l10n['print.title']]
+  ]);
+
+  /*
+   * Update the title of the menu items.
+   */
+  var originalAddMenuItem = Menus.prototype.addMenuItem;
+  Menus.prototype.addMenuItem = function(menu, key, parent, trigger, sprite, label) {
+    let item = originalAddMenuItem.apply(this, arguments);
+    if (item != null &amp;&amp; titleMap.has(key)) {
+      item.title = titleMap.get(key);
+    }
+    return item;
+  };
+
   // Remove the language picker because the diagram editor is configured to use the XWiki language.
   var originalCreateMenubar = Menus.prototype.createMenubar;
   Menus.prototype.createMenubar = function(container) {
@@ -1195,7 +1225,7 @@ define('diagram-editor', [
   var renameMenu = function(editorUI) {
     const menuItems = [
       // File menu
-      ['print', 'Export PDF']
+      ['print', l10n['print.label']]
     ];
 
     // Iterate over the array of tuples
