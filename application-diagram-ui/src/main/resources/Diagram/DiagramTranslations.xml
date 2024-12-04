@@ -67,9 +67,10 @@ diagram.macro.invalidReference=The specified page is not a diagram.
 diagram.macro.view=View diagram
 diagram.macro.viewNotAllowed=You are not allowed to view this diagram.
 
-# Diagram editor
 diagram.editor.saveAsImageAttachmentError=Error when saving the diagram as an image attachment.
 diagram.editor.disabledExternalServices=External services are disabled.
+diagram.editor.menu.print.title=Print the diagram using an external device when possible, otherwise simply export and save it as PDF.
+diagram.editor.menu.print.label=Print / Export as PDF
 
 # Diagram Configuration
 Diagram.DiagramConfigClass_exportURL=Export URL
