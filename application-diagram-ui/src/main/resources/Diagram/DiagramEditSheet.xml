@@ -552,11 +552,9 @@ define('diagram-link-editor', [
   // or a smaller method that only performs the replacement.
   Graph.prototype.updateSvgLinks = function (node, target, removeCustom) {
     var links = node.getElementsByTagName('a');
-    console.log(links)
     for (var i = 0; i &lt; links.length; i++) {
       if (links[i].getAttribute('target') == null) {
         var href = links[i].getAttribute('href');
-        console.log(href)
         if (href == null) {
           href = links[i].getAttribute('xlink:href');
         }
