@@ -70,8 +70,8 @@ public class GetDiagramLinksHandler extends DefaultHandler
             if (attributes.getValue(LINK) != null) {
                 linkedPages.add(linkHandler.getUserObjectNodeLink(attributes.getValue(LINK)));
             }
-            // I didn't manage to create the situation where the are links in both the LINK and LABEL attributes, but to
-            // keep it safe we check both cases instead of having an else if.
+            // I didn't manage to create the situation where there are links in both the LINK and LABEL attributes,
+            // but to keep it safe we check both cases instead of having an else if.
             if (attributes.getValue(LABEL) != null && attributes.getValue(LABEL).contains("href")) {
                 linkedPages.addAll(linkHandler.getMxCellNodeLinks(attributes.getValue(LABEL)));
             }
