@@ -132,8 +132,8 @@ public class DiagramLinkHandler
         throws IOException, ParserConfigurationException, SAXException
     {
         if (node.hasChildNodes()) {
-            if (node.getAttributes().getNamedItem(LINK) != null) {
-                Node linkNode = node.getAttributes().getNamedItem(LINK);
+            Node linkNode = node.getAttributes().getNamedItem(LINK);
+            if (linkNode != null) {
                 String oldSource = linkNode.getNodeValue();
                 if (isXWikiCustomLink(oldSource) && oldDocumentRef.toString()
                     .equals(getResourceReferenceFromCustomLink(oldSource)))
@@ -142,8 +142,8 @@ public class DiagramLinkHandler
                     linkNode.setTextContent(newSource);
                 }
             }
-            if (node.getAttributes().getNamedItem(LABEL) != null) {
-                Node linkNode = node.getAttributes().getNamedItem(LABEL);
+            linkNode = node.getAttributes().getNamedItem(LABEL);
+            if (linkNode != null) {
                 updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
             }
         }
