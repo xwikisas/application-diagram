@@ -325,13 +325,12 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
 
   var saveFileAsSVGImageAttachment = function(file, index, originalPage) {
     var deferred = $.Deferred()
-    // Change the diagram page
     let page = file.ui.pages[index];
     file.ui.selectPage(page, true, null);
     var svgRoot = file.ui.editor.graph.getSvg(/* background: */ '#ffffff', /* scale: */ null, /* border: */ null,
       /* nocrop: */ true, /* crisp: */ null, /* ignoreSelection: */ true);
-    // Embed the images because the PDF exporter might not be able to access them.
     file.ui.selectPage(originalPage, true, null);
+    // Embed the images because the PDF exporter might not be able to access them.
     file.ui.convertImages(svgRoot, function() {
       var svg = '&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n' +
         '&lt;!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"&gt;\n' +
@@ -366,15 +365,11 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var uploadDeferredList = []
 
     forEachOpenedFile(function (file) {
-      // Get the current page so we know where to return after saving all the pages.
       var uploadDeferred = $.Deferred().resolve();
+     // Get the current page so we know where to return after saving.
       let originalPage = file.ui.currentPage;
 
       file.ui.pages.forEach(function (page, index) {
-
-        // EditorUi.prototype.selectPage(page, quiet, viewState) -&gt; we set the page to the current one in the loop
-        // the quite parameter to true to not modify the edit history of the diagram (ctrl+z).
-
         // We do the next upload even if the previous uploads have failed.
         var nextUpload = $.proxy(saveFileAsImageAttachments, null, file, index,originalPage);
         uploadDeferred = uploadDeferred.then(nextUpload, nextUpload);

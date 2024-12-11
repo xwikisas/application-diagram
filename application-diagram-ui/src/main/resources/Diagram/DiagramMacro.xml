@@ -282,7 +282,8 @@
             #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
           #end
         #else
-          #set ($output = "{{warning}}$escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')){{/warning}}")
+          #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
+          #set ($output = "{{warning}}$escapedErrorMessage{{/warning}}")
         #end
       #else
         #set ($output = "{{display reference='$services.rendering.escape($reference, $xcontext.macro.doc.syntax)' /}}")
