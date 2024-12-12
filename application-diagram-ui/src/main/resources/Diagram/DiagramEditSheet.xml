@@ -548,8 +548,8 @@ define('diagram-link-editor', [
   }
 
   // Override the Graph.updateSvgLinks method to ensure that the links are preserved in the final SVG.
-  // We need to directly modify the original method because drawio does not provide a parameter to override the default behavior
-  // or a smaller method that only performs the replacement.
+  // We need to directly modify the original method because drawio does not provide a parameter to override the default
+  // behavior or a smaller method that only performs the replacement.
   Graph.prototype.updateSvgLinks = function (node, target, removeCustom) {
     var links = node.getElementsByTagName('a');
     for (var i = 0; i &lt; links.length; i++) {
