@@ -45,6 +45,10 @@ import org.xwiki.model.reference.DocumentReferenceResolver;
 @InstantiationStrategy(ComponentInstantiationStrategy.PER_LOOKUP)
 public class GetDiagramLinksHandler extends DefaultHandler
 {
+    private static final String LINK = "link";
+
+    private static final String LABEL = "label";
+
     @Inject
     private DiagramLinkHandler linkHandler;
 
@@ -61,7 +65,16 @@ public class GetDiagramLinksHandler extends DefaultHandler
     public void startElement(String uri, String key, String qName, Attributes attributes) throws SAXException
     {
         if (qName.equalsIgnoreCase(DiagramLinkHandler.USEROBJECT)) {
-            linkedPages.add(linkHandler.getUserObjectNodeLink(attributes.getValue("link")));
+            // User Object nodes can store the link in 2 places in the attribute "link" and in the label as
+            // a <a href = "customLink">actualLabel</a>
+            if (attributes.getValue(LINK) != null) {
+                linkedPages.add(linkHandler.getUserObjectNodeLink(attributes.getValue(LINK)));
+            }
+            // I didn't manage to create the situation where there are links in both the LINK and LABEL attributes,
+            // but to keep it safe we check both cases instead of having an else if.
+            if (attributes.getValue(LABEL) != null && attributes.getValue(LABEL).contains("href")) {
+                linkedPages.addAll(linkHandler.getMxCellNodeLinks(attributes.getValue(LABEL)));
+            }
         } else if (qName.equalsIgnoreCase(DiagramLinkHandler.MXCELL)) {
             linkedPages.addAll(linkHandler.getMxCellNodeLinks(attributes.getValue("value")));
         }

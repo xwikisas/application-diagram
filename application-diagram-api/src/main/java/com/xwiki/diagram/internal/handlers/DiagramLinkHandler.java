@@ -61,6 +61,16 @@ public class DiagramLinkHandler
     public static final String MXCELL = "mxCell";
 
     /**
+     * Link attribute.
+     */
+    public static final String LINK = "link";
+
+    /**
+     * Label attribute.
+     */
+    public static final String LABEL = "label";
+
+    /**
      * Href attribute.
      */
     private static final String HREF = "href";
@@ -119,14 +129,22 @@ public class DiagramLinkHandler
      * @param oldDocumentRef document's reference before rename
      */
     public void updateUserObjectNode(Node node, DocumentReference newDocumentRef, DocumentReference oldDocumentRef)
+        throws IOException, ParserConfigurationException, SAXException
     {
         if (node.hasChildNodes()) {
-            Node linkNode = node.getAttributes().getNamedItem("link");
-            String oldSource = linkNode.getNodeValue();
-            if (isXWikiCustomLink(oldSource)
-                && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
-                String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
-                linkNode.setTextContent(newSource);
+            Node linkNode = node.getAttributes().getNamedItem(LINK);
+            if (linkNode != null) {
+                String oldSource = linkNode.getNodeValue();
+                if (isXWikiCustomLink(oldSource) && oldDocumentRef.toString()
+                    .equals(getResourceReferenceFromCustomLink(oldSource)))
+                {
+                    String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
+                    linkNode.setTextContent(newSource);
+                }
+            }
+            linkNode = node.getAttributes().getNamedItem(LABEL);
+            if (linkNode != null) {
+                updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
             }
         }
     }
@@ -149,21 +167,32 @@ public class DiagramLinkHandler
             if (linkNode == null) {
                 return;
             }
+            updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
+        }
+    }
 
-            String value = linkNode.getNodeValue();
-            if (value.indexOf(HREF) == -1) {
-                return;
+    /**
+     * Updates the links that are embedded in node attributes.
+     * @param linkNode attribute node that contains the links
+     * @param newDocumentRef new document reference.
+     * @param oldDocumentRef old document reference.
+     */
+    private void updateEmbeddedLinks(Node linkNode, DocumentReference newDocumentRef,
+        DocumentReference oldDocumentRef) throws IOException, ParserConfigurationException, SAXException
+    {
+        String value = linkNode.getNodeValue();
+        if (value.indexOf(HREF) == -1) {
+            return;
+        }
+
+        // The value attribute contains the text element, which could contain one or more links.
+        for (String oldSource : getLinksFromEmbeddedNode(value)) {
+            if (oldSource != null && isXWikiCustomLink(oldSource) && oldDocumentRef.toString()
+                .equals(getResourceReferenceFromCustomLink(oldSource)))
+            {
+                String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
+                linkNode.setNodeValue(value.replace(oldSource, newSource));
             }
-
-            // The value attribute contains the text element, which could contain one or more links.
-            for (String oldSource : getLinksFromEmbeddedNode(value)) {
-                if (oldSource != null && isXWikiCustomLink(oldSource)
-                    && oldDocumentRef.toString().equals(getResourceReferenceFromCustomLink(oldSource))) {
-                    String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
-                    linkNode.setNodeValue(value.replace(oldSource, newSource));
-                }
-            }
-
         }
     }
 
