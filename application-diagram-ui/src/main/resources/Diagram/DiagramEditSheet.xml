@@ -547,6 +547,32 @@ define('diagram-link-editor', [
     // Do nothing.
   }
 
+  // Override the Graph.updateSvgLinks method to ensure that the links are preserved in the final SVG.
+  // We need to directly modify the original method because drawio does not provide a parameter to override the default
+  // behavior or a smaller method that only performs the replacement.
+  Graph.prototype.updateSvgLinks = function (node, target, removeCustom) {
+    var links = node.getElementsByTagName('a');
+    for (var i = 0; i &lt; links.length; i++) {
+      if (links[i].getAttribute('target') == null) {
+        var href = links[i].getAttribute('href');
+        if (href == null) {
+          href = links[i].getAttribute('xlink:href');
+        }
+
+        if (href != null) {
+          if (target != null &amp;&amp; /^https?:\/\//.test(href)) {
+            // If the href starts with http or https, set the target attribute.
+            links[i].setAttribute('target', target);
+          } else if (this.isCustomLink(href)) {
+            // Handle custom links
+            let absoluteLink = $('&lt;a/&gt;').attr('href', diagramLinkHandler.getURLFromCustomLink(href)).prop('href');
+            links[i].setAttribute('href', absoluteLink);
+          }
+        }
+      }
+    }
+  };
+
   // Overwrite Graph.getSvg in order to replace XWiki custom links with absolute URLs.
   // Also fix the text fallback for viewers with no support for foreignObjects.
   var originalGraphGetSVG = Graph.prototype.getSvg;
