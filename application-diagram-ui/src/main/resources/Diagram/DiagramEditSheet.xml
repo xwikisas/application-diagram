@@ -293,8 +293,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var attachmentReference = new XWiki.AttachmentReference(fileName, documentReference);
     var uploadMethod = (diagramConfig.isTemporaryUploadSupported) ? xutils.temporaryUploadAttachment : xutils.uploadAttachment;
     var uploadAttachment = $.proxy(uploadMethod, null, blob, attachmentReference);
-    // Avoid creating too many versions of the attachment. Upload the attachment even if we failed to delete it first.
-    return xutils.deleteAttachment(attachmentReference).then(uploadAttachment, uploadAttachment);
+    return uploadAttachment();
   };
 
   var imageCache = {};
@@ -361,6 +360,13 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     return `diagram${index+1}`;
   }
 
+  var deleteAllDiagrams = function()
+  {
+    let baseUrl = `/xwiki/rest/diagram/${xm.documentReference.toString()}`;
+    let queryString = $.param({"form_token": xm.form_token});
+    return $.post(`${baseUrl}?${queryString}`)
+  }
+
   var saveFilesAsImageAttachments = function() {
     var uploadDeferredList = []
 
@@ -398,10 +404,13 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       event.stopPropagation();
       var saveButton = $(event.target);
       saveButton.prop('disabled', true);
-      saveFilesAsImageAttachments().fail(function(e) {
+      deleteAllDiagrams()
+      .then(saveFilesAsImageAttachments)
+      .catch(function(e) {
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
-      }).always(function() {
+      })
+      .always(function() {
         saveButton.prop('disabled', false).click();
       });
     } else {
