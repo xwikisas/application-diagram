@@ -268,18 +268,23 @@
           #getAttachmentName($pageIndex)
           #set ($fileName = "${attachmentName}.svg")
           #set ($pngFileName = "${attachmentName}.png")
-          #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
-              &amp;&amp; $diagram.getAttachment($pngFileName))
-            #set ($fileName = $pngFileName)
-            #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
-            #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
-          #elseif ($xcontext.action == 'export')
-            #set ($diagram = $xwiki.getDocument($reference))
-            #set ($output = "{{html}}&lt;div&gt;$diagram.getAttachment($fileName).getContentAsString()&lt;/div&gt;{{/html}}")
+          #if ($diagram.getAttachment($fileName))
+            #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
+                &amp;&amp; $diagram.getAttachment($pngFileName))
+              #set ($fileName = $pngFileName)
+              #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
+              #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
+            #elseif ($xcontext.action == 'export')
+              #set ($diagram = $xwiki.getDocument($reference))
+              #set ($output = "{{html}}&lt;div&gt;$diagram.getAttachment($fileName).getContentAsString()&lt;/div&gt;{{/html}}")
+            #else
+              ## If we reached this branch it means that we are in 'view' mode, and we should use the svg.
+              #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
+              #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
+            #end
           #else
-            ## If we reached this branch it means that we are in 'view' mode, and we should use the svg.
-            #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
-            #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
+            #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
+            #set ($output = "{{warning}}$escapedErrorMessage{{/warning}}")
           #end
         #else
           #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
