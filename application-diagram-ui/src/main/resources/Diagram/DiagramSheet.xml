@@ -1141,6 +1141,17 @@ Right now, there is no defined LESS value for the background color. If, in the f
 .geToolbarButton.geAdaptiveAsset {
   display: none;
 }
+
+/* Extend the width of the inputs that are located in the pdf export modal. */
+.geDialog tbody input {
+  /* The original width which is too is directly on the element so we need the !imporant directive to make it work. */
+  width: 70px !important;
+}
+
+/* Disables the highlighting of the panel with the figures, allowing us to drag and drop elements. */
+.geSidebarContainer {
+  user-select: none;
+}
 </code>
     </property>
     <property>
