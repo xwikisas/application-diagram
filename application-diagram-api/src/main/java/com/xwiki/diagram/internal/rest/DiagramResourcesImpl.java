@@ -21,6 +21,7 @@ package com.xwiki.diagram.internal.rest;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -29,22 +30,27 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.rest.XWikiResource;
 import org.xwiki.rest.XWikiRestException;
-import org.xwiki.rest.internal.Utils;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.stability.Unstable;
 
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xwiki.diagram.DiagramResources;
 
 /**
  * Default implementation of {@link DiagramResources}.
  *
  * @version $Id$
+ * @since 1.22.1
  */
 @Component
 @Named("com.xwiki.diagram.internal.rest.DiagramResourcesImpl")
 @Singleton
+@Unstable
 public class DiagramResourcesImpl extends XWikiResource implements DiagramResources
 {
     private static final String PREFIX = "diagram";
@@ -55,21 +61,22 @@ public class DiagramResourcesImpl extends XWikiResource implements DiagramResour
     @Inject
     private DocumentReferenceResolver<String> resolver;
 
+    @Inject
+    private Provider<XWikiContext> contextProvider;
+
     @Override
     public Response deleteAttachments(String documentReference) throws XWikiRestException, XWikiException
     {
 
-        XWikiDocument diagramDocument =
-            Utils.getXWiki(componentManager).getDocument(resolver.resolve(documentReference),
-                Utils.getXWikiContext(componentManager));
-
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        XWikiDocument diagramDocument = xwiki.getDocument(resolver.resolve(documentReference), context);
         if (!this.authorization.hasAccess(Right.EDIT, diagramDocument.getDocumentReference())) {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
         removeAttachments(diagramDocument, ".png");
         removeAttachments(diagramDocument, ".svg");
-        Utils.getXWiki(componentManager)
-            .saveDocument(diagramDocument, "Deleted diagram attachments", Utils.getXWikiContext(componentManager));
+        xwiki.saveDocument(diagramDocument, "Clean old diagram attachments", false, context);
         return Response.status(Response.Status.OK).build();
     }
 

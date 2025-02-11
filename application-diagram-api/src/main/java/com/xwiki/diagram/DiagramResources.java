@@ -17,7 +17,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.diagram.internal.rest;
+package com.xwiki.diagram;
 
 import javax.ws.rs.Encoded;
 import javax.ws.rs.POST;
