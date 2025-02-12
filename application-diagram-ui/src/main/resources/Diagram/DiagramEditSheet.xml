@@ -350,29 +350,27 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     return saveFileAsSVGImageAttachment(file, index, originalPage).then(pngUpload, pngUpload);
   };
 
-  var getXWikiAttachmentName = function (index)
-  {
+  var getXWikiAttachmentName = function (index) {
     if (index == 0)
     {
       // If is the first page we keep the old naming strategy -&gt; diagram.png / diagram.svg
       return "diagram";
     }
     return `diagram${index+1}`;
-  }
+  };
 
-  var deleteAllDiagrams = function()
-  {
+  var deleteAllDiagrams = function() {
     let baseUrl = `/xwiki/rest/diagram/${xm.documentReference.toString()}`;
     let queryString = $.param({"form_token": xm.form_token});
-    return $.post(`${baseUrl}?${queryString}`)
-  }
+    return $.post(`${baseUrl}?${queryString}`);
+  };
 
   var saveFilesAsImageAttachments = function() {
     var uploadDeferredList = []
 
     forEachOpenedFile(function (file) {
       var uploadDeferred = $.Deferred().resolve();
-     // Get the current page so we know where to return after saving.
+      // Get the current page so we know where to return after saving.
       let originalPage = file.ui.currentPage;
 
       file.ui.pages.forEach(function (page, index) {
@@ -382,17 +380,17 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         uploadDeferredList.push(uploadDeferred.promise());
       });
     });
-  // Wait for all deferreds to complete.
-  return $.when.apply($, uploadDeferredList).then(
-    function () {
-      // Resolve the overall promise if all succeeded.
-      return { status: 'success' };
-    },
-    function () {
-      // Reject the overall promise if any failed.
-      return $.Deferred().reject({ status: 'fail' });
-    }
-  ).promise();
+    // Wait for all deferreds to complete.
+    return $.when.apply($, uploadDeferredList).then(
+      function () {
+        // Resolve the overall promise if all succeeded.
+        return { status: 'success' };
+      },
+      function () {
+        // Reject the overall promise if any failed.
+        return $.Deferred().reject({ status: 'fail' });
+      }
+    ).promise();
   };
 
   var uploadInProgress = false;
@@ -894,8 +892,7 @@ define('diagram-editor', [
   //
   // Change the service name in order to disable notifications.
   //
-  EditorUi.prototype.getServiceName = function()
-  {
+  EditorUi.prototype.getServiceName = function() {
     return 'xwiki.com';
   };
 
