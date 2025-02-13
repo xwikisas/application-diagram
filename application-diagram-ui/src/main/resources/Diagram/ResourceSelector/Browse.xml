@@ -41,7 +41,7 @@
 {{html clean="false"}}
 &lt;div class="hidden"&gt;
   &lt;input type="hidden" name="resourceType"/&gt;
-  &lt;input type="hidden" name="resourceReference"/&gt;
+  &lt;input type="hidden" name="resourceReference" resourceType="internal"/&gt;
 &lt;/div&gt;
 {{/html}}
 
