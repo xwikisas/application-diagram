@@ -293,18 +293,19 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
     var attachmentReference = new XWiki.AttachmentReference(fileName, documentReference);
     var uploadMethod = (diagramConfig.isTemporaryUploadSupported) ? xutils.temporaryUploadAttachment : xutils.uploadAttachment;
     var uploadAttachment = $.proxy(uploadMethod, null, blob, attachmentReference);
-    // Avoid creating too many versions of the attachment. Upload the attachment even if we failed to delete it first.
-    return xutils.deleteAttachment(attachmentReference).then(uploadAttachment, uploadAttachment);
+    return uploadAttachment();
   };
 
   var imageCache = {};
-  var saveFileAsPNGImageAttachment = function(file) {
+  var saveFileAsPNGImageAttachment = function(file, index, originalPage) {
     var deferred = $.Deferred();
-    file.getUi().exportToCanvas(/* callback */ function(canvas) {
+    let page = file.ui.pages[index];
+    file.ui.selectPage(page, true, null);
+    file.getUi().exportToCanvas(/* callback */ function (canvas) {
       if (canvas) {
         try {
-          canvas.toBlob(function(blob) {
-            pipeDeferred(saveBlobAsImageAttachment(blob, 'diagram.png', file.documentReference), deferred);
+          canvas.toBlob(function (blob) {
+            pipeDeferred(saveBlobAsImageAttachment(blob, `${getXWikiAttachmentName(index)}.png`, file.documentReference), deferred);
           });
         } catch(err) {
           deferred.reject();
@@ -317,41 +318,79 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
         $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
       deferred.reject();
     }, /* limitHeight */ null, /* ignoreSelection */ true, /* scale */ diagramConfig.pdfImageExportZoom);
+    file.ui.selectPage(originalPage, true, null);
     return deferred.promise();
   };
 
-  var saveFileAsSVGImageAttachment = function(file) {
-    var deferred = $.Deferred();
+  var saveFileAsSVGImageAttachment = function(file, index, originalPage) {
+    var deferred = $.Deferred()
+    let page = file.ui.pages[index];
+    file.ui.selectPage(page, true, null);
     var svgRoot = file.ui.editor.graph.getSvg(/* background: */ '#ffffff', /* scale: */ null, /* border: */ null,
       /* nocrop: */ true, /* crisp: */ null, /* ignoreSelection: */ true);
+    file.ui.selectPage(originalPage, true, null);
     // Embed the images because the PDF exporter might not be able to access them.
     file.ui.convertImages(svgRoot, function() {
       var svg = '&lt;?xml version="1.0" encoding="UTF-8"?&gt;\n' +
         '&lt;!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"&gt;\n' +
         mxUtils.getXml(svgRoot);
       var blob = new Blob([svg], {type: 'image/svg+xml'});
-      pipeDeferred(saveBlobAsImageAttachment(blob, 'diagram.svg', file.documentReference), deferred);
+      pipeDeferred(saveBlobAsImageAttachment(blob, `${getXWikiAttachmentName(index)}.svg`, file.documentReference),
+        deferred);
     }, imageCache);
     return deferred.promise();
   };
 
-  var saveFileAsImageAttachments = function(file) {
+  var saveFileAsImageAttachments = function(file, index, originalPage) {
     // This is a workaround for https://github.com/jgraph/drawio/issues/490
     // Stop editing for getting the latest content from diagram
     file.ui.editor.graph.stopEditing(false);
     // We upload the PNG image even if the SVG upload has failed.
-    var pngUpload = $.proxy(saveFileAsPNGImageAttachment, null, file);
-    return saveFileAsSVGImageAttachment(file).then(pngUpload, pngUpload);
+    var pngUpload = $.proxy(saveFileAsPNGImageAttachment, null, file, index, originalPage);
+    return saveFileAsSVGImageAttachment(file, index, originalPage).then(pngUpload, pngUpload);
+  };
+
+  var getXWikiAttachmentName = function (index) {
+    if (index == 0)
+    {
+      // If is the first page we keep the old naming strategy -&gt; diagram.png / diagram.svg
+      return "diagram";
+    }
+    return `diagram${index+1}`;
+  };
+
+  var deleteAllDiagrams = function() {
+    let baseUrl = `/xwiki/rest/diagram/${xm.documentReference.toString()}`;
+    let queryString = $.param({"form_token": xm.form_token});
+    return $.post(`${baseUrl}?${queryString}`);
   };
 
   var saveFilesAsImageAttachments = function() {
-    var uploadDeferred = $.Deferred().resolve();
-    forEachOpenedFile(function(file) {
-      // We do the next upload even if the previous uploads have failed.
-      var nextUpload = $.proxy(saveFileAsImageAttachments, null, file);
-      uploadDeferred = uploadDeferred.then(nextUpload, nextUpload);
+    var uploadDeferredList = []
+
+    forEachOpenedFile(function (file) {
+      var uploadDeferred = $.Deferred().resolve();
+      // Get the current page so we know where to return after saving.
+      let originalPage = file.ui.currentPage;
+
+      file.ui.pages.forEach(function (page, index) {
+        // We do the next upload even if the previous uploads have failed.
+        var nextUpload = $.proxy(saveFileAsImageAttachments, null, file, index,originalPage);
+        uploadDeferred = uploadDeferred.then(nextUpload, nextUpload);
+        uploadDeferredList.push(uploadDeferred.promise());
+      });
     });
-    return uploadDeferred.promise();
+    // Wait for all deferreds to complete.
+    return $.when.apply($, uploadDeferredList).then(
+      function () {
+        // Resolve the overall promise if all succeeded.
+        return { status: 'success' };
+      },
+      function () {
+        // Reject the overall promise if any failed.
+        return $.Deferred().reject({ status: 'fail' });
+      }
+    ).promise();
   };
 
   var uploadInProgress = false;
@@ -363,10 +402,13 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       event.stopPropagation();
       var saveButton = $(event.target);
       saveButton.prop('disabled', true);
-      saveFilesAsImageAttachments().fail(function(e) {
+      deleteAllDiagrams()
+      .then(saveFilesAsImageAttachments)
+      .catch(function(e) {
         new XWiki.widgets.Notification(
           $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
-      }).always(function() {
+      })
+      .always(function() {
         saveButton.prop('disabled', false).click();
       });
     } else {
@@ -409,7 +451,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       <name>Diagram Store</name>
     </property>
     <property>
-      <parse>1</parse>
+      <parse>0</parse>
     </property>
     <property>
       <use>onDemand</use>
@@ -876,8 +918,7 @@ define('diagram-editor', [
   //
   // Change the service name in order to disable notifications.
   //
-  EditorUi.prototype.getServiceName = function()
-  {
+  EditorUi.prototype.getServiceName = function() {
     return 'xwiki.com';
   };
 
