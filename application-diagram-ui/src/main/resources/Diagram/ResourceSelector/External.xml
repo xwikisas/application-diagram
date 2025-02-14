@@ -43,7 +43,7 @@
   &lt;dt&gt;&lt;label for="resource-selector-external-url"&gt;URL&lt;/label&gt;&lt;/dt&gt;
   &lt;dd&gt;
     &lt;input type="hidden" name="resourceType" value="url"/&gt;
-    &lt;input type="text" name="resourceReference" id="resource-selector-external-url"/&gt;
+    &lt;input type="text" name="resourceReference" resourceType="external" id="resource-selector-external-url"/&gt;
   &lt;/dd&gt;
 &lt;/dl&gt;
 {{/html}}

@@ -200,14 +200,20 @@
     var selectButton = modal.find('.modal-footer .btn-primary');
     selectButton.off('click.resourceSelector').on('click.resourceSelector', function() {
       var selectedResource = {};
-      var data = modal.find('.resource-selector &gt; .tab-content &gt; .tab-pane.active :input').serializeArray();
+      var data = modal.find('.resource-selector &gt; .tab-content &gt; .tab-pane.active :input');
       // Iterate from the end because we want to keep the first value.
       for (var i = data.length - 1; i &gt;= 0; i--) {
-        var entry = data[i];
+        let currentElement = $(data[i]);
+        var entry = {
+          'name': currentElement.attr('name'),
+          'value': currentElement.val(),
+          'type': currentElement.attr('resourcetype')
+        };
         if (entry.name === 'resourceType') {
           selectedResource.type = entry.value;
         } else if (entry.name === 'resourceReference') {
-          selectedResource.reference = entry.value;
+           selectedResource.reference = entry.type == 'external' &amp;&amp; !entry.value.includes('://') ?
+        `https://${entry.value}` : entry.value;
         }
       }
       // In IE the text needs to be visible before creating the link on it, so we wait for the modal to be closed.
