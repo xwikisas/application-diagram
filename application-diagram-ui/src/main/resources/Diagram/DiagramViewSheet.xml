@@ -52,7 +52,7 @@
     #set ($displayDiv  =  'hidden')
     &lt;div&gt;
       $doc.getAttachment('diagram.svg').getContentAsString()
-    &lt;div&gt;
+    &lt;/div&gt;
   #end
   &lt;div class="diagram $displayDiv"
     data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
