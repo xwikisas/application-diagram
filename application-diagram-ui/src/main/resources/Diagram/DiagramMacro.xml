@@ -128,10 +128,8 @@
       <code>require(['jquery'], function($){
   $(document).on('xwiki:actions:view', function(){
     require(['diagram-setup'], function() {
-      require(['jquery', 'diagram-viewer'], function($, diagramViewerPromise) {
-        diagramViewerPromise.done(function() {
-          $('.diagram').viewDiagram();
-        });
+      require(['diagram-viewer'], function(diagramViewerPromise) {
+        $('.diagram').viewDiagram();
       });
     });
   })
