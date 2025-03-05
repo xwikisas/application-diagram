@@ -125,15 +125,13 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>require(['jquery'], function($){
-  $(document).on('xwiki:actions:view', function(){
-    require(['diagram-setup'], function() {
-      require(['diagram-viewer'], function(diagramViewerPromise) {
-        $('.diagram').viewDiagram();
-      });
+      <code>require(['jquery'], function($) {
+  $(document).on('xwiki:actions:view', function() {
+    require(['diagram-setup', 'diagram-viewer'], function(diagramSetup, diagramViewerPromise) {
+      $('.diagram').viewDiagram();
     });
-  })
-})</code>
+  });
+});</code>
     </property>
     <property>
       <name/>
