@@ -554,6 +554,7 @@ define('diagram-link-editor', [
   'draw.io',
   'resourceSelector'
 ], function($, diagramLinkHandler) {
+    window.mxIsElectron = false;
   /**
    * Override in order to change the Element type check from a.constructor !== Element, which was failing due to a
    * collision with the PrototypeJS's own implementation of the standard Element.
