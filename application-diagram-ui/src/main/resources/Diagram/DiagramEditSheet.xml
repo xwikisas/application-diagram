@@ -565,6 +565,27 @@ define('diagram-link-editor', [
       a.nodeName.toLowerCase() != b.toLowerCase() ? !1 : null == c || a.getAttribute(c) == d;
   };
 
+  var originalShowBackgroundImageDialog = EditorUi.prototype.showBackgroundImageDialog
+  EditorUi.prototype.showBackgroundImageDialog = function (apply, img, color, showColor) {
+    apply = (apply != null) ? apply : mxUtils.bind(this, function (image, failed, color, shadowVisible) {
+      if (!failed) {
+        var change = new ChangePageSetup(this, (showColor) ? color : null, image);
+        change.ignoreColor = !showColor;
+
+        if (shadowVisible != null & amp;& amp; showColor) {
+      change.shadowVisible = shadowVisible;
+    }
+
+    this.editor.graph.model.execute(change);
+  }
+    });
+
+  var dlg = new BackgroundImageDialog(this, apply, img, color, showColor);
+  this.showDialog(dlg.container, 420, (showColor) ? 260 : 240, true, true);
+  dlg.init();
+  };
+
+
   EditorUi.prototype.showLinkDialog = function(value, selectLabel, callback, showNewWindowOption, linkTarget) {
     var resourceReference = diagramLinkHandler.getResourceReferenceFromCustomLink(value);
     // We append the modal to the body element in order to fix Issue #108: "Inserting a link in full screen mode is not
