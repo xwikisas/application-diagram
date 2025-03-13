@@ -1152,7 +1152,11 @@ Right now, there is no defined LESS value for the background color. If, in the f
 .geSidebarContainer {
   user-select: none;
 }
-</code>
+
+/* Properly align the radio buttons in the change background popup. */
+input[name="geBackgroundImageDialogOption"] {
+  margin-bottom: 0px !important;
+}</code>
     </property>
     <property>
       <contentType>CSS</contentType>

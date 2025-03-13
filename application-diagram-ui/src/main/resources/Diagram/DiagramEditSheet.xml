@@ -572,7 +572,7 @@ define('diagram-link-editor', [
         var change = new ChangePageSetup(this, (showColor) ? color : null, image);
         change.ignoreColor = !showColor;
 
-        if (shadowVisible != null & amp;& amp; showColor) {
+        if (shadowVisible != null &amp;&amp; showColor) {
       change.shadowVisible = shadowVisible;
     }
 
