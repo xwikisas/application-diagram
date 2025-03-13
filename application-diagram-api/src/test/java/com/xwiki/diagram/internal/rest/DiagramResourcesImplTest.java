@@ -45,9 +45,9 @@ import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -125,11 +125,9 @@ public class DiagramResourcesImplTest
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             diagramResources.deleteAttachments("test");
         });
-
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), exception.getResponse().getStatus());
         assertEquals(3, xwikiDocument.getAttachmentList().size());
     }
-
 
     /**
      * Helper method to create a list of attachments with given names.
