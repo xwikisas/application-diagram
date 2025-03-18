@@ -245,6 +245,7 @@ define('diagram-config', ['jquery'], function($) {
  * Diagram application setup.
  */
 define('diagram-setup', ['diagram-config'], function(diagramConfig) {
+  window.mxIsElectron = false;
   var drawIOBasePath = diagramConfig.drawIOBasePath;
   // mxGraph client setup
   window.mxBasePath = drawIOBasePath + 'mxgraph';
