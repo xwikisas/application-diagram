@@ -23,6 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.script.service.ScriptService;
 import org.xwiki.script.service.ScriptServiceManager;
@@ -53,6 +54,9 @@ public class DiagramScriptService implements ScriptService
     @Inject
     private DiagramImporter diagramImporter;
 
+    @Inject
+    private Logger logger;
+
     /**
      * @param <S> the type of the {@link ScriptService}
      * @param serviceName the name of the sub {@link ScriptService}
@@ -78,6 +82,7 @@ public class DiagramScriptService implements ScriptService
         try {
             return this.diagramImporter.importDiagram(diagram, fileName);
         } catch (Exception e) {
+            logger.error("Cannot import diagram.", e);
             return null;
         }
     }

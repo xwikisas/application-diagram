@@ -23,14 +23,17 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 
+import com.mxgraph.io.gliffy.importer.GliffyDiagramConverterMultiplePages;
+import com.mxgraph.io.gliffy.importer.OldGliffyDiagramConverter;
 import com.mxgraph.io.mxCodec;
 import com.mxgraph.io.mxGraphMlCodec;
-import com.mxgraph.io.gliffy.importer.GliffyDiagramConverter;
-import com.mxgraph.online.OpenServlet;
+import com.mxgraph.online.gliffy.OpenServletUtils;
 import com.mxgraph.util.mxXmlUtils;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxGraphHeadless;
@@ -38,7 +41,7 @@ import com.mxgraph.view.mxGraphHeadless;
 /**
  * Utility class used to convert a diagram from a third-party format to the draw.io format, so that it can be edited by
  * the Diagram application.
- * 
+ *
  * @version $Id$
  * @since 1.14
  */
@@ -52,14 +55,22 @@ public class DiagramImporter
     private static String gliffyRegex = "(?s).*\"contentType\":\\s*\"application/gliffy\\+json\".*";
 
     /**
+     * Structure particularity corresponding to older gliffy diagrams.
+     */
+    private static String oldGliffyRegex = "(?s).*\"stage\":.*";
+
+    /**
      * Used to detect GraphML diagrams.
      */
     private static String graphMlRegex = "(?s).*<graphml xmlns=\".*";
 
+    @Inject
+    private Logger logger;
+
     /**
-     * Attempts to convert the given diagram from a third party format to the draw.io format. See draw.io's
-     * {@code OpenServlet} for details.
-     * 
+     * Attempts to convert the given diagram from a third party format to the draw.io format. See draw.io's OpenServlet
+     * for details.
+     *
      * @param diagram the diagram content, using a third-party format
      * @param fileName the diagram file name, used to detect the diagram type
      * @return the diagram XML in draw.io format, or {@code null} if the diagram format is not recognized or unsupported
@@ -82,8 +93,20 @@ public class DiagramImporter
             mxGraphMlCodec.decode(mxXmlUtils.parseXml(diagram), graph);
             xml = mxXmlUtils.getXml(new mxCodec().encode(graph.getModel()));
         } else if (diagram.matches(gliffyRegex)) {
-            GliffyDiagramConverter converter = new GliffyDiagramConverter(diagram);
-            xml = converter.getGraphXml();
+            try {
+                // The format of gliffy diagrams has changed and so the convertor corresponding to that version is used.
+                if (diagram.matches(oldGliffyRegex)) {
+                    OldGliffyDiagramConverter converter = new OldGliffyDiagramConverter(diagram);
+                    xml = converter.getGraphXml();
+                } else {
+                    GliffyDiagramConverterMultiplePages converter = new GliffyDiagramConverterMultiplePages(diagram);
+                    xml = converter.getGraphXml();
+                }
+            } catch (Exception e) {
+                // Please check if this isn't cause by structure changes, or if maybe the model we use for
+                // deserialization is missing some properties.
+                logger.error("Error while converting a gliffy diagram to drawio.", e);
+            }
         }
 
         return xml;
@@ -92,7 +115,7 @@ public class DiagramImporter
     // NOTE: Key length must not be longer than 79 bytes (not checked)
     private String extractXMLFromPNG(byte[] data)
     {
-        Map<String, String> textChunks = OpenServlet.decodeCompressedText(new ByteArrayInputStream(data));
+        Map<String, String> textChunks = OpenServletUtils.decodeCompressedText(new ByteArrayInputStream(data));
         return (textChunks != null) ? textChunks.get("mxGraphModel") : null;
     }
 }
