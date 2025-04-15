@@ -368,7 +368,7 @@
     #set ($diagramObj = $diagram.getObject('Diagram.DiagramClass'))
     #if ($diagramObj)
       #if ($xcontext.action == 'edit' || $xcontext.action == 'export' || $request.xpage == 'print'
-          || $xcontext.macro.params.cached == 'true')
+        || $xcontext.macro.params.cached == 'true' || $request.outputSyntax=='annotatedhtml')
         #set ($pageIndex =  $xcontext.macro.params.pageIndex)
         #if ($pageIndex &gt;= 1)
           #getAttachmentName($pageIndex)
@@ -389,8 +389,15 @@
               #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
             #end
           #else
-            #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
-            #set ($output = "{{warning}}$escapedErrorMessage{{/warning}}")
+            ## Check if the png exists and display it otherwise throw an error.
+            #if ($diagram.getAttachment("${attachmentName}.png"))
+              #set ($fileName = $pngFileName)
+              #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
+              #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
+            #else
+              #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
+              #set ($output = "{{warning}}$escapedErrorMessage{{/warning}}")
+            #end
           #end
         #else
           #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
