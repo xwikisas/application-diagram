@@ -368,7 +368,7 @@
     #set ($diagramObj = $diagram.getObject('Diagram.DiagramClass'))
     #if ($diagramObj)
       #if ($xcontext.action == 'edit' || $xcontext.action == 'export' || $request.xpage == 'print'
-          || $xcontext.macro.params.cached == 'true')
+        || $xcontext.macro.params.cached == 'true' || $request.outputSyntax=='annotatedhtml')
         #set ($pageIndex =  $xcontext.macro.params.pageIndex)
         #if ($pageIndex &gt;= 1)
           #getAttachmentName($pageIndex)
