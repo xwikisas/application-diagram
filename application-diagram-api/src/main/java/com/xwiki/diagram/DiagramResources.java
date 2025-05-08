@@ -26,9 +26,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import org.xwiki.rest.XWikiRestComponent;
-import org.xwiki.rest.XWikiRestException;
-
-import com.xpn.xwiki.XWikiException;
 
 /**
  * Provides the APIs needed by the Diagram application in order to delete the attachments.
@@ -48,5 +45,5 @@ public interface DiagramResources extends XWikiRestComponent
     @POST
     @Path("{documentReference}")
     Response deleteAttachments(
-        @PathParam("documentReference") @Encoded String documentReference) throws XWikiRestException, XWikiException;
+        @PathParam("documentReference") @Encoded String documentReference) throws Exception;
 }
