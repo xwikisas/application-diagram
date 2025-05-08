@@ -19,6 +19,9 @@
  */
 package com.xwiki.diagram.internal.rest;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -26,17 +29,16 @@ import javax.inject.Singleton;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
+import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.rest.XWikiResource;
-import org.xwiki.rest.XWikiRestException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 import com.xwiki.diagram.DiagramResources;
@@ -59,18 +61,29 @@ public class DiagramResourcesImpl extends XWikiResource implements DiagramResour
     private ContextualAuthorizationManager authorization;
 
     @Inject
+    private DocumentAccessBridge documentAccessBridge;
+
+    @Inject
     private DocumentReferenceResolver<String> resolver;
 
     @Inject
     private Provider<XWikiContext> contextProvider;
 
     @Override
-    public Response deleteAttachments(String documentReference) throws XWikiRestException, XWikiException
+    public Response deleteAttachments(String documentReference) throws Exception
     {
 
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
-        XWikiDocument diagramDocument = xwiki.getDocument(resolver.resolve(documentReference), context);
+        String decodedReference = URLDecoder.decode(documentReference, StandardCharsets.UTF_8);
+        XWikiDocument diagramDocument = xwiki.getDocument(resolver.resolve(decodedReference), context);
+
+        // If the document doesn't exist yet just return 200.
+        if (!documentAccessBridge.exists(diagramDocument.getDocumentReference())) {
+            // We can reach this point only when the diagram is firstly created.
+            return Response.status(Response.Status.OK).build();
+        }
+
         if (!this.authorization.hasAccess(Right.EDIT, diagramDocument.getDocumentReference())) {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }

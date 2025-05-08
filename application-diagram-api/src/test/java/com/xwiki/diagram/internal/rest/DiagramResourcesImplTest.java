@@ -29,6 +29,7 @@ import javax.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.rest.XWikiRestException;
@@ -48,6 +49,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,6 +73,9 @@ public class DiagramResourcesImplTest
     @MockComponent
     private Provider<XWikiContext> contextProvider;
 
+    @MockComponent
+    private DocumentAccessBridge documentAccessBridge;
+
     @Mock
     private XWiki wiki;
 
@@ -90,7 +95,7 @@ public class DiagramResourcesImplTest
     }
 
     @BeforeEach
-    void setup() throws XWikiException
+    void setup() throws Exception
     {
         when(contextProvider.get()).thenReturn(xWikiContext);
         when(xWikiContext.getWiki()).thenReturn(wiki);
@@ -98,10 +103,11 @@ public class DiagramResourcesImplTest
         // We want a new document in every test.
         this.xwikiDocument = new XWikiDocument(documentReference);
         when(wiki.getDocument(documentReference, xWikiContext)).thenReturn(xwikiDocument);
+        when(documentAccessBridge.exists((DocumentReference) any())).thenReturn(true);
     }
 
     @Test
-    void deleteOnlyDiagramAttachmentsWhenUserHasEditRights() throws XWikiRestException, XWikiException
+    void deleteOnlyDiagramAttachmentsWhenUserHasEditRights() throws Exception
     {
         List<XWikiAttachment> attachments =
             createAttachments("diagram.png", "diagram.svg", "diagram2.png", "diagram2.svg", "anotherAttachment");
