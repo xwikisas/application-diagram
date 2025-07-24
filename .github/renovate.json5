@@ -31,7 +31,7 @@
       "matchDatasources": ["maven"],
       "registryUrls": ["https://nexus.xwiki.org/nexus/content/repositories/public/",
         "https://nexus.xwikisas.com/nexus/content/repositories/public-store-releases/",
-        "https://packagecloud.io/jgraph/drawio/packages/java/"]
+        "https://packagecloud.io/jgraph/drawio/maven2"]
     },
 
     // There is always a more recent version of contrib parent or commons/rendering/platform and we don't want to upgrade just for that
