@@ -87,9 +87,11 @@ public class DiagramResourcesImpl extends XWikiResource implements DiagramResour
         if (!this.authorization.hasAccess(Right.EDIT, diagramDocument.getDocumentReference())) {
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
-        removeAttachments(diagramDocument, ".png");
-        removeAttachments(diagramDocument, ".svg");
-        xwiki.saveDocument(diagramDocument, "Clean old diagram attachments", false, context);
+        XWikiDocument clonedDiagramDocument = diagramDocument.clone();
+
+        removeAttachments(clonedDiagramDocument, ".png");
+        removeAttachments(clonedDiagramDocument, ".svg");
+        xwiki.saveDocument(clonedDiagramDocument, "Clean old diagram attachments", false, context);
         return Response.status(Response.Status.OK).build();
     }
 
