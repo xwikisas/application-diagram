@@ -85,7 +85,7 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
                     xcontext.getWiki().getDocument(originalDocRef, xcontext).getBackLinkedReferences(xcontext);
 
                 for (DocumentReference backlinkDocRef : backlinks) {
-                    XWikiDocument backlinkDoc = xcontext.getWiki().getDocument(backlinkDocRef, xcontext);
+                    XWikiDocument backlinkDoc = xcontext.getWiki().getDocument(backlinkDocRef, xcontext).clone();
 
                     updateDiagramMacrosReferences(backlinkDoc, currentDocRef, originalDocRef, xcontext);
                 }

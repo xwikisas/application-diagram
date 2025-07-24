@@ -86,6 +86,8 @@ public class DiagramResourcesImplTest
 
     private XWikiDocument xwikiDocument;
 
+    private XWikiDocument clonedDocument;
+
     @BeforeComponent
     void beforeComponent()
     {
@@ -101,7 +103,9 @@ public class DiagramResourcesImplTest
         when(xWikiContext.getWiki()).thenReturn(wiki);
         when(resolver.resolve("test")).thenReturn(documentReference);
         // We want a new document in every test.
-        this.xwikiDocument = new XWikiDocument(documentReference);
+        this.clonedDocument = new XWikiDocument(documentReference);
+        this.xwikiDocument = mock(XWikiDocument.class);
+        when(xwikiDocument.clone()).thenReturn(clonedDocument);
         when(wiki.getDocument(documentReference, xWikiContext)).thenReturn(xwikiDocument);
         when(documentAccessBridge.exists((DocumentReference) any())).thenReturn(true);
     }
@@ -112,13 +116,14 @@ public class DiagramResourcesImplTest
         List<XWikiAttachment> attachments =
             createAttachments("diagram.png", "diagram.svg", "diagram2.png", "diagram2.svg", "anotherAttachment");
         when(this.authorizationManager.hasAccess(Right.EDIT, xwikiDocument.getDocumentReference())).thenReturn(true);
-        xwikiDocument.setAttachmentList(attachments);
+
+        clonedDocument.setAttachmentList(attachments);
 
         diagramResources.deleteAttachments("test");
 
         // Assert: Only the non-diagram attachment should remain
-        assertEquals(1, xwikiDocument.getAttachmentList().size());
-        assertNotNull(xwikiDocument.getAttachment("anotherAttachment"));
+        assertEquals(1, clonedDocument.getAttachmentList().size());
+        assertNotNull(clonedDocument.getAttachment("anotherAttachment"));
     }
 
     @Test
@@ -126,13 +131,13 @@ public class DiagramResourcesImplTest
     {
         List<XWikiAttachment> attachments = createAttachments("diagram.png", "diagram.svg", "anotherFile");
         when(this.authorizationManager.hasAccess(Right.EDIT, xwikiDocument.getDocumentReference())).thenReturn(false);
-        xwikiDocument.setAttachmentList(attachments);
+        clonedDocument.setAttachmentList(attachments);
 
         WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
             diagramResources.deleteAttachments("test");
         });
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), exception.getResponse().getStatus());
-        assertEquals(3, xwikiDocument.getAttachmentList().size());
+        assertEquals(3, clonedDocument.getAttachmentList().size());
     }
 
     /**

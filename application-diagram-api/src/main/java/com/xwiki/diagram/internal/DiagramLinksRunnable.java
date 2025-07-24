@@ -77,7 +77,7 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
 
                 XWikiDocument backlinkDoc;
                 for (DocumentReference backlinkRef : backlinks) {
-                    backlinkDoc = context.getWiki().getDocument(backlinkRef, context);
+                    backlinkDoc = context.getWiki().getDocument(backlinkRef, context).clone();
 
                     if (backlinkDoc.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
                         contentHandler.updateDiagramContent(backlinkDoc, originalDocRef, currentDocRef, context);
