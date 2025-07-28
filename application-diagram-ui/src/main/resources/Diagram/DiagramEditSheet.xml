@@ -838,8 +838,7 @@ define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], fun
   };
 
   var originalIsOfflineApp = EditorUi.prototype.isOfflineApp;
-  EditorUi.prototype.isOfflineApp = function()
-  {
+  EditorUi.prototype.isOfflineApp = function() {
     return diagramConfig.disableExternalServices || originalIsOfflineApp();
   };
 });
