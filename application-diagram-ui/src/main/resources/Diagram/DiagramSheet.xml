@@ -44,7 +44,6 @@
     "debug": $services.debug.minify.equals(false),
     "locale": $xcontext.locale,
     "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
-    "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
     "pdfImageExportZoom": $diagramObj.getValue('pdfImageExportZoom'),
     "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
     "isTemporaryUploadSupported": $temporaryUploadSupported
@@ -265,7 +264,7 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   // This is used by File &gt; Open Library from &gt; Browser...
   window.OPEN_FORM = drawIOBasePath + 'open.html';
   window.OPEN_URL = new XWiki.Document('DiagramImporter', 'Diagram').getURL('get', 'outputSyntax=plain');
-  window.EXPORT_URL = diagramConfig.exportURL;
+  window.EXPORT_URL = ' ';
   window.PROXY_URL = new XWiki.Document('DiagramProxy', 'Diagram').getURL('get');
   window.isLocalStorage = true;
   // mxClient is not considering the basePath of the stylesheet files, so we load them after.

@@ -822,8 +822,8 @@ define('diagram-url-io', ['diagram-utils', 'draw.io'], function(diagramUtils) {
 });
 
 /**
-  * In case external services are disabled, stop the features that require it (export of pdf from diagram editor
-  * or png / jpeg export on IE) and show an info dialog.
+  * In case external services are disabled, stop the features that require it (online shape search, help section
+  * external links) and show an info dialog.
   */
 define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], function($, diagramConfig) {
   var showDisabledServicesDialog = function(editorUi) {
@@ -837,26 +837,9 @@ define('diagram-external-services', ['jquery', 'diagram-config', 'draw.io'], fun
     editorUi.showDialog(dlg.container, 250, 75, true, true);
   };
 
-  // This is used from File -&gt; Export as.
-  var originalCreateDownloadRequest = EditorUi.prototype.createDownloadRequest;
-  EditorUi.prototype.createDownloadRequest = function(filename, format, ignoreSelection, base64, transparent,
-      currentPage, scale, border, grid, includeXml, pageRange, w, h) {
-    if (diagramConfig.disableExternalServices) {
-      showDisabledServicesDialog(this);
-      return;
-    }
-    return originalCreateDownloadRequest.apply(this, arguments);
-  };
-
-  // This is used from File -&gt; Export as -&gt; Advanced...
-  var originalExportFile = ExportDialog.exportFile;
-  ExportDialog.exportFile = function(editorUi, name, format, bg, s, b, dpi, grid) {
-    if (diagramConfig.disableExternalServices &amp;&amp; (format == 'pdf' ||
-        (['png', 'jpg', 'jpeg'].indexOf(format) != -1 &amp;&amp; !editorUi.isExportToCanvas()))) {
-      showDisabledServicesDialog(editorUi);
-      return;
-    }
-    return originalExportFile.apply(this, arguments);
+  var originalIsOfflineApp = EditorUi.prototype.isOfflineApp;
+  EditorUi.prototype.isOfflineApp = function() {
+    return diagramConfig.disableExternalServices || originalIsOfflineApp();
   };
 });
 

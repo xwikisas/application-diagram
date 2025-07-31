@@ -66,25 +66,9 @@
         <validationRegExp/>
         <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
       </disableExternalServices>
-      <exportURL>
-        <customDisplay/>
-        <disabled>0</disabled>
-        <name>exportURL</name>
-        <number>1</number>
-        <picker>0</picker>
-        <prettyName>Export URL</prettyName>
-        <size>30</size>
-        <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
-      </exportURL>
     </class>
     <property>
       <disableExternalServices>0</disableExternalServices>
-    </property>
-    <property>
-      <exportURL>https://convert.diagrams.net/node/export</exportURL>
     </property>
   </object>
   <object>

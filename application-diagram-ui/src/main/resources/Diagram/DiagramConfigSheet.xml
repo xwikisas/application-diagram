@@ -75,7 +75,6 @@
 #else
   &lt;div class="diagram-config xform"&gt;
 #end
-  #showProperty('exportURL')
   #showProperty('disableExternalServices')
 #if ($xcontext.action == 'admin')
   &lt;p&gt;
