@@ -360,7 +360,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var deleteAllDiagrams = function() {
-    let baseUrl = `/xwiki/rest/diagram/${xm.documentReference.toString()}`;
+    let baseUrl = `${XWiki.contextPath}/rest/diagram/${xm.documentReference.toString()}`;
     let queryString = $.param({"form_token": xm.form_token});
     return $.post(`${baseUrl}?${queryString}`);
   };
