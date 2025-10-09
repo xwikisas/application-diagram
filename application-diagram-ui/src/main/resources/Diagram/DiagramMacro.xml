@@ -472,7 +472,16 @@
   #else
     #set ($reference = $services.model.resolveDocument($reference))
   #end
-  #if ($xwiki.exists($reference))
+  #if ("$!xcontext.macro.params.diagramUrl" != '')
+    ## To be populated by the ViewSheet javascript code.
+    ## TODO: THIS DOESN'T WORK UNLESS A CONFLUENCE DIAGRAM IS PRESENT.
+    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+    #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
+    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+    {{html}}
+      &lt;div class="diagram" data-diagram-url="$escapetool.xml($!xcontext.macro.params.diagramUrl)"&gt;&lt;/div&gt;
+    {{/html}}
+  #elseif ($xwiki.exists($reference))
     #displayDiagram($reference)
   #elseif ($services.security.authorization.hasAccess('edit', $reference))
     #createDiagram($reference)
@@ -762,6 +771,85 @@
     </property>
     <property>
       <type>java.lang.Integer </type>
+    </property>
+  </object>
+  <object>
+    <name>Diagram.DiagramMacro</name>
+    <number>3</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>471d7453-17e8-4a7a-9e94-723447a013d4</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <restricted>0</restricted>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <type>
+        <disabled>0</disabled>
+        <name>type</name>
+        <number>5</number>
+        <prettyName>Parameter type</prettyName>
+        <size>60</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </type>
+    </class>
+    <property>
+      <defaultValue/>
+    </property>
+    <property>
+      <description>An external link to a diagram source.</description>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>diagramUrl</name>
+    </property>
+    <property>
+      <type/>
     </property>
   </object>
 </xwikidoc>

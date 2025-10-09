@@ -447,7 +447,16 @@ require.config({
 require(['diagram-setup'], function() {
   require(['jquery', 'diagram-viewer'], function($, diagramViewerPromise) {
     diagramViewerPromise.done(function() {
-      $('.diagram').viewDiagram();
+      $('.diagram').each(function(index) {
+        if (this.getAttribute('data-diagram-url'))
+          fetch(this.getAttribute('data-diagram-url')).then(data =&gt; data.text()).then(data =&gt; {
+            this.setAttribute('data-model', data);
+            $(this).viewDiagram();
+          });
+        else {
+          $(this).viewDiagram();
+        }
+      });
     });
   });
 });

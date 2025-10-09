@@ -64,6 +64,11 @@ public class DiagramImporter
      */
     private static String graphMlRegex = "(?s).*<graphml xmlns=\".*";
 
+    /**
+     * Used to detect Drawio diagrams.
+     */
+    private static String drawioRegex = "(?s).*<mxfile[ >].*";
+
     @Inject
     private Logger logger;
 
@@ -86,6 +91,9 @@ public class DiagramImporter
             } catch (UnsupportedEncodingException e) {
                 // Shouldn't happen.
             }
+        } else if (diagram.matches(drawioRegex)) {
+            // The diagram is already in the right format.
+            xml = diagram;
         } else if (diagram.matches(graphMlRegex)) {
             // Creates a graph that contains a model but does not validate since that is not needed for the model and
             // not allowed on GAE.
