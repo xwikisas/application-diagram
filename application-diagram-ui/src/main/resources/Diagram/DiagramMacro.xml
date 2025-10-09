@@ -473,13 +473,24 @@
     #set ($reference = $services.model.resolveDocument($reference))
   #end
   #if ("$!xcontext.macro.params.diagramUrl" != '')
-    ## To be populated by the ViewSheet javascript code.
-    ## TODO: THIS DOESN'T WORK UNLESS A CONFLUENCE DIAGRAM IS PRESENT.
+    ## Need the setup done by the DiagramViewSheet, but we don't have a page reference for it to display.
     #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
     #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
     #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+    #set ($diagramConfig = {
+      "debug": $services.debug.minify.equals(false),
+      "locale": $xcontext.locale,
+      "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
+      "pdfImageExportZoom": $diagramObj.getValue('pdfImageExportZoom'),
+      "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
+      "isTemporaryUploadSupported": $temporaryUploadSupported
+    })
+    ## To be populated by the DiagramViewSheet javascript code.
     {{html}}
-      &lt;div class="diagram" data-diagram-url="$escapetool.xml($!xcontext.macro.params.diagramUrl)"&gt;&lt;/div&gt;
+      &lt;div class="diagram"
+        data-diagram-url="$escapetool.xml($!xcontext.macro.params.diagramUrl)"
+        data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+      &gt;&lt;/div&gt;
     {{/html}}
   #elseif ($xwiki.exists($reference))
     #displayDiagram($reference)
