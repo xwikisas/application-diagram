@@ -474,9 +474,6 @@
   #end
   #if ("$!xcontext.macro.params.diagramUrl" != '')
     ## Need the setup done by the DiagramViewSheet, but we don't have a page reference for it to display.
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
     #set ($diagramConfig = {
       "debug": $services.debug.minify.equals(false),
       "locale": $xcontext.locale,
@@ -485,13 +482,20 @@
       "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
       "isTemporaryUploadSupported": $temporaryUploadSupported
     })
-    ## To be populated by the DiagramViewSheet javascript code.
-    {{html}}
-      &lt;div class="diagram"
-        data-diagram-url="$escapetool.xml($!xcontext.macro.params.diagramUrl)"
-        data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
-      &gt;&lt;/div&gt;
-    {{/html}}
+    #if ($diagramConfig['disableExternalServices'] == 0)
+      #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+      #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
+      #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+      ## To be populated by the DiagramViewSheet javascript code.
+      {{html}}
+        &lt;div class="diagram"
+          data-diagram-url="$escapetool.xml($!xcontext.macro.params.diagramUrl)"
+          data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+        &gt;&lt;/div&gt;
+      {{/html}}
+    #else
+      {{warning}}$services.localization.render('diagram.macro.externalServicesDisabled'){{/warning}}
+    #end
   #elseif ($xwiki.exists($reference))
     #displayDiagram($reference)
   #elseif ($services.security.authorization.hasAccess('edit', $reference))
