@@ -464,16 +464,9 @@
   {{/html}}
 #end
 
-#macro (executeDiagramMacro)
-  #set ($discard = $xwiki.jsx.use('Diagram.DiagramMacro'))
-  #set ($reference = $xcontext.macro.params.reference)
-  #if ($stringtool.isEmpty($reference))
-    #set ($reference = $services.model.createDocumentReference('Diagram', $doc.documentReference.parent))
-  #else
-    #set ($reference = $services.model.resolveDocument($reference))
-  #end
-  #if ("$!xcontext.macro.params.diagramUrl" != '')
+#macro (displayExternalDiagram $diagramUrl)
     ## Need the setup done by the DiagramViewSheet, but we don't have a page reference for it to display.
+    #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
     #set ($diagramConfig = {
       "debug": $services.debug.minify.equals(false),
       "locale": $xcontext.locale,
@@ -489,13 +482,25 @@
       ## To be populated by the DiagramViewSheet javascript code.
       {{html}}
         &lt;div class="diagram"
-          data-diagram-url="$escapetool.xml($!xcontext.macro.params.diagramUrl)"
+          data-diagram-url="$escapetool.xml($!diagramUrl)"
           data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
         &gt;&lt;/div&gt;
       {{/html}}
     #else
       {{warning}}$services.localization.render('diagram.macro.externalServicesDisabled'){{/warning}}
     #end
+#end
+
+#macro (executeDiagramMacro)
+  #set ($discard = $xwiki.jsx.use('Diagram.DiagramMacro'))
+  #set ($reference = $xcontext.macro.params.reference)
+  #if ($stringtool.isEmpty($reference))
+    #set ($reference = $services.model.createDocumentReference('Diagram', $doc.documentReference.parent))
+  #else
+    #set ($reference = $services.model.resolveDocument($reference))
+  #end
+  #if ("$!xcontext.macro.params.diagramUrl" != '')
+    #displayExternalDiagram($xcontext.macro.params.diagramUrl)
   #elseif ($xwiki.exists($reference))
     #displayDiagram($reference)
   #elseif ($services.security.authorization.hasAccess('edit', $reference))
@@ -697,7 +702,7 @@
       <defaultValue>true</defaultValue>
     </property>
     <property>
-      <description>Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower).</description>
+      <description>Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower). Not applied when an external diagram URL is used.</description>
     </property>
     <property>
       <mandatory>0</mandatory>

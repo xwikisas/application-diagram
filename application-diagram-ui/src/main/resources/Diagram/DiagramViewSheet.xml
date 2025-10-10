@@ -448,12 +448,14 @@ require(['diagram-setup'], function() {
   require(['jquery', 'diagram-viewer'], function($, diagramViewerPromise) {
     diagramViewerPromise.done(function() {
       $('.diagram').each(function(index) {
-        if (this.getAttribute('data-diagram-url'))
-          fetch(this.getAttribute('data-diagram-url')).then(data =&gt; data.text()).then(data =&gt; {
+        if (this.getAttribute('data-diagram-url')) {
+          let ProxyUrl = new URL(window.PROXY_URL, window.location);
+          ProxyUrl.searchParams.append('url', this.getAttribute('data-diagram-url'));
+          fetch(ProxyUrl).then(data => data.text()).then(data => {
             this.setAttribute('data-model', data);
             $(this).viewDiagram();
           });
-        else {
+        } else {
           $(this).viewDiagram();
         }
       });
