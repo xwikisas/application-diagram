@@ -65,6 +65,7 @@ rendering.macro.diagram.parameter.reference.name=Reference
 diagram.macro.create=Create diagram
 diagram.macro.createNotAllowed=You are not allowed to create this diagram.
 diagram.macro.edit=Edit diagram
+diagram.macro.edit.notAllowed.diagramUrl=This diagram is read-only because it was loaded from an external URL.
 diagram.macro.externalServicesDisabled=External services are disabled for the Diagram Application (Pro), and this diagram has an external source. This setting can be changed in the Administration section.
 diagram.macro.invalidPageIndex=There is no diagram page corresponding to this index.
 diagram.macro.invalidReference=The specified page is not a diagram.

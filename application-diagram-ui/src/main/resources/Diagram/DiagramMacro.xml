@@ -484,6 +484,7 @@
         &lt;div class="diagram"
           data-diagram-url="$escapetool.xml($!diagramUrl)"
           data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+          data-title="$escapetool.xml($services.localization.render('diagram.macro.edit.notAllowed.diagramUrl'))"
         &gt;&lt;/div&gt;
       {{/html}}
     #else
