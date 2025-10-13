@@ -40,12 +40,20 @@
 def url = request.getParameter("url");
 // Prevent guest users from using this proxy.
 if (url &amp;&amp; xcontext.getUserReference()) {
-  def connection = new URL(url).openConnection();
-  // We get 403 response without the User-Agent header specified.
-  connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
-  response.setStatus(connection.getResponseCode());
-  response.setContentType(connection.getContentType());
-  response.getOutputStream() &lt;&lt; connection.getInputStream();
+  try {
+    def connection = new URL(url).openConnection();
+    // We get 403 response without the User-Agent header specified.
+    connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
+    response.setStatus(connection.getResponseCode());
+    response.setContentType(connection.getContentType());
+    response.getOutputStream() &lt;&lt; connection.getInputStream();
+  } catch(MalformedURLException e) {
+    response.setStatus(400);
+    response.getOutputStream() &lt;&lt; e;
+  } catch(Exception e) {
+    response.setStatus(500);
+    response.getOutputStream() &lt;&lt; e;
+  }
 }
 {{/groovy}}</content>
   <object>

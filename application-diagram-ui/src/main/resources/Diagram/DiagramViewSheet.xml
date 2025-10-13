@@ -302,12 +302,19 @@
       var diagramRootNode = mxUtils.parseXml(diagramXML).documentElement;
       diagramRootNode.fromStorage = fromStorage;
       var config = $.extend(getDiagramViewerConfig($(this)), configOverride);
-      var graphViewer = new GraphViewer(this, diagramRootNode, config);
-      // Make the diagram title from the tool bar a link to the diagram page.
-      if (config.title &amp;&amp; config.reference) {
-        var diagramViewURL = new XWiki.Document(config.reference).getURL();
-        var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
-        $(graphViewer.toolbar).children().last().empty().append(diagramLink);
+      try {
+        var graphViewer = new GraphViewer(this, diagramRootNode, config);
+        // Make the diagram title from the tool bar a link to the diagram page.
+        if (config.title &amp;&amp; config.reference) {
+          var diagramViewURL = new XWiki.Document(config.reference).getURL();
+          var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
+          $(graphViewer.toolbar).children().last().empty().append(diagramLink);
+        }
+      } catch (e) {
+        console.error(e);
+        // Add a warning that the diagram wasn't loaded properly, like if the format isn't right.
+        $(this).html('&lt;div class="box warningmessage"&lt;&gt;/div&gt;');
+        $(this).children().text('diagram: ' + e.message);
       }
     });
   };
