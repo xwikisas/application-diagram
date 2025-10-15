@@ -56,12 +56,15 @@ diagram.livetable.emptyvalue=-
 # Diagram Macro
 rendering.macro.diagram.description=Displays a diagram.
 rendering.macro.diagram.name=Diagram
-rendering.macro.diagram.parameter.cached.description=Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower).
+rendering.macro.diagram.parameter.cached.description=Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower). Not applied when an external diagram URL is used.
 rendering.macro.diagram.parameter.cached.name=Cached
 rendering.macro.diagram.parameter.pageIndex.description=The index of the page that you want to see when cached is enabled (i.e. use 1 for 1st page of the diagram, 5 for the 5th page)
 rendering.macro.diagram.parameter.pageIndex.name=Page index
 rendering.macro.diagram.parameter.reference.description=The reference of the page that contains the diagram to display. E.g. for "http://.../Diagram/My%20Diagram/", enter "Diagram.My Diagram.WebHome". If this field is left blank, the macro looks for a child page named "Diagram" and if not found, displays a form to create a diagram.
 rendering.macro.diagram.parameter.reference.name=Reference
+rendering.macro.diagram.parameter.diagramUrl.description=An external link to a diagram source.
+rendering.macro.diagram.parameter.diagramUrl.name=Diagram URL
+diagram.macro.loadFailed.diagramUrl=Failed to load the diagram. Please check that the URL is correct and the diagram is properly formatted. If the error persists, please contact the XWiki team.
 diagram.macro.create=Create diagram
 diagram.macro.createNotAllowed=You are not allowed to create this diagram.
 diagram.macro.edit=Edit diagram

@@ -861,7 +861,7 @@
       <defaultValue/>
     </property>
     <property>
-      <description>An external link to a diagram source.</description>
+      <description/>
     </property>
     <property>
       <mandatory>0</mandatory>

@@ -165,13 +165,21 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>define('diagram-viewer', [
+      <code>define('xwiki-diagram-messages', {
+  prefix: '',
+  keys: [
+    'diagram.macro.loadFailed.diagramUrl'
+  ]
+});
+
+define('diagram-viewer', [
   'jquery',
+  'xwiki-l10n!xwiki-diagram-messages',
   'diagram-utils',
   'diagram-link-handler',
   'diagram-graph-xml-filter',
   'draw.io.viewer'
-], function($, diagramUtils, diagramLinkHandler) {
+], function($, l10n, diagramUtils, diagramLinkHandler) {
   var getOrigin = function() {
     var origin = window.location.origin;
     if (!origin) {
@@ -292,9 +300,20 @@
   };
 
   $.fn.viewDiagram = function(configOverride) {
-    return this.empty().each(function() {
+    return this.empty().each(async function() {
       var fromStorage = false;
-      var diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
+      var diagramXML;
+      if (this.getAttribute('data-diagram-url')) {
+        let ProxyUrl = new URL(window.PROXY_URL, window.location);
+        ProxyUrl.searchParams.append('url', this.getAttribute('data-diagram-url'));
+        await fetch(ProxyUrl).then(data =&gt; {
+          return data.text();
+        }).then(data =&gt; {
+          this.setAttribute('data-model', data);
+        });
+      } else {
+        diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
+      }
       if (!diagramXML) {
         diagramXML = $(this).data('model') || '&lt;mxGraphModel/&gt;';
         fromStorage = true;
@@ -312,9 +331,9 @@
         }
       } catch (e) {
         console.error(e);
-        // Add a warning that the diagram wasn't loaded properly, like if the format isn't right.
+        // Add a message that the diagram wasn't loaded properly, like if the format isn't right.
         $(this).html('&lt;div class="box warningmessage"&lt;&gt;/div&gt;');
-        $(this).children().text('diagram: ' + e.message);
+        $(this).children().text(l10n.get('diagram.macro.loadFailed.diagramUrl');
       }
     });
   };
@@ -454,18 +473,7 @@ require.config({
 require(['diagram-setup'], function() {
   require(['jquery', 'diagram-viewer'], function($, diagramViewerPromise) {
     diagramViewerPromise.done(function() {
-      $('.diagram').each(function(index) {
-        if (this.getAttribute('data-diagram-url')) {
-          let ProxyUrl = new URL(window.PROXY_URL, window.location);
-          ProxyUrl.searchParams.append('url', this.getAttribute('data-diagram-url'));
-          fetch(ProxyUrl).then(data => data.text()).then(data => {
-            this.setAttribute('data-model', data);
-            $(this).viewDiagram();
-          });
-        } else {
-          $(this).viewDiagram();
-        }
-      });
+      $('.diagram').viewDiagram();
     });
   });
 });
