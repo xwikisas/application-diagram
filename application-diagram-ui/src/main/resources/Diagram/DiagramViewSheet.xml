@@ -309,7 +309,7 @@ define('diagram-viewer', [
         }
         let diagramUrl = this.getAttribute('data-diagram-url');
         if (diagramUrl in window.diagramUrlCache) {
-          this.setAttribute('data-model', window.diagramUrlCache[diagramUrl]);
+          this.setAttribute('data-model', window.diagramUrlCache.get(diagramUrl));
         } else {
           let ProxyUrl = new URL(window.PROXY_URL, window.location);
           ProxyUrl.searchParams.append('url', diagramUrl);
@@ -317,7 +317,7 @@ define('diagram-viewer', [
             return data.text();
           }).then(data =&gt; {
             this.setAttribute('data-model', data);
-            window.diagramUrlCache[diagramUrl] = data;
+            window.diagramUrlCache.set(diagramUrl, data);
           });
         }
       } else {
