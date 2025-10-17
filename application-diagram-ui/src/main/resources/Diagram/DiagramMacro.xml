@@ -476,17 +476,21 @@
       "isTemporaryUploadSupported": $temporaryUploadSupported
     })
     #if ($diagramConfig['disableExternalServices'] == 0)
-      #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-      #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
-      #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-      ## To be populated by the DiagramViewSheet javascript code.
-      {{html}}
-        &lt;div class="diagram"
-          data-diagram-url="$escapetool.xml($!diagramUrl)"
-          data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
-          data-title="$escapetool.xml($services.localization.render('diagram.macro.edit.notAllowed.diagramUrl'))"
-        &gt;&lt;/div&gt;
-      {{/html}}
+      #if ($xcontext.action == 'view')
+        #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+        #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
+        #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+        ## To be populated by the DiagramViewSheet javascript code.
+        {{html}}
+          &lt;div class="diagram"
+            data-diagram-url="$escapetool.xml($!diagramUrl)"
+            data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+            data-title="$escapetool.xml($services.localization.render('diagram.macro.diagramUrl.edit.notAllowed'))"
+          &gt;&lt;/div&gt;
+        {{/html}}
+      #else
+        {{warning}}$services.localization.render('diagram.macro.diagramUrl.edit.previewNotSupported'){{/warning}}
+      #end
     #else
       {{warning}}$services.localization.render('diagram.macro.externalServicesDisabled'){{/warning}}
     #end

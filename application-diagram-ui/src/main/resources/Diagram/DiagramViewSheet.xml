@@ -168,7 +168,7 @@
       <code>define('xwiki-diagram-messages', {
   prefix: '',
   keys: [
-    'diagram.macro.loadFailed.diagramUrl'
+    'diagram.macro.diagramUrl.loadFailed'
   ]
 });
 
@@ -303,14 +303,23 @@ define('diagram-viewer', [
     return this.empty().each(async function() {
       var fromStorage = false;
       var diagramXML;
-      if (this.getAttribute('data-diagram-url')) {
-        let ProxyUrl = new URL(window.PROXY_URL, window.location);
-        ProxyUrl.searchParams.append('url', this.getAttribute('data-diagram-url'));
-        await fetch(ProxyUrl).then(data =&gt; {
-          return data.text();
-        }).then(data =&gt; {
-          this.setAttribute('data-model', data);
-        });
+      if (!this.getAttribute('data-model') &amp;&amp; this.getAttribute('data-diagram-url')) {
+        if (!window.diagramUrlCache) {
+          window.diagramUrlCache = new Map();
+        }
+        let diagramUrl = this.getAttribute('data-diagram-url');
+        if (diagramUrl in window.diagramUrlCache) {
+          this.setAttribute('data-model', window.diagramUrlCache[diagramUrl]);
+        } else {
+          let ProxyUrl = new URL(window.PROXY_URL, window.location);
+          ProxyUrl.searchParams.append('url', diagramUrl);
+          await fetch(ProxyUrl).then(data =&gt; {
+            return data.text();
+          }).then(data =&gt; {
+            this.setAttribute('data-model', data);
+            window.diagramUrlCache[diagramUrl] = data;
+          });
+        }
       } else {
         diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
       }
@@ -333,10 +342,15 @@ define('diagram-viewer', [
         console.error(e);
         // Add a message that the diagram wasn't loaded properly, like if the format isn't right.
         $(this).html('&lt;div class="box warningmessage"&lt;&gt;/div&gt;');
-        $(this).children().text(l10n.get('diagram.macro.loadFailed.diagramUrl');
+        $(this).children().text(l10n.get('diagram.macro.diagramUrl.loadFailed'));
       }
     });
   };
+
+  $(document).on('xwiki:dom:updated', function() {
+    // When using the diagramUrl parameter, and in the in-place WYSIWYG editor, reload the diagram on the client side.
+    $('.diagram').viewDiagram();
+  });
 
   return diagramUtils.loadTranslationAndTheme().done(function(theme) {
     // Configure the default viewer theme.
