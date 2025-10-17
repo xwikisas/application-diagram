@@ -304,22 +304,14 @@ define('diagram-viewer', [
       var fromStorage = false;
       var diagramXML;
       if (!this.getAttribute('data-model') &amp;&amp; this.getAttribute('data-diagram-url')) {
-        if (!window.diagramUrlCache) {
-          window.diagramUrlCache = new Map();
-        }
-        let diagramUrl = this.getAttribute('data-diagram-url');
-        if (diagramUrl in window.diagramUrlCache) {
-          this.setAttribute('data-model', window.diagramUrlCache.get(diagramUrl));
-        } else {
-          let ProxyUrl = new URL(window.PROXY_URL, window.location);
-          ProxyUrl.searchParams.append('url', diagramUrl);
-          await fetch(ProxyUrl).then(data =&gt; {
-            return data.text();
-          }).then(data =&gt; {
-            this.setAttribute('data-model', data);
-            window.diagramUrlCache.set(diagramUrl, data);
-          });
-        }
+      let diagramUrl = this.getAttribute('data-diagram-url');
+        let ProxyUrl = new URL(window.PROXY_URL, window.location);
+        ProxyUrl.searchParams.append('url', diagramUrl);
+        await fetch(ProxyUrl).then(data =&gt; {
+          return data.text();
+        }).then(data =&gt; {
+          this.setAttribute('data-model', data);
+        });
       } else {
         diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
       }
