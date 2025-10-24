@@ -168,7 +168,7 @@
       <code>define('xwiki-diagram-messages', {
   prefix: '',
   keys: [
-    'diagram.macro.diagramUrl.loadFailed'
+    'diagram.macro.externalDiagramUrl.loadFailed'
   ]
 });
 
@@ -303,21 +303,21 @@ define('diagram-viewer', [
     return this.empty().each(async function() {
       var fromStorage = false;
       var diagramXML;
-      if (!this.getAttribute('data-model') &amp;&amp; this.getAttribute('data-diagram-url')) {
-        if (!window.diagramUrlCache) {
-          window.diagramUrlCache = new Map();
+      if (!this.getAttribute('data-model') &amp;&amp; this.getAttribute('data-external-diagram-url')) {
+        if (!window.externalDiagramUrlCache) {
+          window.externalDiagramUrlCache = new Map();
         }
-        let diagramUrl = this.getAttribute('data-diagram-url');
-        if (diagramUrl in window.diagramUrlCache) {
-          this.setAttribute('data-model', window.diagramUrlCache.get(diagramUrl));
+        let externalDiagramUrl = this.getAttribute('data-external-diagram-url');
+        if (externalDiagramUrl in window.externalDiagramUrlCache) {
+          this.setAttribute('data-model', window.externalDiagramUrlCache.get(externalDiagramUrl));
         } else {
           let ProxyUrl = new URL(window.PROXY_URL, window.location);
-          ProxyUrl.searchParams.append('url', diagramUrl);
+          ProxyUrl.searchParams.append('url', externalDiagramUrl);
           await fetch(ProxyUrl).then(data =&gt; {
             return data.text();
           }).then(data =&gt; {
             this.setAttribute('data-model', data);
-            window.diagramUrlCache.set(diagramUrl, data);
+            window.externalDiagramUrlCache.set(externalDiagramUrl, data);
           });
         }
       } else {
@@ -342,13 +342,13 @@ define('diagram-viewer', [
         console.error(e);
         // Add a message that the diagram wasn't loaded properly, like if the format isn't right.
         $(this).html('&lt;div class="box warningmessage"&lt;&gt;/div&gt;');
-        $(this).children().text(l10n.get('diagram.macro.diagramUrl.loadFailed'));
+        $(this).children().text(l10n.get('diagram.macro.externalDiagramUrl.loadFailed'));
       }
     });
   };
 
   $(document).on('xwiki:dom:updated', function() {
-    // When using the diagramUrl parameter, and in the in-place WYSIWYG editor, reload the diagram on the client side.
+    // When using the externalDiagramUrl parameter, and in the in-place WYSIWYG editor, reload the diagram on the client side.
     $('.diagram').viewDiagram();
   });
 

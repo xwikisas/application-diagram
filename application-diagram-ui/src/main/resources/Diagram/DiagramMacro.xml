@@ -464,7 +464,7 @@
   {{/html}}
 #end
 
-#macro (displayExternalDiagram $diagramUrl)
+#macro (displayExternalDiagram $externalDiagramUrl)
     ## Need the setup done by the DiagramViewSheet, but we don't have a page reference for it to display.
     #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
     #set ($diagramConfig = {
@@ -483,13 +483,13 @@
         ## To be populated by the DiagramViewSheet javascript code.
         {{html}}
           &lt;div class="diagram"
-            data-diagram-url="$escapetool.xml($!diagramUrl)"
+            data-external-diagram-url="$escapetool.xml($!externalDiagramUrl)"
             data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
-            data-title="$escapetool.xml($services.localization.render('diagram.macro.diagramUrl.edit.notAllowed'))"
+            data-title="$escapetool.xml($services.localization.render('diagram.macro.externalDiagramUrl.edit.notAllowed'))"
           &gt;&lt;/div&gt;
         {{/html}}
       #else
-        {{warning}}$services.localization.render('diagram.macro.diagramUrl.edit.previewNotSupported'){{/warning}}
+        {{warning}}$services.localization.render('diagram.macro.externalDiagramUrl.edit.previewNotSupported'){{/warning}}
       #end
     #else
       {{warning}}$services.localization.render('diagram.macro.externalServicesDisabled'){{/warning}}
@@ -504,8 +504,8 @@
   #else
     #set ($reference = $services.model.resolveDocument($reference))
   #end
-  #if ("$!xcontext.macro.params.diagramUrl" != '')
-    #displayExternalDiagram($xcontext.macro.params.diagramUrl)
+  #if ("$!xcontext.macro.params.externalDiagramUrl" != '')
+    #displayExternalDiagram($xcontext.macro.params.externalDiagramUrl)
   #elseif ($xwiki.exists($reference))
     #displayDiagram($reference)
   #elseif ($services.security.authorization.hasAccess('edit', $reference))
@@ -871,7 +871,7 @@
       <mandatory>0</mandatory>
     </property>
     <property>
-      <name>diagramUrl</name>
+      <name>externalDiagramUrl</name>
     </property>
     <property>
       <type/>
