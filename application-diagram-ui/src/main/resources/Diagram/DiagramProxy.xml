@@ -37,6 +37,8 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{groovy output="false"}}
+import com.xwiki.diagram.internal.DiagramImporter;
+
 def url = request.getParameter("url");
 // Prevent guest users from using this proxy.
 if (url &amp;&amp; xcontext.getUserReference()) {
@@ -46,7 +48,9 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
         response.setStatus(connection.getResponseCode());
         response.setContentType(connection.getContentType());
-        response.getOutputStream() &lt;&lt; connection.getInputStream();
+        def rawData = new String(connection.getInputStream().readAllBytes());
+        def convertedData = new DiagramImporter().importDiagram(rawData, url);
+        response.getOutputStream() &lt;&lt; (convertedData ? convertedData : rawData);
     } catch(MalformedURLException e) {
         response.setStatus(400);
         response.getOutputStream() &lt;&lt; e;

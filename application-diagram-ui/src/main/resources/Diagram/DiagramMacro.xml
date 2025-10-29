@@ -486,7 +486,7 @@
             data-external-diagram-url="$escapetool.xml($!externalDiagramUrl)"
             data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
             data-title="$escapetool.xml($services.localization.render('diagram.macro.externalDiagramUrl.edit.notAllowed'))"
-          &gt;&lt;/div&gt;
+          &gt;&lt;span class="fa fa-spinner fa-spin"&gt;&lt;/span&gt;&lt;/div&gt;
         {{/html}}
       #else
         {{warning}}$services.localization.render('diagram.macro.externalDiagramUrl.edit.previewNotSupported'){{/warning}}

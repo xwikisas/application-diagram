@@ -166,9 +166,10 @@
     </property>
     <property>
       <code>define('xwiki-diagram-messages', {
-  prefix: '',
+  prefix: 'diagram.macro.',
   keys: [
-    'diagram.macro.externalDiagramUrl.loadFailed'
+    'loadFailed.externalDiagramUrl',
+    'loadFailed'
   ]
 });
 
@@ -299,50 +300,75 @@ define('diagram-viewer', [
     }
   };
 
-  $.fn.viewDiagram = function(configOverride) {
-    return this.empty().each(async function() {
-      var fromStorage = false;
-      var diagramXML;
-      if (!this.getAttribute('data-model') &amp;&amp; this.getAttribute('data-external-diagram-url')) {
+  var getProxyUrl = function(url) {
+    let ProxyUrl = new URL(window.PROXY_URL, window.location);
+    ProxyUrl.searchParams.append('url', url);
+    ProxyUrl.searchParams.append('xpage', 'plain');
+    ProxyUrl.searchParams.append('outputSyntax', 'plain');
+    return ProxyUrl;
+  }
+
+  var getDiagramXML = function(element) {
+      let fromStorage = true;
+      let diagramXML;
+      let externalDiagramUrl = element.getAttribute('data-external-diagram-url');
+      if (externalDiagramUrl) {
         if (!window.externalDiagramUrlCache) {
           window.externalDiagramUrlCache = new Map();
         }
-        let externalDiagramUrl = this.getAttribute('data-external-diagram-url');
-        if (externalDiagramUrl in window.externalDiagramUrlCache) {
-          this.setAttribute('data-model', window.externalDiagramUrlCache.get(externalDiagramUrl));
-        } else {
-          let ProxyUrl = new URL(window.PROXY_URL, window.location);
-          ProxyUrl.searchParams.append('url', externalDiagramUrl);
-          await fetch(ProxyUrl).then(data =&gt; {
-            return data.text();
-          }).then(data =&gt; {
-            this.setAttribute('data-model', data);
-            window.externalDiagramUrlCache.set(externalDiagramUrl, data);
-          });
+        diagramXML = window.externalDiagramUrlCache.get(externalDiagramUrl);
+        if (!diagramXML) {
+          diagramXML = mxUtils.load(getProxyUrl(externalDiagramUrl)).getXml().activeElement;
+          window.externalDiagramUrlCache.set(externalDiagramUrl, diagramXML);
         }
+        element.setAttribute('data-model', diagramXML.outerHTML);
       } else {
         diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
-      }
-      if (!diagramXML) {
-        diagramXML = $(this).data('model') || '&lt;mxGraphModel/&gt;';
-        fromStorage = true;
-      }
-      var diagramRootNode = mxUtils.parseXml(diagramXML).documentElement;
-      diagramRootNode.fromStorage = fromStorage;
-      var config = $.extend(getDiagramViewerConfig($(this)), configOverride);
-      try {
-        var graphViewer = new GraphViewer(this, diagramRootNode, config);
-        // Make the diagram title from the tool bar a link to the diagram page.
-        if (config.title &amp;&amp; config.reference) {
-          var diagramViewURL = new XWiki.Document(config.reference).getURL();
-          var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
-          $(graphViewer.toolbar).children().last().empty().append(diagramLink);
+        if (!diagramXML) {
+          diagramXML = $(element).data('model') || '&lt;mxGraphModel&gt;';
+        } else {
+          fromStorage = false;
         }
+        diagramXML = mxUtils.parseXml(diagramXML).documentElement;
+      }
+      return [fromStorage, diagramXML];
+  };
+
+  var renderDiagram = function(element, diagramXML, fromStorage, configOverride) {
+    element.innerHTML = '';
+    var diagramRootNode = diagramXML;
+    if (!diagramRootNode || diagramRootNode.localName != 'mxfile') {
+      throw "Invalid diagram XML.";
+    }
+    diagramRootNode.fromStorage = fromStorage;
+    var config = $.extend(getDiagramViewerConfig($(element)), configOverride);
+    var graphViewer = new GraphViewer(element, diagramRootNode, config);
+    // Make the diagram title from the tool bar a link to the diagram page.
+    if (config.title &amp;&amp; config.reference) {
+      var diagramViewURL = new XWiki.Document(config.reference).getURL();
+      var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
+      $(graphViewer.toolbar).children().last().empty().append(diagramLink);
+    }
+  }
+
+  var renderError = function(element, text) {
+    element.innerHTML = '';
+    $(element).html('&lt;div class="box warningmessage"&gt;&lt;/div&gt;');
+    $(element).children().text(text);
+  };
+
+  $.fn.viewDiagram = function(configOverride) {
+    return this.each(function() {
+      try {
+        let [fromStorage, diagramXML] = getDiagramXML(this);
+        if (diagramXML.localName != 'mxfile') {
+          throw "Invalid diagram XML";
+        }
+        renderDiagram(this, diagramXML, fromStorage, configOverride);
       } catch (e) {
         console.error(e);
-        // Add a message that the diagram wasn't loaded properly, like if the format isn't right.
-        $(this).html('&lt;div class="box warningmessage"&lt;&gt;/div&gt;');
-        $(this).children().text(l10n.get('diagram.macro.externalDiagramUrl.loadFailed'));
+        let externalDiagramUrl = this.getAttribute('data-external-diagram-url');
+        renderError(this, l10n.get(externalDiagramUrl ? 'loadFailed.externalDiagramUrl' : 'loadFailed'));
       }
     });
   };
