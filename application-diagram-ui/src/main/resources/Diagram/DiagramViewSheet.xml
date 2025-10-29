@@ -305,6 +305,7 @@ define('diagram-viewer', [
     ProxyUrl.searchParams.append('url', url);
     ProxyUrl.searchParams.append('xpage', 'plain');
     ProxyUrl.searchParams.append('outputSyntax', 'plain');
+    ProxyUrl.searchParams.append('importDiagram', 'true');
     return ProxyUrl;
   }
 
@@ -360,11 +361,12 @@ define('diagram-viewer', [
   $.fn.viewDiagram = function(configOverride) {
     return this.each(function() {
       try {
-        let [fromStorage, diagramXML] = getDiagramXML(this);
-        if (diagramXML.localName != 'mxfile') {
-          throw "Invalid diagram XML";
+        // Guard against re-rendering an existing diagram or one which is in the process of displaying.
+        // TODO: This condition is pretty hackish, there has to be a better way.
+        if (this.childNodes.length &gt; 0 &amp;&amp; this.childNodes[0].localName == 'span') {
+          let [fromStorage, diagramXML] = getDiagramXML(this);
+          renderDiagram(this, diagramXML, fromStorage, configOverride);
         }
-        renderDiagram(this, diagramXML, fromStorage, configOverride);
       } catch (e) {
         console.error(e);
         let externalDiagramUrl = this.getAttribute('data-external-diagram-url');
