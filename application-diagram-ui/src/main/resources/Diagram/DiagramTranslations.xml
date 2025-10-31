@@ -68,6 +68,7 @@ diagram.macro.externalDiagramUrl.edit.notAllowed=This diagram is read-only becau
 diagram.macro.externalDiagramUrl.edit.previewNotSupported=In edit mode, the preview of diagrams using the *externalDiagramUrl* parameter is not supported.
 diagram.macro.loadFailed=Failed to load the diagram. Please check that the diagram is in a supported format.
 diagram.macro.loadFailed.externalDiagramUrl=Failed to load the diagram. Please check that the URL is correct and the diagram is properly formatted. If the error persists, please contact an administrator.
+diagram.macro.loadFailed.externalDiagramUrl.guestUser=Diagram preview from external URLs is not available for unregistered users.
 diagram.macro.create=Create diagram
 diagram.macro.createNotAllowed=You are not allowed to create this diagram.
 diagram.macro.edit=Edit diagram

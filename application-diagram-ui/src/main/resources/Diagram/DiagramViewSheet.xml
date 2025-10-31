@@ -169,6 +169,7 @@
   prefix: 'diagram.macro.',
   keys: [
     'loadFailed.externalDiagramUrl',
+    'loadFailed.externalDiagramUrl.guestUser',
     'loadFailed'
   ]
 });
@@ -178,9 +179,10 @@ define('diagram-viewer', [
   'xwiki-l10n!xwiki-diagram-messages',
   'diagram-utils',
   'diagram-link-handler',
+  'xwiki-meta',
   'diagram-graph-xml-filter',
   'draw.io.viewer'
-], function($, l10n, diagramUtils, diagramLinkHandler) {
+], function($, l10n, diagramUtils, diagramLinkHandler, xm) {
   var getOrigin = function() {
     var origin = window.location.origin;
     if (!origin) {
@@ -361,6 +363,9 @@ define('diagram-viewer', [
   $.fn.viewDiagram = function(configOverride) {
     return this.each(function() {
       try {
+        if (!xm.userReference) {
+          throw "Diagram preview from URL is not available for unregistered users";
+        }
         // Guard against re-rendering an existing diagram or one which is in the process of displaying.
         if (this.childElementCount == 1) {
           let [fromStorage, diagramXML] = getDiagramXML(this);
@@ -369,7 +374,17 @@ define('diagram-viewer', [
       } catch (e) {
         console.error(e);
         let externalDiagramUrl = this.getAttribute('data-external-diagram-url');
-        renderError(this, l10n.get(externalDiagramUrl ? 'loadFailed.externalDiagramUrl' : 'loadFailed'));
+        let errorMessage;
+        if (externalDiagramUrl) {
+          if (!xm.userReference) {
+            errorMessage = 'loadFailed.externalDiagramUrl.guestUser';
+          } else {
+            errorMessage = 'loadFailed.externalDiagramUrl';
+          }
+        } else {
+          errorMessage = 'loadFailed';
+        }
+        renderError(this, l10n.get(errorMessage));
       }
     });
   };
