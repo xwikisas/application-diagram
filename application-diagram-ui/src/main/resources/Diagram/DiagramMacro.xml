@@ -489,10 +489,10 @@
           &gt;&lt;span class="fa fa-spinner fa-spin"&gt;&lt;/span&gt;&lt;/div&gt;
         {{/html}}
       #else
-        {{warning}}$services.localization.render('diagram.macro.externalDiagramUrl.edit.previewNotSupported'){{/warning}}
+        {{warning}}$services.rendering.escape($services.localization.render('diagram.macro.externalDiagramUrl.edit.previewNotSupported'), 'xwiki/2.1'){{/warning}}
       #end
     #else
-      {{warning}}$services.localization.render('diagram.macro.externalServicesDisabled'){{/warning}}
+      {{warning}}$services.rendering.escape($services.localization.render('diagram.macro.externalServicesDisabled'), 'xwiki/2.1'){{/warning}}
     #end
 #end
 

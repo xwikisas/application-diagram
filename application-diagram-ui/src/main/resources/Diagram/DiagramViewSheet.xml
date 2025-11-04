@@ -303,34 +303,40 @@ define('diagram-viewer', [
   };
 
   var getProxyUrl = function(url) {
-    let ProxyUrl = new URL(window.PROXY_URL, window.location);
-    ProxyUrl.searchParams.append('url', url);
-    ProxyUrl.searchParams.append('xpage', 'plain');
-    ProxyUrl.searchParams.append('outputSyntax', 'plain');
-    ProxyUrl.searchParams.append('importDiagram', 'true');
+    const queryParams = $.param({
+      'url': url,
+      'xpage': 'plain',
+      'outputSyntax': 'plain',
+      'importDiagram': 'true',
+    });
+    let ProxyUrl = new URL(window.PROXY_URL + '?' + queryParams, window.location);
     return ProxyUrl;
-  }
+  };
 
   var getDiagramXML = function(element) {
-      let fromStorage = true;
+      let fromStorage = false;
       let diagramXML;
       let externalDiagramUrl = element.getAttribute('data-external-diagram-url');
       if (externalDiagramUrl) {
+        // If the diagram should be fetched from an external url, use a cache to reduce the amount of requests. For the
+        // inplace WYSIWYG editor it's especially helpful, where there are 5-10 requests for the same source.
         if (!window.externalDiagramUrlCache) {
           window.externalDiagramUrlCache = new Map();
         }
         diagramXML = window.externalDiagramUrlCache.get(externalDiagramUrl);
         if (!diagramXML) {
+          // Use a proxy to get around CORS.
           diagramXML = mxUtils.load(getProxyUrl(externalDiagramUrl)).getXml().activeElement;
           window.externalDiagramUrlCache.set(externalDiagramUrl, diagramXML);
         }
+        // Add the XML so drawio can access it.
         element.setAttribute('data-model', diagramXML.outerHTML);
       } else {
         diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
         if (!diagramXML) {
-          diagramXML = $(element).data('model') || '&lt;mxGraphModel&gt;';
-        } else {
-          fromStorage = false;
+          diagramXML = $(element).data('model') || '&lt;mxGraphModel/&gt;';
+          // fromStorage is used to signal when to transform links from XWiki references to URLs.
+          fromStorage = true;
         }
         diagramXML = mxUtils.parseXml(diagramXML).documentElement;
       }
@@ -354,6 +360,13 @@ define('diagram-viewer', [
     }
   }
 
+  function getErrorKey(externalDiagramUrl, hasUser) {
+    if (!externalDiagramUrl) return 'loadFailed';
+    return hasUser
+      ? 'loadFailed.externalDiagramUrl'
+      : 'loadFailed.externalDiagramUrl.guestUser';
+  }
+
   var renderError = function(element, text) {
     element.innerHTML = '';
     $(element).html('&lt;div class="box warningmessage"&gt;&lt;/div&gt;');
@@ -373,17 +386,8 @@ define('diagram-viewer', [
         }
       } catch (e) {
         console.error(e);
-        let externalDiagramUrl = this.getAttribute('data-external-diagram-url');
-        let errorMessage;
-        if (externalDiagramUrl) {
-          if (!xm.userReference) {
-            errorMessage = 'loadFailed.externalDiagramUrl.guestUser';
-          } else {
-            errorMessage = 'loadFailed.externalDiagramUrl';
-          }
-        } else {
-          errorMessage = 'loadFailed';
-        }
+        const externalDiagramUrl = this.getAttribute('data-external-diagram-url');
+        const errorMessage = getErrorKey(externalDiagramUrl, xm.userReference);
         renderError(this, l10n.get(errorMessage));
       }
     });
