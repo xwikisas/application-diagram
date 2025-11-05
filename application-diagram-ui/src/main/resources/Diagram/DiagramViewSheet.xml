@@ -165,13 +165,24 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>define('diagram-viewer', [
+      <code>define('xwiki-diagram-messages', {
+  prefix: 'diagram.macro.',
+  keys: [
+    'loadFailed.externalDiagramUrl',
+    'loadFailed.externalDiagramUrl.guestUser',
+    'loadFailed'
+  ]
+});
+
+define('diagram-viewer', [
   'jquery',
+  'xwiki-l10n!xwiki-diagram-messages',
   'diagram-utils',
   'diagram-link-handler',
+  'xwiki-meta',
   'diagram-graph-xml-filter',
   'draw.io.viewer'
-], function($, diagramUtils, diagramLinkHandler) {
+], function($, l10n, diagramUtils, diagramLinkHandler, xm) {
   var getOrigin = function() {
     var origin = window.location.origin;
     if (!origin) {
@@ -291,26 +302,102 @@
     }
   };
 
-  $.fn.viewDiagram = function(configOverride) {
-    return this.empty().each(function() {
-      var fromStorage = false;
-      var diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
-      if (!diagramXML) {
-        diagramXML = $(this).data('model') || '&lt;mxGraphModel/&gt;';
-        fromStorage = true;
+  var getProxyUrl = function(url) {
+    const queryParams = $.param({
+      'url': url,
+      'xpage': 'plain',
+      'outputSyntax': 'plain',
+      'importDiagram': 'true',
+    });
+    let ProxyUrl = new URL(window.PROXY_URL + '?' + queryParams, window.location);
+    return ProxyUrl;
+  };
+
+  var getDiagramXML = function(element) {
+      let fromStorage = false;
+      let diagramXML;
+      let externalDiagramUrl = element.getAttribute('data-external-diagram-url');
+      if (externalDiagramUrl) {
+        if (!xm.userReference) {
+          // Protect against spamming the proxy.
+          throw "Diagram preview from URL is not available for unregistered users";
+        }
+        // If the diagram should be fetched from an external url, use a cache to reduce the amount of requests. For the
+        // inplace WYSIWYG editor it's especially helpful, where there are 5-10 requests for the same source.
+        if (!window.externalDiagramUrlCache) {
+          window.externalDiagramUrlCache = new Map();
+        }
+        diagramXML = window.externalDiagramUrlCache.get(externalDiagramUrl);
+        if (!diagramXML) {
+          // Use a proxy to get around CORS.
+          diagramXML = mxUtils.load(getProxyUrl(externalDiagramUrl)).getXml().activeElement;
+          window.externalDiagramUrlCache.set(externalDiagramUrl, diagramXML);
+        }
+        // Add the XML so drawio can access it.
+        element.setAttribute('data-model', diagramXML.outerHTML);
+      } else {
+        diagramXML = diagramUtils.getDiagramXMLFromURL(window.location.href);
+        if (!diagramXML) {
+          diagramXML = $(element).data('model') || '&lt;mxGraphModel/&gt;';
+          // fromStorage is used to signal when to transform links from XWiki references to URLs.
+          fromStorage = true;
+        }
+        diagramXML = mxUtils.parseXml(diagramXML).documentElement;
       }
-      var diagramRootNode = mxUtils.parseXml(diagramXML).documentElement;
-      diagramRootNode.fromStorage = fromStorage;
-      var config = $.extend(getDiagramViewerConfig($(this)), configOverride);
-      var graphViewer = new GraphViewer(this, diagramRootNode, config);
-      // Make the diagram title from the tool bar a link to the diagram page.
-      if (config.title &amp;&amp; config.reference) {
-        var diagramViewURL = new XWiki.Document(config.reference).getURL();
-        var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
-        $(graphViewer.toolbar).children().last().empty().append(diagramLink);
+      return [fromStorage, diagramXML];
+  };
+
+  var renderDiagram = function(element, diagramXML, fromStorage, configOverride) {
+    element.innerHTML = '';
+    var diagramRootNode = diagramXML;
+    if (!diagramRootNode || diagramRootNode.localName != 'mxfile') {
+      throw "Invalid diagram XML.";
+    }
+    diagramRootNode.fromStorage = fromStorage;
+    var config = $.extend(getDiagramViewerConfig($(element)), configOverride);
+    var graphViewer = new GraphViewer(element, diagramRootNode, config);
+    // Make the diagram title from the tool bar a link to the diagram page.
+    if (config.title &amp;&amp; config.reference) {
+      var diagramViewURL = new XWiki.Document(config.reference).getURL();
+      var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
+      $(graphViewer.toolbar).children().last().empty().append(diagramLink);
+    }
+  }
+
+  function getErrorKey(externalDiagramUrl, hasUser) {
+    if (!externalDiagramUrl) return 'loadFailed';
+    return hasUser
+      ? 'loadFailed.externalDiagramUrl'
+      : 'loadFailed.externalDiagramUrl.guestUser';
+  }
+
+  var renderError = function(element, text) {
+    element.innerHTML = '';
+    $(element).html('&lt;div class="box warningmessage"&gt;&lt;/div&gt;');
+    $(element).children().text(text);
+  };
+
+  $.fn.viewDiagram = function(configOverride) {
+    return this.each(function() {
+      try {
+        // Guard against re-rendering an existing diagram or one which is in the process of displaying.
+        if (this.childElementCount == 1) {
+          let [fromStorage, diagramXML] = getDiagramXML(this);
+          renderDiagram(this, diagramXML, fromStorage, configOverride);
+        }
+      } catch (e) {
+        console.error(e);
+        const externalDiagramUrl = this.getAttribute('data-external-diagram-url');
+        const errorMessage = getErrorKey(externalDiagramUrl, xm.userReference);
+        renderError(this, l10n.get(errorMessage));
       }
     });
   };
+
+  $(document).on('xwiki:dom:updated', function() {
+    // When using the externalDiagramUrl parameter, and in the in-place WYSIWYG editor, reload the diagram on the client side.
+    $('.diagram').viewDiagram();
+  });
 
   return diagramUtils.loadTranslationAndTheme().done(function(theme) {
     // Configure the default viewer theme.
