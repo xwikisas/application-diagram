@@ -37,15 +37,31 @@
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{groovy output="false"}}
+import com.xwiki.diagram.internal.DiagramImporter;
+
 def url = request.getParameter("url");
+def importDiagramParam = new Boolean(request.getParameter("importDiagram"));
 // Prevent guest users from using this proxy.
 if (url &amp;&amp; xcontext.getUserReference()) {
-  def connection = new URL(url).openConnection();
-  // We get 403 response without the User-Agent header specified.
-  connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
-  response.setStatus(connection.getResponseCode());
-  response.setContentType(connection.getContentType());
-  response.getOutputStream() &lt;&lt; connection.getInputStream();
+    try {
+        def connection = new URL(url).openConnection();
+        // We get 403 response without the User-Agent header specified.
+        connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
+        response.setStatus(connection.getResponseCode());
+        response.setContentType(connection.getContentType());
+        def data = new String(connection.getInputStream().readAllBytes());
+        if (importDiagramParam) {
+          def convertedData = new DiagramImporter().importDiagram(data, url);
+          data = convertedData ? convertedData : data;
+        }
+        response.getOutputStream() &lt;&lt; data;
+    } catch(MalformedURLException e) {
+        response.setStatus(400);
+        response.getOutputStream() &lt;&lt; e;
+    } catch(Exception e) {
+        response.setStatus(500);
+        response.getOutputStream() &lt;&lt; e;
+    }
 }
 {{/groovy}}</content>
   <object>
