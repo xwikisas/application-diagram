@@ -181,5 +181,6 @@
     <module>application-diagram-export</module>
     <module>application-diagram-ui</module>
     <module>application-diagram-xip</module>
+    <module>application-diagram-test</module>
   </modules>
 </project>
