@@ -212,7 +212,7 @@
         if (entry.name === 'resourceType') {
           selectedResource.type = entry.value;
         } else if (entry.name === 'resourceReference') {
-           selectedResource.reference = entry.type == 'external' &amp;&amp; !entry.value.includes('://') ?
+           selectedResource.reference = entry.type == 'external' &amp;&amp; !entry.value.includes(':') ?
         `https://${entry.value}` : entry.value;
         }
       }
