@@ -28,12 +28,16 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.WebElement;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
+import org.xwiki.test.ui.po.InlinePage;
 import org.xwiki.test.ui.po.ViewPage;
 import org.xwiki.test.ui.po.editor.ObjectEditPage;
-import org.xwiki.test.ui.po.editor.WYSIWYGEditPage;
+
+import com.xwiki.diagram.test.po.DiagramMacro;
+import com.xwiki.diagram.test.po.DiagramMacroPage;
 
 @UITest
 public class DiagramIT
@@ -56,8 +60,8 @@ public class DiagramIT
         objectEditPage.addObject("Diagram.DiagramClass");
         objectEditPage.clickSaveAndView();
 
-        WYSIWYGEditPage page = vp.editWYSIWYG();
-        page.clickSaveAndView();
+        InlinePage inlinePage = vp.editInline();
+        inlinePage.clickSaveAndView();
     }
 
     @Test
@@ -65,6 +69,10 @@ public class DiagramIT
     void createPageWithDiagrams(TestUtils setup, TestReference testReference)
     {
         setup.createPage(testReference, getMacroContent("diagramPage.vm"), "PageWithDiagramsTest");
+        DiagramMacroPage page = new DiagramMacroPage();
+        DiagramMacro diagram0 = page.getDiagram(0);
+
+        WebElement button = page.getCreateButton(0);
     }
 
     private String getMacroContent(String filename)
