@@ -377,11 +377,13 @@ define('diagram-viewer', [
     $(element).children().text(text);
   };
 
+  const initializedDiagramMarkerClass = 'diagram-initialized';
   $.fn.viewDiagram = function(configOverride) {
     return this.each(function() {
       try {
         // Guard against re-rendering an existing diagram or one which is in the process of displaying.
-        if (this.childElementCount == 1) {
+        if (!this.classList.contains(initializedDiagramMarkerClass)) {
+          this.classList.add(initializedDiagramMarkerClass);
           let [fromStorage, diagramXML] = getDiagramXML(this);
           renderDiagram(this, diagramXML, fromStorage, configOverride);
         }
