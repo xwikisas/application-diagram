@@ -330,7 +330,7 @@ define('diagram-viewer', [
         diagramXML = window.externalDiagramUrlCache.get(externalDiagramUrl);
         if (!diagramXML) {
           // Use a proxy to get around CORS.
-          diagramXML = mxUtils.load(getProxyUrl(externalDiagramUrl)).getXml().activeElement;
+          diagramXML = mxUtils.load(getProxyUrl(externalDiagramUrl)).getXml().documentElement;
           window.externalDiagramUrlCache.set(externalDiagramUrl, diagramXML);
         }
         // Add the XML so drawio can access it.
