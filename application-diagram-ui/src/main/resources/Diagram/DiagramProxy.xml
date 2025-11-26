@@ -49,9 +49,9 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
         response.setStatus(connection.getResponseCode());
         response.setContentType(connection.getContentType());
-        def data = new String(connection.getInputStream().readAllBytes());
+        def data = connection.getInputStream().readAllBytes();
         if (importDiagramParam) {
-          def convertedData = new DiagramImporter().importDiagram(data, url);
+          def convertedData = new DiagramImporter().importDiagram(new String(data), url);
           data = convertedData ? convertedData : data;
         }
         response.getOutputStream() &lt;&lt; data;
