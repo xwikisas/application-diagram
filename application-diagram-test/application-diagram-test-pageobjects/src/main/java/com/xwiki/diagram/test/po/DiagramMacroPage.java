@@ -19,33 +19,28 @@
  */
 package com.xwiki.diagram.test.po;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
 public class DiagramMacroPage extends ViewPage
 {
-    @FindBy(css = ".diagram-container")
-    private List<WebElement> diagrams;
-
-    @FindBy(css = ".diagram-create")
-    private List<WebElement> createButtons;
-
-    public int getDiagramsCount()
+    public List<DiagramMacro> getDiagrams()
     {
-        return diagrams.size();
+        List<WebElement> elements = new ArrayList<>();
+        elements.addAll(getDriver().findElements(By.cssSelector(".diagram-create")));
+        elements.addAll(getDriver().findElements(By.cssSelector(".diagram-container")));
+        elements.addAll(getDriver().findElements(By.cssSelector(".diagram")));
+
+        return elements.stream().map(DiagramMacro::new).collect(Collectors.toList());
     }
 
     public DiagramMacro getDiagram(int index)
     {
-        return new DiagramMacro(diagrams.get(index));
-    }
-
-    public WebElement getCreateButton(int index)
-    {
-        return createButtons.get(index);
+        return getDiagrams().get(index);
     }
 }
-

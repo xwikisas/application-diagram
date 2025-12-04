@@ -20,6 +20,12 @@
 
 {{diagram/}}
 
+{{diagram reference="Main.NonExisting"/}}
+
 {{diagram reference="Main.DiagramTest"/}}
 
 {{diagram reference="Main.DiagramTest" cached="false"/}}
+
+{{diagram reference="Main.PageWithNoDiagram"/}}
+
+{{diagram reference="Main.PageWithNoDiagram" cached="false"/}}

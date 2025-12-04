@@ -23,12 +23,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.WebElement;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
@@ -38,6 +39,9 @@ import org.xwiki.test.ui.po.editor.ObjectEditPage;
 
 import com.xwiki.diagram.test.po.DiagramMacro;
 import com.xwiki.diagram.test.po.DiagramMacroPage;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 
 @UITest
 public class DiagramIT
@@ -52,7 +56,46 @@ public class DiagramIT
 
     @Test
     @Order(1)
-    void createDiagram(TestUtils setup)
+    void diagramMacroTest(TestUtils setup, TestReference testReference)
+    {
+        createDiagram(setup);
+        setup.createPage("Main", "PageWithNoDiagram", "normal page with no diagrams", "PageWithNoDiagram");
+
+        setup.createPage(testReference, getMacroContent("diagramPage.vm"), "PageWithDiagramsTest");
+        DiagramMacroPage page = new DiagramMacroPage();
+
+        List<DiagramMacro> diagrams = page.getDiagrams();
+
+        assertTrue(diagrams.get(0).isCreateButton());
+        assertTrue(diagrams.get(0).getCreateButtonURL().contains("template=Diagram"));
+
+        Assertions.assertTrue(diagrams.get(1).isCreateButton());
+        Assertions.assertTrue(diagrams.get(1).getCreateButtonURL().contains("template=Diagram"));
+
+        DiagramMacro d2 = diagrams.get(2);
+        assertTrue(d2.isCachedDiagram());
+        assertTrue(d2.hasSVG());
+        assertEquals("DiagramTest", d2.getDiagramName());
+        assertTrue(d2.getDiagramReference().contains("DiagramTest"));
+
+        DiagramMacro d3 = diagrams.get(3);
+        assertTrue(d3.isCachedDiagram());
+        assertEquals("PageWithNoDiagram", d3.getDiagramName());
+        Assertions.assertTrue(d3.hasWarningMessage());
+        Assertions.assertEquals("The specified page is not a diagram.", d3.getWarningMessage());
+
+        DiagramMacro d4 = diagrams.get(4);
+        Assertions.assertTrue(d4.isCachedDiagram());
+        Assertions.assertEquals("PageWithNoDiagram", d4.getDiagramName());
+        Assertions.assertTrue(d4.hasWarningMessage());
+        Assertions.assertEquals("The specified page is not a diagram.", d4.getWarningMessage());
+
+        DiagramMacro d5 = diagrams.get(5);
+        Assertions.assertTrue(d5.isNotCached());
+        Assertions.assertTrue(d5.getModelReference().contains("DiagramTest"));
+    }
+
+    private void createDiagram(TestUtils setup)
     {
 
         ViewPage vp = setup.createPage("Main", "DiagramTest", getMacroContent("diagram.xml"), "DiagramTest");
@@ -62,17 +105,6 @@ public class DiagramIT
 
         InlinePage inlinePage = vp.editInline();
         inlinePage.clickSaveAndView();
-    }
-
-    @Test
-    @Order(2)
-    void createPageWithDiagrams(TestUtils setup, TestReference testReference)
-    {
-        setup.createPage(testReference, getMacroContent("diagramPage.vm"), "PageWithDiagramsTest");
-        DiagramMacroPage page = new DiagramMacroPage();
-        DiagramMacro diagram0 = page.getDiagram(0);
-
-        WebElement button = page.getCreateButton(0);
     }
 
     private String getMacroContent(String filename)

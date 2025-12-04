@@ -19,15 +19,79 @@
  */
 package com.xwiki.diagram.test.po;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.BaseElement;
 
 public class DiagramMacro extends BaseElement
 {
-    private final WebElement diagram;
+    private final WebElement root;
 
-    public DiagramMacro(WebElement diagram)
+    public DiagramMacro(WebElement root)
     {
-        this.diagram = diagram;
+        this.root = root;
     }
+
+    public boolean isCreateButton()
+    {
+        return root.getAttribute("class").contains("diagram-create");
+    }
+
+    public boolean isCachedDiagram()
+    {
+        return root.getAttribute("class").contains("diagram-container");
+    }
+
+    public boolean isNotCached()
+    {
+        return root.getAttribute("class").equals("diagram");
+    }
+
+    public String getCreateButtonURL()
+    {
+        if (!isCreateButton()) {
+            return null;
+        }
+        return root.getAttribute("href");
+    }
+
+    public boolean hasSVG()
+    {
+        if (!isCachedDiagram()) {
+            return false;
+        }
+        return root.findElement(By.cssSelector("img"))
+            .getAttribute("src")
+            .contains(".svg");
+    }
+
+    public String getDiagramName()
+    {
+        return root.findElement(By.cssSelector(".diagram-title")).getText();
+    }
+
+    public String getDiagramReference()
+    {
+        return root.findElement(By.cssSelector(".diagram-title")).getAttribute("href");
+    }
+
+    public String getModelReference()
+    {
+        if (!isNotCached()) {
+            return null;
+        }
+        return root.getAttribute("data-reference");
+    }
+
+    public boolean hasWarningMessage()
+    {
+        return !root.findElements(By.cssSelector(".box.warningmessage")).isEmpty();
+    }
+
+    public String getWarningMessage()
+    {
+        WebElement box = root.findElement(By.cssSelector(".box.warningmessage p"));
+        return box.getText().trim();
+    }
+
 }
