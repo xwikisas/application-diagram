@@ -36,7 +36,9 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>{{velocity}}
+  <content>{{include reference="Diagram.CommonCode"/}}
+
+{{velocity}}
 #set ($diagramObj = $doc.getObject('Diagram.DiagramClass'))
 #if ($diagramObj || "$!request.source" != '')
   #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
@@ -48,11 +50,10 @@
   {{html clean="false"}}
   ## Check if the query contains the parameter for getting the diagram from URL.
   #set ($displayDiv = "")
+  #set ($fileName = 'diagram.svg')
   #if ($xcontext.action == 'export')
     #set ($displayDiv  =  'hidden')
-    &lt;div&gt;
-      $doc.getAttachment('diagram.svg').getContentAsString()
-    &lt;/div&gt;
+    #showDiagramSVGInHTML($doc, $fileName)
   #end
   &lt;div class="diagram $displayDiv"
     data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
@@ -65,7 +66,6 @@
   &gt;
     ## Show a preview of the diagram until the diagram viewer is loaded. This is also useful for export and WYSIWYG edit
     ## mode where the JavaScript code is not executed and thus the diagram viewer is never loaded.
-    #set ($fileName = 'diagram.svg')
     #set ($pngFileName = 'diagram.png')
     #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
         &amp;&amp; $doc.getAttachment($pngFileName))
