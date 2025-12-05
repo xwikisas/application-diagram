@@ -42,7 +42,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Updates diagram macro reference parameter after the rename of a diagram.
- * 
+ *
  * @version $Id$
  * @since 1.13.1
  */
@@ -60,6 +60,7 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
     private EntityReferenceSerializer<String> compactEntityReferenceSerializer;
 
     @Inject
+    @Named("explicit")
     private DocumentReferenceResolver<String> resolver;
 
     @Inject
@@ -101,7 +102,7 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
 
     /**
      * Update for a page diagram macros old references with new ones.
-     * 
+     *
      * @param document document that need to be updated with the new reference
      * @param newReference new diagram reference
      * @param oldReference old diagram reference of a macro
@@ -122,8 +123,8 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
         Boolean modified = false;
         for (Block macroBlock : macroBlocks) {
             String rawReference = macroBlock.getParameter(MACRO_REFERENCE_PARAMETER);
-            String macroReference = compactEntityReferenceSerializer.serialize(resolver.resolve(rawReference),
-                document.getDocumentReference());
+            String macroReference = compactEntityReferenceSerializer.serialize(resolver.resolve(rawReference,
+                document.getDocumentReference()), document.getDocumentReference());
 
             if (!macroReference.equals(newReferenceString) && macroReference.equals(oldReferenceString)) {
                 macroBlock.setParameter(MACRO_REFERENCE_PARAMETER, newReferenceString);
