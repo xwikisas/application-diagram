@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.Block.Axes;
@@ -57,6 +58,9 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
     @Inject
     @Named("compact")
     private EntityReferenceSerializer<String> compactEntityReferenceSerializer;
+
+    @Inject
+    private DocumentReferenceResolver<String> resolver;
 
     @Inject
     private Logger logger;
@@ -117,7 +121,9 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
 
         Boolean modified = false;
         for (Block macroBlock : macroBlocks) {
-            String macroReference = macroBlock.getParameter(MACRO_REFERENCE_PARAMETER);
+            String rawReference = macroBlock.getParameter(MACRO_REFERENCE_PARAMETER);
+            String macroReference = compactEntityReferenceSerializer.serialize(resolver.resolve(rawReference),
+                document.getDocumentReference());
 
             if (!macroReference.equals(newReferenceString) && macroReference.equals(oldReferenceString)) {
                 macroBlock.setParameter(MACRO_REFERENCE_PARAMETER, newReferenceString);
