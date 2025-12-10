@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.Block.Axes;
@@ -41,7 +42,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 
 /**
  * Updates diagram macro reference parameter after the rename of a diagram.
- * 
+ *
  * @version $Id$
  * @since 1.13.1
  */
@@ -57,6 +58,10 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
     @Inject
     @Named("compact")
     private EntityReferenceSerializer<String> compactEntityReferenceSerializer;
+
+    @Inject
+    @Named("explicit")
+    private DocumentReferenceResolver<String> resolver;
 
     @Inject
     private Logger logger;
@@ -97,7 +102,7 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
 
     /**
      * Update for a page diagram macros old references with new ones.
-     * 
+     *
      * @param document document that need to be updated with the new reference
      * @param newReference new diagram reference
      * @param oldReference old diagram reference of a macro
@@ -117,7 +122,9 @@ public class DiagramMacroRunnable extends AbstractDiagramRunnable
 
         Boolean modified = false;
         for (Block macroBlock : macroBlocks) {
-            String macroReference = macroBlock.getParameter(MACRO_REFERENCE_PARAMETER);
+            String rawReference = macroBlock.getParameter(MACRO_REFERENCE_PARAMETER);
+            String macroReference = compactEntityReferenceSerializer.serialize(resolver.resolve(rawReference,
+                document.getDocumentReference()), document.getDocumentReference());
 
             if (!macroReference.equals(newReferenceString) && macroReference.equals(oldReferenceString)) {
                 macroBlock.setParameter(MACRO_REFERENCE_PARAMETER, newReferenceString);

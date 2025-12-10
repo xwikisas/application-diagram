@@ -358,41 +358,36 @@
       <async_enabled/>
     </property>
     <property>
-      <code>{{velocity output="false"}}
+      <code>{{include reference="Diagram.CommonCode"/}}
+
+{{velocity output="false"}}
 #macro (displayDiagram $reference)
   #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
   #set ($showCaption = true)
   #if ($services.security.authorization.hasAccess('view', $reference))
-    #set ($diagram = $xwiki.getDocument($reference))
-    #set ($diagramTitle = $diagram.plainTitle)
-    #set ($diagramObj = $diagram.getObject('Diagram.DiagramClass'))
+    #set ($diagramDoc = $xwiki.getDocument($reference))
+    #set ($diagramTitle = $diagramDoc.plainTitle)
+    #set ($diagramObj = $diagramDoc.getObject('Diagram.DiagramClass'))
     #if ($diagramObj)
       #if ($xcontext.action == 'edit' || $xcontext.action == 'export' || $request.xpage == 'print'
         || $xcontext.macro.params.cached == 'true' || $request.outputSyntax=='annotatedhtml')
         #set ($pageIndex =  $xcontext.macro.params.pageIndex)
         #if ($pageIndex &gt;= 1)
           #getAttachmentName($pageIndex)
-          #set ($fileName = "${attachmentName}.svg")
+          #set ($svgFileName = "${attachmentName}.svg")
           #set ($pngFileName = "${attachmentName}.png")
-          #if ($diagram.getAttachment($fileName))
+          #if ($diagramDoc.getAttachment($svgFileName))
             #if ($xcontext.action == 'export' &amp;&amp; $diagramObj.getValue('exportUsingSVG') == 0
-                &amp;&amp; $diagram.getAttachment($pngFileName))
-              #set ($fileName = $pngFileName)
-              #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
+                &amp;&amp; $diagramDoc.getAttachment($pngFileName))
+              #set ($diagramURL = $diagramDoc.getAttachmentURL($pngFileName, 'download', "v=$!diagramDoc.version"))
               #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
-            #elseif ($xcontext.action == 'export')
-              #set ($diagram = $xwiki.getDocument($reference))
-              #set ($output = "{{html}}&lt;div&gt;$diagram.getAttachment($fileName).getContentAsString()&lt;/div&gt;{{/html}}")
             #else
-              ## If we reached this branch it means that we are in 'view' mode, and we should use the svg.
-              #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
-              #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
+              #set ($output = "{{html clean='false'}}#showDiagramSVGInHTML($diagramDoc, $svgFileName){{/html}}")
             #end
           #else
             ## Check if the png exists and display it otherwise throw an error.
-            #if ($diagram.getAttachment("${attachmentName}.png"))
-              #set ($fileName = $pngFileName)
-              #set ($diagramURL = $diagram.getAttachmentURL($fileName, 'download', "v=$!diagram.version"))
+            #if ($diagramDoc.getAttachment($pngFileName))
+              #set ($diagramURL = $diagramDoc.getAttachmentURL($pngFileName, 'download', "v=$!diagramDoc.version"))
               #set ($output = "{{html clean='false'}}&lt;img src='$diagramURL' alt='$escapetool.xml($diagramTitle)'/&gt;{{/html}}")
             #else
               #set ($escapedErrorMessage = $escapetool.xml($services.localization.render('diagram.macro.invalidPageIndex')))
@@ -464,6 +459,38 @@
   {{/html}}
 #end
 
+#macro (displayExternalDiagram $externalDiagramUrl)
+    ## Need the setup done by the DiagramViewSheet, but we don't have a page reference for it to display.
+    #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
+    #set ($diagramConfig = {
+      "debug": $services.debug.minify.equals(false),
+      "locale": $xcontext.locale,
+      "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
+      "pdfImageExportZoom": $diagramObj.getValue('pdfImageExportZoom'),
+      "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
+      "isTemporaryUploadSupported": $temporaryUploadSupported
+    })
+    #if ($diagramConfig['disableExternalServices'] == 0)
+      #if ($xcontext.action == 'view')
+        #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+        #set ($discard = $xwiki.jsx.use('Diagram.DiagramSheet'))
+        #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+        ## To be populated by the DiagramViewSheet javascript code.
+        {{html}}
+          &lt;div class="diagram"
+            data-external-diagram-url="$escapetool.xml($!externalDiagramUrl)"
+            data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+            data-title="$escapetool.xml($services.localization.render('diagram.macro.externalDiagramUrl.edit.notAllowed'))"
+          &gt;&lt;span class="fa fa-spinner fa-spin"&gt;&lt;/span&gt;&lt;/div&gt;
+        {{/html}}
+      #else
+        {{warning}}$services.rendering.escape($services.localization.render('diagram.macro.externalDiagramUrl.edit.previewNotSupported'), 'xwiki/2.1'){{/warning}}
+      #end
+    #else
+      {{warning}}$services.rendering.escape($services.localization.render('diagram.macro.externalServicesDisabled'), 'xwiki/2.1'){{/warning}}
+    #end
+#end
+
 #macro (executeDiagramMacro)
   #set ($discard = $xwiki.jsx.use('Diagram.DiagramMacro'))
   #set ($reference = $xcontext.macro.params.reference)
@@ -472,7 +499,9 @@
   #else
     #set ($reference = $services.model.resolveDocument($reference))
   #end
-  #if ($xwiki.exists($reference))
+  #if ("$!xcontext.macro.params.externalDiagramUrl" != '')
+    #displayExternalDiagram($xcontext.macro.params.externalDiagramUrl)
+  #elseif ($xwiki.exists($reference))
     #displayDiagram($reference)
   #elseif ($services.security.authorization.hasAccess('edit', $reference))
     #createDiagram($reference)
@@ -673,7 +702,7 @@
       <defaultValue>true</defaultValue>
     </property>
     <property>
-      <description>Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower).</description>
+      <description>Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower). Not applied when an external diagram URL is used.</description>
     </property>
     <property>
       <mandatory>0</mandatory>
@@ -762,6 +791,85 @@
     </property>
     <property>
       <type>java.lang.Integer </type>
+    </property>
+  </object>
+  <object>
+    <name>Diagram.DiagramMacro</name>
+    <number>3</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>471d7453-17e8-4a7a-9e94-723447a013d4</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <restricted>0</restricted>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <type>
+        <disabled>0</disabled>
+        <name>type</name>
+        <number>5</number>
+        <prettyName>Parameter type</prettyName>
+        <size>60</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </type>
+    </class>
+    <property>
+      <defaultValue/>
+    </property>
+    <property>
+      <description/>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>externalDiagramUrl</name>
+    </property>
+    <property>
+      <type/>
     </property>
   </object>
 </xwikidoc>
