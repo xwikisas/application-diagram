@@ -103,7 +103,7 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
      * @param document document with all the macro calls
      * @param xdom of the @document
      * @param macroBlocks list of all the diagram macro calls
-     * @return rue if any reference was invalid and has been updated, false if there weren't any invalid references or
+     * @return true if any reference was invalid and has been updated, false if there weren't any invalid references or
      * if an error occurred while updating the document
      */
     private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
@@ -113,8 +113,8 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
             XWikiContext context = contextProvider.get();
             boolean modified = false;
             for (Block macroBlock : macroBlocks) {
-                String referenceName =
-                    macroBlock.getParameter(REFERENCE) != null ? macroBlock.getParameter(REFERENCE) : "Diagram";
+                boolean addDefaultValue = (macroBlock.getParameter(REFERENCE) == null);
+                String referenceName = addDefaultValue ? "Diagram" : macroBlock.getParameter(REFERENCE);
                 // For backwards compatibility we check if the page already exists so we won't modify it.
                 DocumentReference macroReference =
                     explicitDocumentReferenceResolver.resolve(referenceName, document.getDocumentReference());
@@ -123,14 +123,20 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
                     // First we check if the name is valid in the current naming strategy.
                     boolean isValid = this.isValid(referenceName);
                     // If the name is valid then we can use it, otherwise we transform the name in a valid
-                    // one and update the macro block.
-                    if (!isValid) {
+                    // one and update the macro block. If the macro reference is empty we also update it with the
+                    // right reference.
+                    if (!isValid || addDefaultValue) {
                         String transformedName = this.transformName(referenceName);
                         logger.debug("The reference [{}] was updated to [{}] to respect the current name strategy. "
                             + "Document: [{}]", referenceName, transformedName, document.getDocumentReference());
                         macroBlock.setParameter(REFERENCE, transformedName);
                         modified = true;
                     }
+                } else if (addDefaultValue) {
+                // If the page already exists, but the macro parameter is empty we should still add a value to it
+                // because when we try to move it will fail otherwise.
+                    macroBlock.setParameter(REFERENCE, referenceName);
+                    modified = true;
                 }
             }
             if (modified) {
