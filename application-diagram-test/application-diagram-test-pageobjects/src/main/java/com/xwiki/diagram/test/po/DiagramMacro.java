@@ -44,7 +44,8 @@ public class DiagramMacro extends BaseElement
 
     public boolean isNotCached()
     {
-        return root.getAttribute("class").equals("diagram");
+        return root.getAttribute("class").contains("diagram") && !root.getAttribute("class")
+            .contains("diagram-container");
     }
 
     public String getCreateButtonURL()
@@ -60,9 +61,13 @@ public class DiagramMacro extends BaseElement
         if (!isCachedDiagram()) {
             return false;
         }
-        return root.findElement(By.cssSelector("img"))
-            .getAttribute("src")
-            .contains(".svg");
+
+        return !root.findElements(By.cssSelector("svg")).isEmpty();
+    }
+
+    public String getDiagramEditLink()
+    {
+        return root.findElement(By.cssSelector("a.diagram-edit")).getAttribute("href");
     }
 
     public String getDiagramName()
@@ -93,5 +98,4 @@ public class DiagramMacro extends BaseElement
         WebElement box = root.findElement(By.cssSelector(".box.warningmessage p"));
         return box.getText().trim();
     }
-
 }
