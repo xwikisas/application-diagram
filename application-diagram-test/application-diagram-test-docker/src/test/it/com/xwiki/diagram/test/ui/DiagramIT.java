@@ -68,7 +68,6 @@ public class DiagramIT
     @Order(1)
     void diagramMacroTest(TestUtils setup, TestReference testReference)
     {
-
         createDiagram(setup);
         setup.createPage("Main", "PageWithNoDiagram", "normal page with no diagrams", "PageWithNoDiagram");
 
@@ -121,7 +120,6 @@ public class DiagramIT
     @Order(2)
     void renamedDiagramTest(TestUtils setup)
     {
-
         createDiagram(setup);
         DocumentReference docRef = new DocumentReference("xwiki", "Main", "PageWithDiagramsTestRenamed");
         setup.createPage(docRef, getMacroContent("renamedDiagramPage.vm"), "PageWithDiagramsTestRenamed");
