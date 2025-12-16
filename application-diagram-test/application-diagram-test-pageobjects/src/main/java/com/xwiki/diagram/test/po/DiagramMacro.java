@@ -23,79 +23,89 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.BaseElement;
 
+/**
+ * Represents a Diagram macro and provides access to its attributes.
+ *
+ * @version $Id$
+ * @since 1.22.7
+ */
 public class DiagramMacro extends BaseElement
 {
-    private final WebElement root;
+    private final WebElement diagram;
 
-    public DiagramMacro(WebElement root)
+    public DiagramMacro(WebElement diagram)
     {
-        this.root = root;
+        this.diagram = diagram;
     }
 
     public boolean isCreateButton()
     {
-        return root.getAttribute("class").contains("diagram-create");
+        return diagram.getAttribute("class").contains("diagram-create");
     }
 
-    public boolean isCachedDiagram()
+    public boolean hasThumbnail()
     {
-        return root.getAttribute("class").contains("diagram-container");
+        return !diagram.findElements(By.cssSelector(".thumbnail")).isEmpty();
     }
 
-    public boolean isNotCached()
+    public boolean hasSvg()
     {
-        return root.getAttribute("class").contains("diagram") && !root.getAttribute("class")
-            .contains("diagram-container");
+        return !diagram.findElements(By.cssSelector("svg")).isEmpty();
     }
 
-    public String getCreateButtonURL()
+    public boolean isInteractiveSvg()
+    {
+        WebElement svg = diagram.findElement(By.cssSelector("svg"));
+        String style = svg.getAttribute("style");
+        return style != null && style.contains("width: 100%");
+    }
+
+    public boolean hasDataModel()
+    {
+        return diagram.getAttribute("data-model") != null;
+    }
+
+    public boolean hasToolbar()
+    {
+        return diagram.getAttribute("data-toolbar") != null;
+    }
+
+    public String getCreateButtonLink()
     {
         if (!isCreateButton()) {
             return null;
         }
-        return root.getAttribute("href");
+        return diagram.getAttribute("href");
     }
 
-    public boolean hasSVG()
+    public String getEditLink()
     {
-        if (!isCachedDiagram()) {
-            return false;
-        }
-
-        return !root.findElements(By.cssSelector("svg")).isEmpty();
+        return diagram.findElement(By.cssSelector("a.diagram-edit")).getAttribute("href");
     }
 
-    public String getDiagramEditLink()
+    public String getCaption()
     {
-        return root.findElement(By.cssSelector("a.diagram-edit")).getAttribute("href");
+        return diagram.findElement(By.cssSelector(".diagram-title")).getText();
     }
 
-    public String getDiagramName()
+    public String getLink()
     {
-        return root.findElement(By.cssSelector(".diagram-title")).getText();
+        return diagram.findElement(By.cssSelector(".diagram-title")).getAttribute("href");
     }
 
-    public String getDiagramReference()
+    public String getReference()
     {
-        return root.findElement(By.cssSelector(".diagram-title")).getAttribute("href");
-    }
-
-    public String getModelReference()
-    {
-        if (!isNotCached()) {
-            return null;
-        }
-        return root.getAttribute("data-reference");
+        return diagram.getAttribute("data-reference");
     }
 
     public boolean hasWarningMessage()
     {
-        return !root.findElements(By.cssSelector(".box.warningmessage")).isEmpty();
+        return !diagram.findElements(By.cssSelector(".box.warningmessage")).isEmpty();
     }
 
     public String getWarningMessage()
     {
-        WebElement box = root.findElement(By.cssSelector(".box.warningmessage p"));
-        return box.getText().trim();
+        WebElement box = diagram.findElement(By.cssSelector(".box.warningmessage p"));
+        return box.getText();
     }
 }

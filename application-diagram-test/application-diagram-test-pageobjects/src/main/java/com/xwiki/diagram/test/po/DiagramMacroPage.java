@@ -27,6 +27,12 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.xwiki.test.ui.po.ViewPage;
 
+/**
+ * Represents a page containing one or more Diagram macros.
+ *
+ * @version $Id$
+ * @since 1.22.7
+ */
 public class DiagramMacroPage extends ViewPage
 {
     public List<DiagramMacro> getDiagrams()

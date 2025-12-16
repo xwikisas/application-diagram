@@ -43,18 +43,25 @@ import com.xwiki.diagram.test.po.DiagramMacroPage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * UI tests for the Diagram Macro.
+ *
+ * @version $Id$
+ * @since 1.22.7
+ */
 @UITest
 public class DiagramIT
 {
+    private final DocumentReference diagramReference1 = new DocumentReference("xwiki", "Main", "DiagramTest");
+
+    private final DocumentReference diagramReference2 = new DocumentReference("xwiki", "Main", "DiagramTestRenamed");
+
     @BeforeEach
     void beforeEach(TestUtils testUtils)
     {
-
         testUtils.loginAsSuperAdmin();
-        DocumentReference documentReference = new DocumentReference("xwiki", "Main", "DiagramTest");
-        DocumentReference documentReference2 = new DocumentReference("xwiki", "Main", "DiagramTestRenamed");
-        testUtils.deletePage(documentReference);
-        testUtils.deletePage(documentReference2);
+        testUtils.deletePage(diagramReference1);
+        testUtils.deletePage(diagramReference2);
     }
 
     @Test
@@ -68,36 +75,46 @@ public class DiagramIT
         setup.createPage(testReference, getMacroContent("diagramPage.vm"), "PageWithDiagramsTest");
         DiagramMacroPage page = new DiagramMacroPage();
 
+        // Cached diagram macro with no specified reference.
         DiagramMacro d0 = page.getDiagram(0);
         assertTrue(d0.isCreateButton());
-        assertTrue(d0.getCreateButtonURL().contains("template=Diagram"));
+        assertTrue(d0.getCreateButtonLink().contains("template=Diagram"));
 
+        // Non-cached diagram macro with a non-existing reference specified (its same as cached in this case).
         DiagramMacro d1 = page.getDiagram(1);
         assertTrue(d1.isCreateButton());
-        assertTrue(d1.getCreateButtonURL().contains("template=Diagram"));
+        assertTrue(d1.getCreateButtonLink().contains("template=Diagram"));
 
+        // Cached diagram macro with a correct reference.
         DiagramMacro d2 = page.getDiagram(2);
-        assertTrue(d2.isCachedDiagram());
-        assertTrue(d2.hasSVG());
-        assertTrue(d2.getDiagramEditLink().contains("DiagramTest"));
-        assertEquals("DiagramTest", d2.getDiagramName());
-        assertTrue(d2.getDiagramReference().contains("DiagramTest"));
+        assertTrue(d2.hasThumbnail());
+        assertTrue(d2.hasSvg());
+        assertTrue(d2.getEditLink().contains("DiagramTest"));
+        assertEquals("DiagramTest", d2.getCaption());
+        assertTrue(d2.getLink().contains("DiagramTest"));
 
+        // Cached diagram macro with a reference that is not a diagram.
         DiagramMacro d3 = page.getDiagram(3);
-        assertTrue(d3.isCachedDiagram());
-        assertEquals("PageWithNoDiagram", d3.getDiagramName());
+        assertEquals("PageWithNoDiagram", d3.getCaption());
+        assertTrue(d3.getLink().contains("PageWithNoDiagram"));
+        assertTrue(d3.hasThumbnail());
         assertTrue(d3.hasWarningMessage());
         assertEquals("The specified page is not a diagram.", d3.getWarningMessage());
 
+        // Non-cached diagram macro with a reference that is not a diagram (its same as cached in this case).
         DiagramMacro d4 = page.getDiagram(4);
-        assertTrue(d4.isCachedDiagram());
-        assertEquals("PageWithNoDiagram", d4.getDiagramName());
+        assertEquals("PageWithNoDiagram", d4.getCaption());
+        assertTrue(d4.getLink().contains("PageWithNoDiagram"));
+        assertTrue(d4.hasThumbnail());
         assertTrue(d4.hasWarningMessage());
         assertEquals("The specified page is not a diagram.", d4.getWarningMessage());
 
+        // Non-cached diagram macro with a correct reference.
         DiagramMacro d5 = page.getDiagram(5);
-        assertTrue(d5.isNotCached());
-        assertTrue(d5.getModelReference().contains("DiagramTest"));
+        assertTrue(d5.getReference().contains("DiagramTest"));
+        assertTrue(d5.isInteractiveSvg());
+        assertTrue(d5.hasToolbar());
+        assertTrue(d5.hasDataModel());
     }
 
     @Test
@@ -109,47 +126,42 @@ public class DiagramIT
         DocumentReference docRef = new DocumentReference("xwiki", "Main", "PageWithDiagramsTestRenamed");
         setup.createPage(docRef, getMacroContent("renamedDiagramPage.vm"), "PageWithDiagramsTestRenamed");
 
-        DocumentReference documentReference = new DocumentReference("xwiki", "Main", "DiagramTest");
-
         DiagramMacroPage page = new DiagramMacroPage();
 
         DiagramMacro d0 = page.getDiagram(0);
-        assertTrue(d0.isCachedDiagram());
-        assertTrue(d0.hasSVG());
-        assertTrue(d0.getDiagramEditLink().contains("DiagramTest"));
-        assertEquals("DiagramTest", d0.getDiagramName());
-        assertTrue(d0.getDiagramReference().contains("DiagramTest"));
+        assertTrue(d0.getEditLink().contains("DiagramTest"));
+        assertEquals("DiagramTest", d0.getCaption());
+        assertTrue(d0.getLink().contains("DiagramTest"));
 
         DiagramMacro d1 = page.getDiagram(1);
-        assertTrue(d1.isNotCached());
-        assertTrue(d1.getModelReference().contains("DiagramTest"));
+        assertTrue(d1.getReference().contains("DiagramTest"));
 
-        setup.gotoPage(documentReference);
-        ViewPage viewPage = setup.gotoPage(documentReference);
-        RenamePage renamePage = viewPage.rename();
-        renamePage.getDocumentPicker().setTitle("DiagramTestRenamed");
-        renamePage.clickRenameButton();
+        renamePage(setup, diagramReference1, "DiagramTestRenamed");
 
         setup.gotoPage(docRef);
         DiagramMacroPage renamedPage = new DiagramMacroPage();
 
+        // Checks that after renaming the linked diagram page the references are updated.
         DiagramMacro d2 = renamedPage.getDiagram(0);
-        assertTrue(d2.isCachedDiagram());
-        assertTrue(d2.hasSVG());
-        System.out.println(d2.getDiagramEditLink());
-        assertTrue(d2.getDiagramEditLink().contains("DiagramTestRenamed"));
-        assertEquals("DiagramTestRenamed", d2.getDiagramName());
-        assertTrue(d2.getDiagramReference().contains("DiagramTestRenamed"));
+        assertTrue(d2.getEditLink().contains("DiagramTestRenamed"));
+        assertEquals("DiagramTestRenamed", d2.getCaption());
+        assertTrue(d2.getLink().contains("DiagramTestRenamed"));
 
         DiagramMacro d3 = renamedPage.getDiagram(1);
-        assertTrue(d3.isNotCached());
-        System.out.println(d3.getModelReference());
-        assertTrue(d3.getModelReference().contains("xwiki:Main.DiagramTestRenamed"));
+        assertTrue(d3.getReference().contains("xwiki:Main.DiagramTestRenamed"));
+    }
+
+    private void renamePage(TestUtils setup, DocumentReference documentReference, String newName)
+    {
+        setup.gotoPage(documentReference);
+        ViewPage viewPage = setup.gotoPage(documentReference);
+        RenamePage renamePage = viewPage.rename();
+        renamePage.getDocumentPicker().setTitle(newName);
+        renamePage.clickRenameButton();
     }
 
     private void createDiagram(TestUtils setup)
     {
-
         ViewPage vp = setup.createPage("Main", "DiagramTest", getMacroContent("diagram.xml"), "DiagramTest");
         ObjectEditPage objectEditPage = vp.editObjects();
         objectEditPage.addObject("Diagram.DiagramClass");
