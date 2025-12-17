@@ -27,7 +27,7 @@ import org.xwiki.test.ui.po.BaseElement;
  * Represents a Diagram macro and provides access to its attributes.
  *
  * @version $Id$
- * @since 1.22.7
+ * @since 1.22.8
  */
 public class DiagramMacro extends BaseElement
 {
@@ -70,7 +70,7 @@ public class DiagramMacro extends BaseElement
         return diagram.getAttribute("data-toolbar") != null;
     }
 
-    public String getCreateButtonLink()
+    public String getCreateButtonTemplateType()
     {
         if (!isCreateButton()) {
             return null;

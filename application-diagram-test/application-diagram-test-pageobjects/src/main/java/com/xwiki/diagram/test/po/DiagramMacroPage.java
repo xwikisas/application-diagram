@@ -31,7 +31,7 @@ import org.xwiki.test.ui.po.ViewPage;
  * Represents a page containing one or more Diagram macros.
  *
  * @version $Id$
- * @since 1.22.7
+ * @since 1.22.8
  */
 public class DiagramMacroPage extends ViewPage
 {

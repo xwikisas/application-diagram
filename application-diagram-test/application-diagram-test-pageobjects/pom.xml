@@ -29,9 +29,7 @@
     <artifactId>application-diagram-test</artifactId>
     <version>1.22.7-SNAPSHOT</version>
   </parent>
-
   <artifactId>application-diagram-test-pageobjects</artifactId>
-
   <dependencies>
     <dependency>
       <groupId>org.xwiki.platform</groupId>

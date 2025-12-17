@@ -29,9 +29,7 @@
     <artifactId>application-diagram-test</artifactId>
     <version>1.22.7-SNAPSHOT</version>
   </parent>
-
   <artifactId>application-diagram-test-docker</artifactId>
-
   <properties>
     <xwiki.surefire.captureconsole.skip>true</xwiki.surefire.captureconsole.skip>
   </properties>
@@ -54,12 +52,6 @@
       <artifactId>application-licensing-test-api</artifactId>
       <version>${licensing.version}</version>
       <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-panels-ui</artifactId>
-      <version>${platform.version}</version>
-      <type>xar</type>
     </dependency>
     <!-- Test dependencies -->
     <dependency>

@@ -28,7 +28,7 @@ import org.xwiki.test.docker.junit5.UITest;
  * All UI tests for the Diagram Macro.
  *
  * @version $Id$
- * @since 1.22.7
+ * @since 1.22.8
  */
 @UITest
 public class AllITs

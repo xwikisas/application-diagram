@@ -29,7 +29,6 @@
     <artifactId>application-diagram-parent</artifactId>
     <version>1.22.7-SNAPSHOT</version>
   </parent>
-
   <packaging>pom</packaging>
   <artifactId>application-diagram-test</artifactId>
   <properties>

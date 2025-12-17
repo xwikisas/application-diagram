@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * UI tests for the Diagram Macro.
  *
  * @version $Id$
- * @since 1.22.7
+ * @since 1.22.8
  */
 @UITest
 public class DiagramIT
@@ -77,12 +77,12 @@ public class DiagramIT
         // Cached diagram macro with no specified reference.
         DiagramMacro d0 = page.getDiagram(0);
         assertTrue(d0.isCreateButton());
-        assertTrue(d0.getCreateButtonLink().contains("template=Diagram"));
+        assertTrue(d0.getCreateButtonTemplateType().contains("template=Diagram"));
 
         // Non-cached diagram macro with a non-existing reference specified (its same as cached in this case).
         DiagramMacro d1 = page.getDiagram(1);
         assertTrue(d1.isCreateButton());
-        assertTrue(d1.getCreateButtonLink().contains("template=Diagram"));
+        assertTrue(d1.getCreateButtonTemplateType().contains("template=Diagram"));
 
         // Cached diagram macro with a correct reference.
         DiagramMacro d2 = page.getDiagram(2);
