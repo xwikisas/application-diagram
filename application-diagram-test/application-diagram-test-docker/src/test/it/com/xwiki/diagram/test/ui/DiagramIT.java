@@ -62,16 +62,37 @@ public class DiagramIT
         testUtils.loginAsSuperAdmin();
         testUtils.deletePage(diagramReference1);
         testUtils.deletePage(diagramReference2);
+        createDiagram(testUtils);
     }
 
     @Test
     @Order(1)
-    void diagramMacroTest(TestUtils setup, TestReference testReference)
+    void cachedDiagramMacroTest(TestUtils setup, TestReference testReference)
     {
-        createDiagram(setup);
-        setup.createPage("Main", "PageWithNoDiagram", "normal page with no diagrams", "PageWithNoDiagram");
+        setup.createPage(testReference, getMacroContent("cachedDiagrams.vm"), "CachedDiagramTest");
+        DiagramMacroPage page = new DiagramMacroPage();
 
-        setup.createPage(testReference, getMacroContent("diagramPage.vm"), "PageWithDiagramsTest");
+        // Cached diagram macro with a correct reference.
+        DiagramMacro d0 = page.getDiagram(0);
+        assertTrue(d0.hasThumbnail());
+        assertTrue(d0.hasSvg());
+        assertTrue(d0.getEditLink().contains("DiagramTest"));
+        assertEquals("DiagramTest", d0.getCaption());
+        assertTrue(d0.getLink().contains("DiagramTest"));
+
+        // Non-cached diagram macro with a correct reference.
+        DiagramMacro d1 = page.getDiagram(1);
+        assertTrue(d1.getReference().contains("DiagramTest"));
+        assertTrue(d1.isInteractiveSvg());
+        assertTrue(d1.hasToolbar());
+        assertTrue(d1.hasDataModel());
+    }
+
+    @Test
+    @Order(2)
+    void nonExistingReferenceTest(TestUtils setup, TestReference testReference)
+    {
+        setup.createPage(testReference, getMacroContent("referenceDiagrams.vm"), "ExistingReferenceDiagramTest");
         DiagramMacroPage page = new DiagramMacroPage();
 
         // Cached diagram macro with no specified reference.
@@ -83,44 +104,38 @@ public class DiagramIT
         DiagramMacro d1 = page.getDiagram(1);
         assertTrue(d1.isCreateButton());
         assertTrue(d1.getCreateButtonTemplateType().contains("template=Diagram"));
-
-        // Cached diagram macro with a correct reference.
-        DiagramMacro d2 = page.getDiagram(2);
-        assertTrue(d2.hasThumbnail());
-        assertTrue(d2.hasSvg());
-        assertTrue(d2.getEditLink().contains("DiagramTest"));
-        assertEquals("DiagramTest", d2.getCaption());
-        assertTrue(d2.getLink().contains("DiagramTest"));
-
-        // Cached diagram macro with a reference that is not a diagram.
-        DiagramMacro d3 = page.getDiagram(3);
-        assertEquals("PageWithNoDiagram", d3.getCaption());
-        assertTrue(d3.getLink().contains("PageWithNoDiagram"));
-        assertTrue(d3.hasThumbnail());
-        assertTrue(d3.hasWarningMessage());
-        assertEquals("The specified page is not a diagram.", d3.getWarningMessage());
-
-        // Non-cached diagram macro with a reference that is not a diagram (its same as cached in this case).
-        DiagramMacro d4 = page.getDiagram(4);
-        assertEquals("PageWithNoDiagram", d4.getCaption());
-        assertTrue(d4.getLink().contains("PageWithNoDiagram"));
-        assertTrue(d4.hasThumbnail());
-        assertTrue(d4.hasWarningMessage());
-        assertEquals("The specified page is not a diagram.", d4.getWarningMessage());
-
-        // Non-cached diagram macro with a correct reference.
-        DiagramMacro d5 = page.getDiagram(5);
-        assertTrue(d5.getReference().contains("DiagramTest"));
-        assertTrue(d5.isInteractiveSvg());
-        assertTrue(d5.hasToolbar());
-        assertTrue(d5.hasDataModel());
     }
 
     @Test
-    @Order(2)
+    @Order(3)
+    void invalidTemplateReferenceTest(TestUtils setup, TestReference testReference)
+    {
+        setup.createPage("Main", "PageWithNoDiagram", "normal page with no diagrams", "PageWithNoDiagram");
+
+        setup.createPage(testReference, getMacroContent("templateDiagrams.vm"), "InvalidReferenceDiagramTest");
+        DiagramMacroPage page = new DiagramMacroPage();
+
+        // Cached diagram macro with a reference that is not a diagram.
+        DiagramMacro d0 = page.getDiagram(0);
+        assertEquals("PageWithNoDiagram", d0.getCaption());
+        assertTrue(d0.getLink().contains("PageWithNoDiagram"));
+        assertTrue(d0.hasThumbnail());
+        assertTrue(d0.hasWarningMessage());
+        assertEquals("The specified page is not a diagram.", d0.getWarningMessage());
+
+        // Non-cached diagram macro with a reference that is not a diagram (its same as cached in this case).
+        DiagramMacro d1 = page.getDiagram(1);
+        assertEquals("PageWithNoDiagram", d1.getCaption());
+        assertTrue(d1.getLink().contains("PageWithNoDiagram"));
+        assertTrue(d1.hasThumbnail());
+        assertTrue(d1.hasWarningMessage());
+        assertEquals("The specified page is not a diagram.", d1.getWarningMessage());
+    }
+
+    @Test
+    @Order(4)
     void renamedDiagramTest(TestUtils setup)
     {
-        createDiagram(setup);
         DocumentReference docRef = new DocumentReference("xwiki", "Main", "PageWithDiagramsTestRenamed");
         setup.createPage(docRef, getMacroContent("renamedDiagramPage.vm"), "PageWithDiagramsTestRenamed");
 

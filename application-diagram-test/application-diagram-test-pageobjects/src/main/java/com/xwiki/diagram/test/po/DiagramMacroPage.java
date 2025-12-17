@@ -35,6 +35,11 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class DiagramMacroPage extends ViewPage
 {
+    /*
+       Elements are selected and collected this way because the CSS classes of the Diagram macros vary depending on
+       their parameters (cached vs non-cached) and on the reference (valid vs invalid). Therefore, we need to include
+       all known variants to reliably find all macros on the page.
+     */
     public List<DiagramMacro> getDiagrams()
     {
         List<WebElement> elements = new ArrayList<>();
