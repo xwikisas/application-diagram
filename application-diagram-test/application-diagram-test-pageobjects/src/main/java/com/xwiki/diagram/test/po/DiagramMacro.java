@@ -40,7 +40,15 @@ public class DiagramMacro extends BaseElement
 
     public boolean isCreateButton()
     {
-        return diagram.getAttribute("class").contains("diagram-create");
+        return !diagram.findElements(By.cssSelector("a.diagram-create")).isEmpty();
+    }
+
+    public String getCreateButtonTemplateType()
+    {
+        if (!isCreateButton()) {
+            return null;
+        }
+        return diagram.findElement(By.cssSelector("a.diagram-create")).getAttribute("href");
     }
 
     public boolean hasThumbnail()
@@ -62,20 +70,12 @@ public class DiagramMacro extends BaseElement
 
     public boolean hasDataModel()
     {
-        return diagram.getAttribute("data-model") != null;
+        return getInnerDiagram().getAttribute("data-model") != null;
     }
 
     public boolean hasToolbar()
     {
-        return diagram.getAttribute("data-toolbar") != null;
-    }
-
-    public String getCreateButtonTemplateType()
-    {
-        if (!isCreateButton()) {
-            return null;
-        }
-        return diagram.getAttribute("href");
+        return getInnerDiagram().getAttribute("data-toolbar") != null;
     }
 
     public String getEditLink()
@@ -95,7 +95,7 @@ public class DiagramMacro extends BaseElement
 
     public String getReference()
     {
-        return diagram.getAttribute("data-reference");
+        return getInnerDiagram().getAttribute("data-reference");
     }
 
     public boolean hasWarningMessage()
@@ -105,7 +105,12 @@ public class DiagramMacro extends BaseElement
 
     public String getWarningMessage()
     {
-        WebElement box = diagram.findElement(By.cssSelector(".box.warningmessage p"));
+        WebElement box = diagram.findElement(By.cssSelector(".box.warningmessage"));
         return box.getText();
+    }
+
+    private WebElement getInnerDiagram()
+    {
+        return diagram.findElement(By.cssSelector(".diagram"));
     }
 }

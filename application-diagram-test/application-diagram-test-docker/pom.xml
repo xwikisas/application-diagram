@@ -27,7 +27,7 @@
   <parent>
     <groupId>com.xwiki.diagram</groupId>
     <artifactId>application-diagram-test</artifactId>
-    <version>1.22.7-SNAPSHOT</version>
+    <version>1.22.8-SNAPSHOT</version>
   </parent>
   <artifactId>application-diagram-test-docker</artifactId>
   <properties>
@@ -81,11 +81,6 @@
       <artifactId>xwiki-platform-panels-test-pageobjects</artifactId>
       <version>${platform.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-display-macro</artifactId>
-      <version>${platform.version}</version>
     </dependency>
   </dependencies>
   <build>

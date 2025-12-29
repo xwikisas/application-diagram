@@ -19,12 +19,10 @@
  */
 package com.xwiki.diagram.test.po;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -35,23 +33,11 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class DiagramMacroPage extends ViewPage
 {
-    /*
-       Elements are selected and collected this way because the CSS classes of the Diagram macros vary depending on
-       their parameters (cached vs non-cached) and on the reference (valid vs invalid). Therefore, we need to include
-       all known variants to reliably find all macros on the page.
-     */
-    public List<DiagramMacro> getDiagrams()
-    {
-        List<WebElement> elements = new ArrayList<>();
-        elements.addAll(getDriver().findElements(By.cssSelector(".diagram-create")));
-        elements.addAll(getDriver().findElements(By.cssSelector(".diagram-container")));
-        elements.addAll(getDriver().findElements(By.cssSelector(".diagram")));
-
-        return elements.stream().map(DiagramMacro::new).collect(Collectors.toList());
-    }
+    @FindBy(css = ".diagramMacro")
+    private List<WebElement> diagramMacros;
 
     public DiagramMacro getDiagram(int index)
     {
-        return getDiagrams().get(index);
+        return new DiagramMacro(diagramMacros.get(index));
     }
 }
