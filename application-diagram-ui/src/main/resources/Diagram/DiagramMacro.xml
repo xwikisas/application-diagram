@@ -399,7 +399,9 @@
           #set ($output = "{{warning}}$escapedErrorMessage{{/warning}}")
         #end
       #else
-        #set ($output = "{{display reference='$services.rendering.escape($reference, $xcontext.macro.doc.syntax)' /}}")
+        (% class="diagramMacro" %)(((
+        {{display reference='$services.rendering.escape($reference, $xcontext.macro.doc.syntax)' /}})))
+        #set ($output = '')
         #set ($showCaption = false)
       #end
     #else
@@ -414,12 +416,12 @@
     #end
   #end
   #if ($showCaption)
-    (% class="diagram-container" %)(((
-      (% class="thumbnail" %)(((
+    (% class="diagramMacro" %)(((
+      (% class="diagram-container" %)(((
+        (% class="thumbnail" %)(((
   #end
   $output
   #if ($showCaption)
-
         {{html clean="false"}}
         &lt;div class="caption"&gt;
           &lt;a class="diagram-title" href="$xwiki.getURL($reference)"
@@ -451,10 +453,12 @@
     'template': 'Diagram.DiagramTemplate',
     'form_token': $escapetool.xml($services.csrf.token)
   })))
-  &lt;div&gt;
-    &lt;a class="diagram-create btn btn-default" href="$createURL"&gt;
-      $escapetool.xml($services.localization.render('diagram.macro.create'))
-    &lt;/a&gt;
+  &lt;div class="diagramMacro"&gt;
+    &lt;div&gt;
+      &lt;a class="diagram-create btn btn-default" href="$createURL"&gt;
+        $escapetool.xml($services.localization.render('diagram.macro.create'))
+      &lt;/a&gt;
+    &lt;/div&gt;
   &lt;/div&gt;
   {{/html}}
 #end
