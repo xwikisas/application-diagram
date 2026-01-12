@@ -350,7 +350,7 @@ define('diagram-viewer', [
   var renderDiagram = function(element, diagramXML, fromStorage, configOverride) {
     element.innerHTML = '';
     var diagramRootNode = diagramXML;
-    if (!diagramRootNode || diagramRootNode.localName != 'mxfile') {
+    if (!diagramRootNode || (diagramRootNode.localName != 'mxfile' &amp;&amp; diagramRootNode.localName != 'mxGraphModel')) {
       throw "Invalid diagram XML.";
     }
     diagramRootNode.fromStorage = fromStorage;
