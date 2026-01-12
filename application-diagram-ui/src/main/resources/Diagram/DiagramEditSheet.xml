@@ -189,8 +189,16 @@
       <code>/**
  * Adds support for editing diagrams stored in XWiki pages.
  */
-define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils', 'diagram-config', 'draw.io',
-    'xwiki-events-bridge'], function($, xm, xutils, diagramUtils, diagramConfig) {
+define('diagramEditTranslations', {
+  prefix: 'diagram.editor.',
+  keys: [
+    'saveAsImageAttachmentError'
+  ]
+});
+
+define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils', 'diagram-config',
+        'xwiki-l10n!diagramEditTranslations', 'draw.io',
+    'xwiki-events-bridge'], function($, xm, xutils, diagramUtils, diagramConfig, l10n) {
   var files = [];
   window._xfiles = files;
   var createFile = function(ui, input, title, documentReference) {
@@ -315,7 +323,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       }
     }, /* width */ null, /* imageCache */ imageCache, /* background */ null, /* error */ function(e) {
       new XWiki.widgets.Notification(
-        $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
+        l10n['saveAsImageAttachmentError'], 'error');
       deferred.reject();
     }, /* limitHeight */ null, /* ignoreSelection */ true, /* scale */ diagramConfig.pdfImageExportZoom);
     file.ui.selectPage(originalPage, true, null);
@@ -360,8 +368,12 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var deleteAllDiagrams = function() {
-    let baseUrl = `${XWiki.contextPath}/rest/diagram/${encodeURIComponent(xm.documentReference.toString())}`;
-    let queryString = $.param({"form_token": xm.form_token});
+    let baseUrl =
+      `${XWiki.contextPath}/rest/diagram/deleteDocAttachments`;
+    let queryString = $.param({
+      "form_token": xm.form_token,
+      "documentReference": encodeURIComponent(xm.documentReference.toString())
+    });
     return $.post(`${baseUrl}?${queryString}`);
   };
 
@@ -406,7 +418,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
       .then(saveFilesAsImageAttachments)
       .catch(function(e) {
         new XWiki.widgets.Notification(
-          $jsontool.serialize($services.localization.render('diagram.editor.saveAsImageAttachmentError')), 'error');
+          l10n['saveAsImageAttachmentError'], 'error');
       })
       .always(function() {
         saveButton.prop('disabled', false).click();
