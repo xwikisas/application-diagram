@@ -197,7 +197,7 @@ define('diagramEditTranslations', {
 });
 
 define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils', 'diagram-config',
-        'xwiki-l10n!diagramEditTranslations', 'draw.io',
+    'xwiki-l10n!diagramEditTranslations', 'draw.io',
     'xwiki-events-bridge'], function($, xm, xutils, diagramUtils, diagramConfig, l10n) {
   var files = [];
   window._xfiles = files;
