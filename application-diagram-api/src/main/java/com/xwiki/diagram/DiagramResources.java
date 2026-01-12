@@ -22,7 +22,6 @@ package com.xwiki.diagram;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
@@ -44,19 +43,7 @@ public interface DiagramResources extends XWikiRestComponent
      * errors.
      */
     @POST
-    @Path("{documentReference}")
-    Response deleteAttachments(
-        @PathParam("documentReference") @Encoded String documentReference) throws Exception;
-
-    /**
-     * Deletes the attachments associated with a diagram.
-     *
-     * @param documentReference
-     * @return OK if the deletion was successfully finished, 405 if the user doesn't have rights or 500 for other
-     * errors.
-     */
-    @POST
     @Path("deleteDiagramAttachments")
-    Response deleteDiagramAttachments(
+    Response deleteAttachments(
         @QueryParam("documentReference") @Encoded String documentReference) throws Exception;
 }

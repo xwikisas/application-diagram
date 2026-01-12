@@ -368,8 +368,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
   };
 
   var deleteAllDiagrams = function() {
-    let baseUrl =
-      `${XWiki.contextPath}/rest/diagram/deleteDiagramAttachments`;
+    let baseUrl = `${XWiki.contextPath}/rest/diagram/deleteDiagramAttachments`;
     let queryString = $.param({
       "form_token": xm.form_token,
       "documentReference": encodeURIComponent(xm.documentReference.toString())

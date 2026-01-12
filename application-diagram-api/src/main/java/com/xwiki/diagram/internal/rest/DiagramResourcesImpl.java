@@ -72,12 +72,6 @@ public class DiagramResourcesImpl extends XWikiResource implements DiagramResour
     @Override
     public Response deleteAttachments(String documentReference) throws Exception
     {
-        return deleteDiagramAttachments(documentReference);
-    }
-
-    @Override
-    public Response deleteDiagramAttachments(String documentReference) throws Exception
-    {
 
         XWikiContext context = contextProvider.get();
         XWiki xwiki = context.getWiki();
