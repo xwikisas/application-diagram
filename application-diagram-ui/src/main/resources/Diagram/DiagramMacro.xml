@@ -399,9 +399,8 @@
           #set ($output = "{{warning}}$escapedErrorMessage{{/warning}}")
         #end
       #else
-        (% class="diagramMacro" %)(((
-        {{display reference='$services.rendering.escape($reference, $xcontext.macro.doc.syntax)' /}})))
-        #set ($output = '')
+        #set ($output = "(% class='diagramMacro' %)((({{display reference='$services.rendering.escape($reference,
+        $xcontext.macro.doc.syntax)' /}})))")
         #set ($showCaption = false)
       #end
     #else
@@ -434,6 +433,7 @@
           #end
         &lt;/div&gt;
         {{/html}}
+        )))
       )))
     )))
   #end
