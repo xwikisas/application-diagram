@@ -56,7 +56,7 @@ public interface DiagramResources extends XWikiRestComponent
      * errors.
      */
     @POST
-    @Path("deleteDocAttachments")
+    @Path("deleteDiagramAttachments")
     Response deleteDiagramAttachments(
         @QueryParam("documentReference") @Encoded String documentReference) throws Exception;
 }
