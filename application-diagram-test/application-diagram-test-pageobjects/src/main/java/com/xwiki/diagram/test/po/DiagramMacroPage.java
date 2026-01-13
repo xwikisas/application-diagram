@@ -20,9 +20,10 @@
 package com.xwiki.diagram.test.po;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
 import org.xwiki.test.ui.po.ViewPage;
 
 /**
@@ -33,11 +34,16 @@ import org.xwiki.test.ui.po.ViewPage;
  */
 public class DiagramMacroPage extends ViewPage
 {
-    @FindBy(css = ".diagramMacro")
-    private List<WebElement> diagramMacros;
+    public List<DiagramMacro> getDiagramMacros()
+    {
+        List<WebElement> elements =
+            getDriver().findElements(By.cssSelector(".diagram-container, .diagram-create, .diagram"));
+
+        return elements.stream().map(DiagramMacro::new).collect(Collectors.toList());
+    }
 
     public DiagramMacro getDiagram(int index)
     {
-        return new DiagramMacro(diagramMacros.get(index));
+        return getDiagramMacros().get(index);
     }
 }
