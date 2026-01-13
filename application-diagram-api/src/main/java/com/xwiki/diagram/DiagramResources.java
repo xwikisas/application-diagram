@@ -22,7 +22,7 @@ package com.xwiki.diagram;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.xwiki.rest.XWikiRestComponent;
@@ -43,7 +43,7 @@ public interface DiagramResources extends XWikiRestComponent
      * errors.
      */
     @POST
-    @Path("{documentReference}")
+    @Path("deleteDiagramAttachments")
     Response deleteAttachments(
-        @PathParam("documentReference") @Encoded String documentReference) throws Exception;
+        @QueryParam("documentReference") @Encoded String documentReference) throws Exception;
 }
