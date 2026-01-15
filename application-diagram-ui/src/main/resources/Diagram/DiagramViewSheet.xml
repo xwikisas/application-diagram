@@ -276,6 +276,30 @@ define('diagram-viewer', [
     return config;
   };
 
+  const observer = new MutationObserver((mutations) =&gt; {
+    mutations.forEach((mutation) =&gt; {
+      mutation.addedNodes.forEach((node) =&gt; {
+        if ($(node).hasClass('xwiki-diagram-drawio-toolbar')) {
+          node.style.width = Math.min($('#xwikicontent').width(), parseInt(node.style.width)) + 'px';
+        }
+      });
+      if (mutation.type === 'attributes') {
+        if ($(mutation.target).hasClass('xwiki-diagram-drawio-toolbar')) {
+          mutation.target.style.width =
+            Math.min($('#xwikicontent').width(), parseInt(mutation.target.style.width)) + 'px';
+        }
+      }
+    });
+  });
+
+  // Enforce the maximum width of the diagram toolbar to prevent overflows.
+  observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style']
+  });
+
   // Fix position of a dialog at the top of the window.
   Dialog.prototype.fixDialogPosition = function() {
     this.container.style.top = '0px';
@@ -362,6 +386,8 @@ define('diagram-viewer', [
       var diagramLink = $('&lt;a/&gt;').attr('href', diagramViewURL).text(config.title);
       $(graphViewer.toolbar).children().last().empty().append(diagramLink);
     }
+    // Identify the toolbar by class.
+    $(graphViewer.toolbar).addClass('xwiki-diagram-drawio-toolbar');
   }
 
   function getErrorKey(externalDiagramUrl, hasUser) {
