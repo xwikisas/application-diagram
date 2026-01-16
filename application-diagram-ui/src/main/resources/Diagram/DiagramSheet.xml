@@ -1285,7 +1285,7 @@ body.geEditor {
 
 /* Overwrite the .geEditor button to make all the primary buttons and the drawer button the right color. */
 .geEditor button.btn-primary, .geEditor #tmDrawerActivator {
-  background-color: @navbar-default-bg;
+  background-color: @btn-primary-bg;
 }
 </code>
     </property>
