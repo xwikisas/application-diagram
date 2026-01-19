@@ -878,7 +878,7 @@ define('diagram-editor', [
   'diagram-image-editor',
   'diagram-external-services'
 ], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig, l10n) {
-  var diagramEditorBasePath = "$services.webjars.url('org.xwiki.contrib:draw.io', '')";
+  var diagramEditorKeyboardShortcutsPath = "$services.webjars.url('org.xwiki.contrib:draw.io', 'shortcuts.svg')";
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
   // Default values:
@@ -1075,7 +1075,7 @@ define('diagram-editor', [
       var originalFunct = keyboardShortcutsAction.funct;
       keyboardShortcutsAction.funct = function() {
         if (mxClient.IS_SVG) {
-          window.open(diagramEditorBasePath + 'shortcuts.svg');
+          window.open(diagramEditorKeyboardShortcutsPath);
         } else {
           originalFunct.apply(this, arguments);
         }
