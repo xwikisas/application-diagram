@@ -358,7 +358,11 @@
       <async_enabled/>
     </property>
     <property>
-      <code>{{include reference="Diagram.CommonCode"/}}
+      <code>{{velocity}}
+#if ($services.licensing.licensor.hasLicensureForEntity($xcontext.macro.doc.documentReference))
+  {{include reference="Diagram.CommonCode"/}}
+#end
+{{/velocity}}
 
 {{velocity output="false"}}
 #macro (displayDiagram $reference)
