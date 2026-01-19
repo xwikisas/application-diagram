@@ -878,7 +878,7 @@ define('diagram-editor', [
   'diagram-image-editor',
   'diagram-external-services'
 ], function($, diagramStore, diagramUtils, diagramUrlIO, diagramConfig, l10n) {
-
+  var diagramEditorBasePath = "$services.webjars.url('org.xwiki.contrib:draw.io', '')";
   // These variables are used to decide if an image should be uploaded at original resolution or
   // should be declined for being too big.
   // Default values:
