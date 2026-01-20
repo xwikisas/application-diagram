@@ -37,9 +37,9 @@
     <system>GitHub</system>
     <url>https://github.com/xwikisas/application-diagram/issues</url>
   </issueManagement>
-  <scm>
+  <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
     <connection>scm:git:https://github.com/xwikisas/application-diagram.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com:xwikisas/application-diagram.git</developerConnection>
+    <developerConnection>scm:git:ssh://git@github.com/xwikisas/application-diagram.git</developerConnection>
     <url>https://github.com/xwikisas/application-diagram</url>
     <tag>HEAD</tag>
   </scm>
