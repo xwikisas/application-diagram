@@ -47,9 +47,6 @@ public class LinkRegistry
     private static final String ENTITY_PREFIX = "entity:";
 
     @Inject
-    private DiagramContentHandler diagramContentHandler;
-
-    @Inject
     @Named("withtype/withparameters")
     private EntityReferenceSerializer<String> entitySerializer;
 
