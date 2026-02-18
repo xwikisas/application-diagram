@@ -20,40 +20,48 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="Diagram.CommonCode" locale="">
+<xwikidoc version="1.5" reference="Diagram.DiagramLinkModal" locale="">
   <web>Diagram</web>
-  <name>CommonCode</name>
+  <name>DiagramLinkModal</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Diagram.WebHome</parent>
+  <parent>Diagram.DiagramEditSheet</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>CommonCode</title>
+  <title>DiagramLinkModal</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
-
-## When putting the code of an SVG image directly in an HTML document,
-## we need to remove the XML prelude:
-##  &lt;?xml version="1.0" encoding="UTF-8"?&gt;)
-## and the doctype:
-## &lt;!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"&gt;
-## because they are forbidden and they confuse either the browser or pagedjs
-## and completely break the rendering on exports.
-#macro (stripXMLPreludeAndDoctype $xmlCode)
-  $xmlCode.replaceFirst('&lt;\?[^&gt;]+&gt;', '').replaceFirst('&lt;!DOCTYPE[^&gt;]+&gt;', '').trim()
+#macro (diagramLinkModal)
+  &lt;div class="modal" id="diagramLinkModal" tabindex="-1" role="dialog"
+      aria-labelledby="diagramLinkModal-label" data-backdrop="static" data-keyboard="false"&gt;
+    &lt;div class="modal-dialog modal-lg" role="document"&gt;
+      &lt;div class="modal-content"&gt;
+        &lt;div class="modal-header"&gt;
+          &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+            &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
+          &lt;/button&gt;
+          &lt;div class="modal-title" id="diagramLinkModal-label"&gt;
+            Link
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="modal-body xform"&gt;
+          #resourceSelector()
+        &lt;/div&gt;
+        &lt;div class="modal-footer"&gt;
+          &lt;button type="button" class="btn btn-default" data-dismiss="modal"&gt;
+            $escapetool.xml($services.localization.render('cancel'))
+          &lt;/button&gt;
+          &lt;button type="button" class="btn btn-primary"&gt;&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
 #end
-
-## Show a diagram using the SVG attachment given by its filename.
-## Must be called inside a {{html clean=false}} macro (cleaning breaks the SVG code)
-#macro (showDiagramSVGInHTML $diagramDoc $svgAttachmentFilename)
-  ## we don't use &lt;img&gt; because we want links to be clickable
-  ## see https://github.com/xwikisas/application-diagram/issues/311
-  #stripXMLPreludeAndDoctype($diagramDoc.getAttachment($svgAttachmentFilename).getContentAsString())
-#end</content>
+{{/velocity}}</content>
 </xwikidoc>
