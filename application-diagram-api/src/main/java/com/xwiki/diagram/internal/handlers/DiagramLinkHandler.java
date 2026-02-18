@@ -127,10 +127,12 @@ public class DiagramLinkHandler
      * @param node UserObject node
      * @param newDocumentRef document's reference after rename
      * @param oldDocumentRef document's reference before rename
+     * @return true if the node was updated, false otherwise.
      */
-    public void updateUserObjectNode(Node node, DocumentReference newDocumentRef, DocumentReference oldDocumentRef)
+    public boolean updateUserObjectNode(Node node, DocumentReference newDocumentRef, DocumentReference oldDocumentRef)
         throws IOException, ParserConfigurationException, SAXException
     {
+        boolean modified = false;
         if (node.hasChildNodes()) {
             Node linkNode = node.getAttributes().getNamedItem(LINK);
             if (linkNode != null) {
@@ -140,35 +142,39 @@ public class DiagramLinkHandler
                 {
                     String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
                     linkNode.setTextContent(newSource);
+                    modified = true;
                 }
             }
             linkNode = node.getAttributes().getNamedItem(LABEL);
             if (linkNode != null) {
-                updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
+                modified |= updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
             }
         }
+        return modified;
     }
 
     /**
      * Modify content of mxCell node of the diagram, to contain the new name of the link.
      * 
      * @param node mxCell node
+     * @return true if the node has been updated, false otherwise.
      * @param newDocumentRef document's reference after rename
      * @param oldDocumentRef document's reference before rename
      * @throws ParserConfigurationException if document builder cannot be created
      * @throws SAXException if parsing the document fails
      * @throws IOException if parsing the document fails
      */
-    public void updateMxCellNode(Node node, DocumentReference newDocumentRef, DocumentReference oldDocumentRef)
+    public boolean updateMxCellNode(Node node, DocumentReference newDocumentRef, DocumentReference oldDocumentRef)
         throws ParserConfigurationException, SAXException, IOException
     {
         if (node.hasChildNodes()) {
             Node linkNode = node.getAttributes().getNamedItem("value");
             if (linkNode == null) {
-                return;
+                return false;
             }
-            updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
+            return updateEmbeddedLinks(linkNode, newDocumentRef, oldDocumentRef);
         }
+        return false;
     }
 
     /**
@@ -176,13 +182,16 @@ public class DiagramLinkHandler
      * @param linkNode attribute node that contains the links
      * @param newDocumentRef new document reference.
      * @param oldDocumentRef old document reference.
+     * @return returns true if the node was updated, false otherwise.
      */
-    private void updateEmbeddedLinks(Node linkNode, DocumentReference newDocumentRef,
+    private boolean updateEmbeddedLinks(Node linkNode, DocumentReference newDocumentRef,
         DocumentReference oldDocumentRef) throws IOException, ParserConfigurationException, SAXException
     {
+
+        boolean returnValue = false;
         String value = linkNode.getNodeValue();
-        if (value.indexOf(HREF) == -1) {
-            return;
+        if (!value.contains(HREF)) {
+            return false;
         }
 
         // The value attribute contains the text element, which could contain one or more links.
@@ -192,8 +201,10 @@ public class DiagramLinkHandler
             {
                 String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
                 linkNode.setNodeValue(value.replace(oldSource, newSource));
+                returnValue = true;
             }
         }
+        return returnValue;
     }
 
     /**

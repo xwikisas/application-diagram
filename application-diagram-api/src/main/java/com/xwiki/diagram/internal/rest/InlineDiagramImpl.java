@@ -19,8 +19,11 @@
  */
 package com.xwiki.diagram.internal.rest;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Base64;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -43,10 +46,10 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xwiki.diagram.InlineDiagram;
+import com.xwiki.diagram.InlineDiagramResources;
 
 /**
- * Default implementation of {@link InlineDiagram}.
+ * Default implementation of {@link InlineDiagramResources}.
  *
  * @version $Id$
  * @since 1.22.1
@@ -55,9 +58,11 @@ import com.xwiki.diagram.InlineDiagram;
 @Named("com.xwiki.diagram.internal.rest.InlineDiagramImpl")
 @Singleton
 @Unstable
-public class InlineDiagramImpl extends XWikiResource implements InlineDiagram
+public class InlineDiagramImpl extends XWikiResource implements InlineDiagramResources
 {
-    private static final String SUFFIX = ".diagram.xml";
+    private static final String DIAGRAM_SUFFIX = ".diagram.xml";
+
+    private static final String PNG_SUFFIX = ".png";
 
     @Inject
     private ContextualAuthorizationManager authorization;
@@ -77,6 +82,20 @@ public class InlineDiagramImpl extends XWikiResource implements InlineDiagram
     @Override
     public Response save(String sourceReference, String name, InputStream body)
     {
+        return executeSave(sourceReference, name, body, DIAGRAM_SUFFIX);
+    }
+
+    @Override
+    public Response saveRender(String sourceReference, String name, String body)
+    {
+
+        byte[] img = Base64.getDecoder().decode(body);
+        ByteArrayInputStream stream = new ByteArrayInputStream(img);
+        return executeSave(sourceReference, name, stream, PNG_SUFFIX);
+    }
+
+    private Response executeSave(String sourceReference, String name, InputStream body, String suffix)
+    {
         try {
             DocumentReference reference = resolver.resolve(sourceReference);
             XWikiContext context = contextProvider.get();
@@ -86,7 +105,7 @@ public class InlineDiagramImpl extends XWikiResource implements InlineDiagram
             if (!authorization.hasAccess(Right.EDIT, sourceDocument.getDocumentReference())) {
                 return Response.status(Response.Status.FORBIDDEN).build();
             }
-            String fileExactName = name + SUFFIX;
+            String fileExactName = name + suffix;
             XWikiAttachment attachment = sourceDocument.getExactAttachment(fileExactName);
             if (attachment == null) {
                 return createAttachment(xwiki, context, sourceDocument, fileExactName, body);
@@ -112,8 +131,45 @@ public class InlineDiagramImpl extends XWikiResource implements InlineDiagram
     private Response updateAttachment(XWiki xwiki, XWikiContext context, XWikiDocument document,
         XWikiAttachment attachment, InputStream body) throws IOException, XWikiException
     {
-        attachment.setContent(body);
+        byte[] bodyBytes = body.readAllBytes();
+        try (InputStream attachmentContent = attachment.getContentInputStream(context)) {
+            if (areStreamEqual(attachmentContent, new ByteArrayInputStream(bodyBytes))) {
+                return Response.status(Response.Status.OK).build();
+            }
+        }
+
+        attachment.setContent(new ByteArrayInputStream(bodyBytes));
         xwiki.saveDocument(document, context);
         return Response.status(Response.Status.OK).build();
+    }
+
+    /**
+     * @param stream1 first stream to compare
+     * @param stream2 second stream to compare
+     * @return true if the streams are equal, false otherwise
+     */
+    private boolean areStreamEqual(InputStream stream1, InputStream stream2) throws IOException
+    {
+        byte[] buffer1 = new byte[4096];
+        byte[] buffer2 = new byte[4096];
+
+        while (true) {
+            int read1 = stream1.read(buffer1);
+            int read2 = stream2.read(buffer2);
+
+            // The length is different so the streams are different.
+            if (read1 != read2) {
+                return false;
+            }
+
+            // Stream finished
+            if (read1 == -1) {
+                return true;
+            }
+
+            if (!Arrays.equals(buffer1, 0, read1, buffer2, 0, read2)) {
+                return false;
+            }
+        }
     }
 }

@@ -19,8 +19,6 @@
  */
 package com.xwiki.diagram.internal.handlers;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,18 +28,25 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 
+import static com.xwiki.diagram.internal.AttachmentUtils.getContentAsString;
+
+/**
+ * Handles the registration of backlinks for the inline diagrams.
+ * <p>
+ *
+ * @version $Id$
+ * @since 1.22.11
+ */
 @Component
 @Named("macroinlinediagram")
 @Singleton
@@ -54,9 +59,6 @@ public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMeta
 
     @Inject
     private LinkRegistry linkRegistry;
-
-    @Inject
-    private DiagramMacrosReferenceRefactoring diagramMacrosReferenceRefactoring;
 
     @Inject
     @Named("explicit")
@@ -81,27 +83,12 @@ public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMeta
                 + ".xml") && attachment.getDate().after(tenMinutesAgo)).collect(Collectors.toList());
         boolean returnValue = false;
         for (XWikiAttachment attachment : attachments) {
-            String content = getContentAsString(attachment);
-            List<DocumentReference> references =
+            String content = getContentAsString(attachment, contextProvider.get());
+            List<EntityReference> references =
                 diagramContentHandler.getLinkedPages(content, document.getDocumentReference());
             returnValue |= linkRegistry.registerBacklinks(solrDocument, references);
         }
 
         return returnValue;
-    }
-
-    // Copied from https://github.com/xwiki/xwiki-platform/blob/master/xwiki-platform-core/xwiki-platform-oldcore/src/main/java/com/xpn/xwiki/api/Attachment.java
-    private String getContentAsString(XWikiAttachment attachment)
-    {
-        try {
-            // the input stream can be null if the attachment has been deleted for example.
-            InputStream contentInputStream = attachment.getContentInputStream(contextProvider.get());
-            if (contentInputStream != null) {
-                return new String(IOUtils.toByteArray(contentInputStream));
-            }
-        } catch (IOException | XWikiException ex) {
-
-        }
-        return "";
     }
 }

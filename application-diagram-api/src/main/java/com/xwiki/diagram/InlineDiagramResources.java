@@ -40,10 +40,11 @@ import org.xwiki.stability.Unstable;
  */
 @Unstable
 @Path("/diagram/inline")
-public interface InlineDiagram extends XWikiRestComponent
+public interface InlineDiagramResources extends XWikiRestComponent
 {
     /**
-     * Handles the initial save of a diagram and subsequent updates.
+     * Handles the initial save of a diagram and subsequent updates. If is the first save it creates both the png and
+     * the .diagram.xml and if is an update it updates the content.
      *
      * @param sourceReference the document where the diagram should be stored
      * @param name the name of the diagram that we want to save
@@ -57,4 +58,21 @@ public interface InlineDiagram extends XWikiRestComponent
     @Produces(MediaType.APPLICATION_JSON)
     Response save(@PathParam("sourceReference") String sourceReference, @PathParam("name") String name,
         InputStream body);
+
+    /**
+     * Handles the initial save of a diagram and subsequent updates. If is the first save it creates both the png and
+     * the png and if is an update it updates the content.
+     *
+     * @param sourceReference the document where the diagram should be stored
+     * @param name the name of the diagram that we want to save
+     * @param body the content of the diagram as plain text
+     * @return 201 if the diagram was created, 200 if the diagram was updated 403 for forbidden and 500 for any backend
+     *     logic errors.
+     */
+    @POST
+    @Path("saveRender/{sourceReference}/{name}")
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    Response saveRender(@PathParam("sourceReference") String sourceReference, @PathParam("name") String name,
+        String body);
 }

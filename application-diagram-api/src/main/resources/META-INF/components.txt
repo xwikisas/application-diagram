@@ -14,5 +14,7 @@ com.xwiki.diagram.internal.handlers.LinkRegistry
 com.xwiki.diagram.script.DiagramScriptService
 com.xwiki.diagram.internal.rest.DiagramResourcesImpl
 com.xwiki.diagram.internal.rest.InlineDiagramImpl
-com.xwiki.diagram.internal.handlers.DiagramMacrosReferenceRefactoring
 com.xwiki.diagram.internal.handlers.InlineDiagramContentSolrMetadataExtractor
+com.xwiki.diagram.internal.macroRefactoring.InlineDiagramMacroRefactoring
+com.xwiki.diagram.internal.macroRefactoring.EmbeddedInlineDiagramMacroRefactoring
+com.xwiki.diagram.internal.handlers.EmbeddedDiagramMacroSolrMetadataExtractor

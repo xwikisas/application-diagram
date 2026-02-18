@@ -34,6 +34,7 @@ import org.xwiki.component.annotation.InstantiationStrategy;
 import org.xwiki.component.descriptor.ComponentInstantiationStrategy;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
 
 /**
  * Parses the XML of a diagram and gets the links to wiki pages that are linked.
@@ -86,7 +87,7 @@ public class GetDiagramLinksHandler extends DefaultHandler
      * @param diagramReference the reference of current diagram
      * @return list of referenced pages.
      */
-    public List<DocumentReference> getLinkedPages(DocumentReference diagramReference)
+    public List<EntityReference> getLinkedPages(DocumentReference diagramReference)
     {
         return linkedPages.stream().distinct().map(link -> resolver.resolve(link, diagramReference))
             .collect(Collectors.toList());
