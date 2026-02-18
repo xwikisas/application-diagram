@@ -56,7 +56,7 @@ import com.xpn.xwiki.doc.XWikiDocument;
 @Singleton
 public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
-    private static final String PARAMETER_NAME = "reference";
+    private static final String REFERENCE = "reference";
 
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -90,7 +90,7 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
             for (Block macroBlock : macroBlocks) {
 
                 DocumentReference macroReference =
-                    explicitDocumentReferenceResolver.resolve(macroBlock.getParameter(PARAMETER_NAME),
+                    explicitDocumentReferenceResolver.resolve(macroBlock.getParameter(REFERENCE),
                         document.getDocumentReference());
                 macroReferences.add(macroReference);
             }
@@ -109,15 +109,15 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
      * @return true if any reference was invalid and has been updated, false if there weren't any invalid references or
      *     if an error occurred while updating the document
      */
-    public boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
+    private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
     {
         try {
 
             XWikiContext context = contextProvider.get();
             boolean modified = false;
             for (Block macroBlock : macroBlocks) {
-                boolean addDefaultValue = (macroBlock.getParameter(PARAMETER_NAME) == null);
-                String referenceName = addDefaultValue ? "Diagram" : macroBlock.getParameter(PARAMETER_NAME);
+                boolean addDefaultValue = (macroBlock.getParameter(REFERENCE) == null);
+                String referenceName = addDefaultValue ? "Diagram" : macroBlock.getParameter(REFERENCE);
                 // For backwards compatibility we check if the page already exists so we won't modify it.
                 DocumentReference macroReference =
                     explicitDocumentReferenceResolver.resolve(referenceName, document.getDocumentReference());
@@ -132,13 +132,13 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
                         String transformedName = this.transformName(referenceName);
                         logger.debug("The reference [{}] was updated to [{}] to respect the current name strategy. "
                             + "Document: [{}]", referenceName, transformedName, document.getDocumentReference());
-                        macroBlock.setParameter(PARAMETER_NAME, transformedName);
+                        macroBlock.setParameter(REFERENCE, transformedName);
                         modified = true;
                     }
                 } else if (addDefaultValue) {
                     // If the page already exists, but the macro parameter is empty we should still add a value to it
                     // because when we try to move it will fail otherwise.
-                    macroBlock.setParameter(PARAMETER_NAME, referenceName);
+                    macroBlock.setParameter(REFERENCE, referenceName);
                     modified = true;
                 }
             }
