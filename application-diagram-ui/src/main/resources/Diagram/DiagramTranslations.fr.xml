@@ -56,38 +56,38 @@ diagram.livetable.emptyvalue=-
 # Diagram Macro
 rendering.macro.diagram.description=Affiche un diagramme.
 rendering.macro.diagram.name=Diagramme
-rendering.macro.diagram.parameter.cached.description=Afficher le diagramme sous la forme d'une image mise en cache (plus rapide) plutôt que d'un dessin vectoriel (plus lent).
+rendering.macro.diagram.parameter.cached.description=Afficher le diagramme sous la forme d'une image mise en cache (plus rapide) plutôt que d'un dessin vectoriel (plus lent). Pas appliqué si un lien vers un diagramme externe est utilisé.
 rendering.macro.diagram.parameter.cached.name=Mise en cache
-### Missing: rendering.macro.diagram.parameter.pageIndex.description=The index of the page that you want to see when cached is enabled (i.e. use 1 for 1st page of the diagram, 5 for the 5th page)
-### Missing: rendering.macro.diagram.parameter.pageIndex.name=Page index
+rendering.macro.diagram.parameter.pageIndex.description=La référence de page que vous souhaitez voir quand le cache est activé (utilisez 1 pour la première page du diagramme, 5 pour la 5ème)
+rendering.macro.diagram.parameter.pageIndex.name=Numéro de page
 rendering.macro.diagram.parameter.reference.description=La référence vers la page qui contient le diagramme à afficher. Ex : pour "http:~/~/.../Diagram/Mon%20Diagramme/", saisir "Diagram.Mon Diagramme.WebHome". Si ce champ est laissé vide, la macro recherche une page descendante nommée "Diagramme" et, en cas d'absence, affiche un formulaire de création de diagramme.
 rendering.macro.diagram.parameter.reference.name=Référence
-### Missing: rendering.macro.diagram.parameter.externalDiagramUrl.description=An external link to a diagram source.
-### Missing: rendering.macro.diagram.parameter.externalDiagramUrl.name=External Diagram URL
-### Missing: diagram.macro.externalDiagramUrl.edit.notAllowed=This diagram is read-only because it was loaded from an external URL.
-### Missing: diagram.macro.externalDiagramUrl.edit.previewNotSupported=In edit mode, the preview of diagrams using the *externalDiagramUrl* parameter is not supported.
-### Missing: diagram.macro.loadFailed=Failed to load the diagram. Please check that the diagram is in a supported format.
-### Missing: diagram.macro.loadFailed.externalDiagramUrl=Failed to load the diagram. Please check that the URL is correct and the diagram is properly formatted. If the error persists, please contact an administrator.
-### Missing: diagram.macro.loadFailed.externalDiagramUrl.guestUser=Diagram preview from external URLs is not available for unregistered users.
+rendering.macro.diagram.parameter.externalDiagramUrl.description=Un lien vers un diagramme d'une source externe.
+rendering.macro.diagram.parameter.externalDiagramUrl.name=URL de diagramme externe
+diagram.macro.externalDiagramUrl.edit.notAllowed=Ce diagramme est en lecture seule car il a été chargé depuis une URL externe.
+diagram.macro.externalDiagramUrl.edit.previewNotSupported=En mode édition, la prévisualisation des diagrammes utilisant le paramètre *externalDiagramUrl* n'est pas supportée.
+diagram.macro.loadFailed=Échec de chargement du diagramme. Merci de vérifier que le diagramme est dans un format supporté.
+diagram.macro.loadFailed.externalDiagramUrl=Échec de chargement du diagramme. Merci de vérifier que l'URL est correcte et que le diagramme est au bon format. Si l'erreur persiste, merci de contacter votre administrateur.
+diagram.macro.loadFailed.externalDiagramUrl.guestUser=La prévisualisation des diagrammes d'une source externe n'est pas disponible pour les utilisateurs non enregistrés.
 diagram.macro.create=Créer un diagramme
 diagram.macro.createNotAllowed=Vous n'êtes pas autorisé(e) à créer ce diagramme.
 diagram.macro.edit=Modifier le diagramme
-### Missing: diagram.macro.externalServicesDisabled=External services are disabled for the Diagram Application (Pro), and this diagram has an external source. This setting can be changed in the Administration section.
-### Missing: diagram.macro.invalidPageIndex=There is no diagram page corresponding to this index.
+diagram.macro.externalServicesDisabled=Les services externes sont désactivés pour Diagram Application (Pro), et ce diagramme a une source externe. Ce paramètre peut être modifié dans la section Administration.
+diagram.macro.invalidPageIndex=Il n'y a pas de page correspondant à ce numéro dans le diagramme.
 diagram.macro.invalidReference=La page spécifiée n'est pas un diagramme.
 diagram.macro.view=Voir le diagramme
 diagram.macro.viewNotAllowed=Vous n'êtes pas autorisé(e) à voir ce diagramme.
 
 # Diagram editor
 diagram.editor.saveAsImageAttachmentError=Erreur lors de la sauvegarde du diagramme sous forme de pièce jointe.
-### Missing: diagram.editor.disabledExternalServices=External services are disabled.
-### Missing: diagram.editor.menu.print.title=Print the diagram using an external device when possible, otherwise simply export and save it as PDF.
-### Missing: diagram.editor.menu.print.label=Print / Export as PDF
+diagram.editor.disabledExternalServices=Les services externes sont désactivés.
+diagram.editor.menu.print.title=Imprimer le diagramme en utilisant un service externe lorsque possible, sinon exporter simplement et le sauvegarder comme PDF.
+diagram.editor.menu.print.label=Imprimer / Exporter en PDF
 
 # Diagram Configuration
-### Missing: Diagram.DiagramConfigClass_exportURL=Export URL
-### Missing: Diagram.DiagramConfigClass_exportURL_hint=The URL used to export the diagrams as image in IE11, or as PDF when performed from the diagram editor. Note that the diagram content, with all the private information that it may contain, will be send to the Export URL when this is used.
-### Missing: Diagram.DiagramConfigClass_disableExternalServices=Disable External Services
-### Missing: Diagram.DiagramConfigClass_disableExternalServices_hint=Disable features that require an external server
+Diagram.DiagramConfigClass_exportURL=URL d'export
+Diagram.DiagramConfigClass_exportURL_hint=L'URL utilisée pur exporter les diagrammes comme images dans IE11, ou en PDF quand réalisé depuis l'éditeur de diagramme. Notez que le contenu du diagramme, avec tous les informations privées qu'il pourrait contenir, seront envoyés à l'URL d'export lorsque ceci est utilisé.
+Diagram.DiagramConfigClass_disableExternalServices=Désactiver les services externes
+Diagram.DiagramConfigClass_disableExternalServices_hint=Désactive les fonctionnalités qui requièrent un serveur externe
 </content>
 </xwikidoc>
