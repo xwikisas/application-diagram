@@ -56,7 +56,7 @@ public class DiagramApplicationListener extends AbstractEventListener implements
 {
     protected static final String ROLE_HINT = "DiagramApplicationListener";
 
-    private static final String DIAGRAM_APPPLICATION_ID = "com.xwiki.diagram:application-diagram";
+    private static final String DIAGRAM_APPLICATION_ID = "com.xwiki.diagram:application-diagram";
 
     @Inject
     private Logger logger;
@@ -81,11 +81,8 @@ public class DiagramApplicationListener extends AbstractEventListener implements
      */
     public DiagramApplicationListener()
     {
-        // TODO: Filter also ExtensionInstalledEvent by diagram extension id after XCOMMONS-2526: Provide constructors
-        //  for ExtensionInstalledEvent that does not take namespace is fixed and diagram starts depending on a
-        //  version of XWiki >= the version where is fixed.
         super(ROLE_HINT,
-            Arrays.<Event>asList(new ExtensionUpgradedEvent(DIAGRAM_APPPLICATION_ID), new ExtensionInstalledEvent()));
+            Arrays.<Event>asList(new ExtensionUpgradedEvent(DIAGRAM_APPLICATION_ID), new ExtensionInstalledEvent()));
     }
 
     /**
@@ -117,7 +114,7 @@ public class DiagramApplicationListener extends AbstractEventListener implements
 
     private static boolean isDiagramInstallEvent(Event event)
     {
-        return event instanceof ExtensionInstalledEvent && DIAGRAM_APPPLICATION_ID.equals(
+        return event instanceof ExtensionInstalledEvent && DIAGRAM_APPLICATION_ID.equals(
             ((ExtensionEvent) event).getExtensionId().getId());
     }
 

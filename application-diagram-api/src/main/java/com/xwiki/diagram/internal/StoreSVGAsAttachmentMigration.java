@@ -20,6 +20,7 @@
 package com.xwiki.diagram.internal;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -80,7 +81,8 @@ public class StoreSVGAsAttachmentMigration extends AbstractDiagramMigration
                 BaseObject diagramObject = document.getXObject(DIAGRAM_CLASS_REFERENCE);
                 if (diagramObject != null) {
                     String svg = diagramObject.getLargeStringValue("svg");
-                    document.addAttachment(DIAGRAM_ATTACHMENT_NAME, new ByteArrayInputStream(svg.getBytes("UTF-8")),
+                    document.setAttachment(DIAGRAM_ATTACHMENT_NAME, new ByteArrayInputStream(svg.getBytes(
+                            StandardCharsets.UTF_8)),
                         xcontext);
                     synchronizeObject(diagramObject, xcontext);
                     // Preserve the diagram author.
@@ -98,7 +100,7 @@ public class StoreSVGAsAttachmentMigration extends AbstractDiagramMigration
      * Remove deprecated fields (properties deleted from the XClass) from an object.
      *
      * @param object the object to synchronize
-     * @param context the current request context
+     * @param xcontext the current request context
      */
     private void synchronizeObject(BaseObject object, XWikiContext xcontext)
     {
