@@ -258,13 +258,13 @@
 {{velocity}}
   #set ($diagramName = $xcontext.macro.params.diagramName)
   #set ($diagramSource = $xcontext.macro.params.diagramSource)
+  #set ($returnFragment = "inline-diagram-$diagramName")
   #getDiagramContent($diagramSource, $diagramName)
   #if ($content != "")
     ## We introduce the js only if there is content to display. We avoid making an extra request.
     #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
     #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
     #set ($discard = $xwiki.jsx.use("Diagram.InlineDiagram.InlineDiagramMacroJavaScript"))
-    #set ($returnFragment = "inline-diagram-$diagramName")
     ## Display the edit button only to the users that have edit over the current page.
     #set ($toolbar = 'zoom layers pages lightbox')
     #if ($xcontext.action == 'edit' || $request.outputSyntax=='annotatedhtml')
