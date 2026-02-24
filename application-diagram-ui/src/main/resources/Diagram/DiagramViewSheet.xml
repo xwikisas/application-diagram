@@ -270,7 +270,7 @@ define('diagram-viewer', [
         };
         let event = new CustomEvent("editInlineDiagram", { detail: diagramDetails, bubbles: true });
         (this).dispatchEvent(event);
-        };
+      };
     };
     originalAddToolBar.apply(this, arguments);
   }
