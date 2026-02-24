@@ -143,12 +143,18 @@
       <cache>long</cache>
     </property>
     <property>
-      <code>/**
+      <code>const urlParams = new URLSearchParams(window.location.search);
+let sourceDocumentStringRef = null;
+if (urlParams.has("source")) {
+  sourceDocumentStringRef = XWiki.Model.resolve(urlParams.get("source"), XWiki.EntityType.DOCUMENT);
+}
+
+/**
  * Generic helper methods.
  */
 define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
   var getAttachmentURL = function(attachment, action, queryString) {
-    var docRef = xm.documentReference;
+    var docRef = sourceDocumentStringRef || xm.documentReference;
     if (typeof attachment !== 'string') {
       docRef = attachment.parent;
       attachment = attachment.name;
@@ -163,7 +169,7 @@ define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
   };
   
   var temporaryUploadAttachment = function (blob, attachment) {
-    var documentReference = xm.documentReference;
+    var documentReference = sourceDocumentStringRef || xm.documentReference;
     if (typeof attachment !== 'string') {
       documentReference = attachment.parent;
       attachment = attachment.name;
@@ -196,7 +202,7 @@ define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
   };
 
   var uploadAttachment = function(blob, attachment) {
-    var documentReference = xm.documentReference;
+    var documentReference = sourceDocumentStringRef || xm.documentReference;
     if (typeof attachment !== 'string') {
       documentReference = attachment.parent;
       attachment = attachment.name;
@@ -615,7 +621,10 @@ define('diagram-graph-xml-filter', ['jquery', 'diagram-config', 'diagram-link-ha
         if (diagramLinkHandler.isXWikiCustomLink(decodedOldSource)) {
           // Replace the attachment reference from the image source with the attachment URL, but keep the attachment
           // reference in the fragment identifier in order to be able to restore it on save.
-          var diagramReference = XWiki.Model.resolve($(graph.container).data('reference'), XWiki.EntityType.DOCUMENT);
+          // $(graph.container) works fine in view mode, but in edit mode, drawio sets the container to
+          // .geDiagramContainer, so the reference will always be null in that case.
+          let reference = $(graph.container).data('reference') || $(graph.container.parentNode).data('reference');
+          var diagramReference = XWiki.Model.resolve(reference, XWiki.EntityType.DOCUMENT);
           newSource = diagramLinkHandler.getURLFromCustomLink(decodedOldSource, diagramReference) + '#' + oldSource;
         }
       } catch (e) {

@@ -1,0 +1,425 @@
+<?xml version="1.1" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+-->
+
+<xwikidoc version="1.5" reference="Diagram.InlineDiagram.Editor" locale="">
+  <web>Diagram.InlineDiagram</web>
+  <name>Editor</name>
+  <language/>
+  <defaultLanguage/>
+  <translation>0</translation>
+  <creator>xwiki:XWiki.Admin</creator>
+  <parent>Diagram.InlineDiagram.WebHome</parent>
+  <author>xwiki:XWiki.Admin</author>
+  <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
+  <version>1.1</version>
+  <title>Editor</title>
+  <comment/>
+  <minorEdit>false</minorEdit>
+  <syntaxId>xwiki/2.1</syntaxId>
+  <hidden>true</hidden>
+  <content>{{include reference="Diagram.ResourceSelector.WebHome" /}}
+{{include reference="Diagram.DiagramLinkModal"/}}
+
+{{velocity}}
+#set ($discard = $xwiki.jsfx.use('uicomponents/widgets/fullScreen.js', true))
+#set ($discard = $xwiki.ssfx.use('uicomponents/widgets/fullScreen.css', true))
+#set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.Editor'))
+#set ($discard = $xwiki.jsx.use('Diagram.DiagramEditSheet'))
+#set ($discard = $xwiki.ssx.use('Diagram.InlineDiagram.Editor'))
+#set ($saveLabel = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.save.button')))
+#set ($returnLabel = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.return.button')))
+##
+#set ($sourceDocument = $xwiki.getDocument($request.source))
+## Since we rely on query parameters to find the source of the diagram that we want to edit, we have to check whether
+## the current user can edit the diagram so he can't see content he shouldn't just by fiddling with the parameters.
+## Maybe checking only for view rights here and for edit rights on save could also be a solution, but in
+## my opinion a user who has only view rights should not be able to see the diagram here, because they may think they
+## can edit it, and the save failure would be perceived as a bug.
+#if ($sourceDocument.hasAccessLevel("edit", $xcontext.user))
+  #set ($attachmentName = "${request.diagramName}.diagram.xml")
+  #set ($attachment = $sourceDocument.getAttachment($attachmentName))
+  #set ($content = "$!attachment.getContentAsString()")
+#else
+  #set ($content = "")
+#end
+#set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
+#set ($diagramConfig = {
+    "debug": $services.debug.minify.equals(false),
+    "locale": $xcontext.locale,
+    "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
+    "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
+    "pdfImageExportZoom": 0,
+    "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
+    "isTemporaryUploadSupported": $temporaryUploadSupported
+})
+
+  {{html clean="false"}}
+  &lt;div class="inline-diagram-wrapper"&gt;
+    &lt;div id="diagram-editor-inline"
+        class="diagram-editor loading"
+        data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+        data-reference="$escapetool.xml($sourceDocument)"&gt;
+          &lt;input
+              id="inline-diagram-content"
+              class="diagram-content"
+              type="hidden"
+              name="content"
+              value="$escapetool.xml($content)" /&gt;
+    &lt;/div&gt;
+    &lt;div id ="diagram-inline-buttons"&gt;
+      &lt;button id="diagram-inline-save" class ="btn btn-primary"&gt;$saveLabel&lt;/button&gt;
+      &lt;button id="diagram-inline-cancel" class ="btn"&gt;$returnLabel&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  #diagramLinkModal()
+  {{/html}}
+{{/velocity}}</content>
+  <object>
+    <name>Diagram.InlineDiagram.Editor</name>
+    <number>1</number>
+    <className>XWiki.JavaScriptExtension</className>
+    <guid>0635d209-23f4-4990-be2b-62c0364ab0dc</guid>
+    <class>
+      <name>XWiki.JavaScriptExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>define('inlineDiagramActionsMessage', {
+  prefix: 'inlineDiagram.actions.',
+  keys: [
+    'save',
+    'created',
+    'updated',
+    'error'
+  ]
+});
+
+require(['jquery', 'xwiki-l10n!inlineDiagramActionsMessage'], function ($, l10n) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const returnDocumentStringRef = urlParams.get('returnDocument');
+  const sourceDocumentStringRef = urlParams.get('source');
+  const diagramName = urlParams.get('diagramName');
+  const returnFragment = urlParams.get('returnFragment');
+  const saveDiagramContent = `${XWiki.contextPath}/rest/diagram/inline/save/${encodeURIComponent(sourceDocumentStringRef)}/${encodeURIComponent(diagramName)}`;
+  const saveDiagramRendering = `${XWiki.contextPath}/rest/diagram/inline/saveRender/${encodeURIComponent(sourceDocumentStringRef)}/${encodeURIComponent(diagramName)}`;
+  let notification = null;
+
+  let savedSuccessfully = function (response) {
+    // if response code is 201, it means the diagram was created, otherwise it was updated
+    if (response.status === 201) {
+      notification.replace(new XWiki.widgets.Notification(l10n['created'], "done"));
+    } else {
+      notification.replace(new XWiki.widgets.Notification(l10n['updated'], "done"));
+    }
+  };
+
+  let savedFailed = function (error) {
+    notification.replace(new XWiki.widgets.Notification(l10n['error'], "error"));
+  };
+
+  let saveDiagram = function () {
+    notification = new XWiki.widgets.Notification(l10n['save'], "inprogress")
+    let diagramFile = window._xfiles[0];
+    // Stop editing the file.
+    diagramFile.ui.editor.graph.stopEditing(false);
+    // Update the file with the latest changes.
+    diagramFile.updateFileData();
+    // Get the updated file.
+    let diagramContent = window._xfiles[0].getData();
+    $.ajax({
+      url: saveDiagramContent,
+      method: "POST",
+      contentType: "text/plain; charset=UTF-8",
+      data: diagramContent,
+      processData: false
+    })
+    .done(function (data, textStatus, jqXHR) {
+      // After the critical XML was successfully saved we also save a png for of the first page, but we don't wait for
+      // it.
+      window._xfiles[0].getUi().getEmbeddedPng(function(png) {$.ajax({
+        url: saveDiagramRendering,
+        method: "POST",
+        contentType: "text/plain; charset=UTF-8",
+        data: png,
+        processData: false
+        })}, null, null, 1, null);
+        savedSuccessfully(jqXHR);
+        console.log("Save finished");
+    })
+    .fail(function (jqXHR) {
+      savedFailed(jqXHR);
+    });
+  };
+
+  let returnToDocument = function () {
+    window.onbeforeunload = null;
+    let returnDocumentReference = XWiki.Model.resolve(returnDocumentStringRef, XWiki.EntityType.DOCUMENT);
+    let url = new XWiki.Document(returnDocumentReference).getURL('view', '', returnFragment);
+    window.location = url;
+  };
+
+  $('#diagram-inline-save').on('click', saveDiagram);
+
+  $('#diagram-inline-cancel').on('click', returnToDocument);
+});</code>
+    </property>
+    <property>
+      <name>diagram-actions</name>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+  <object>
+    <name>Diagram.InlineDiagram.Editor</name>
+    <number>0</number>
+    <className>XWiki.StyleSheetExtension</className>
+    <guid>cb8abe26-7f78-42d2-801c-32811252e505</guid>
+    <class>
+      <name>XWiki.StyleSheetExtension</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <cache>
+        <cache>0</cache>
+        <defaultValue>long</defaultValue>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>cache</name>
+        <number>5</number>
+        <prettyName>Caching policy</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>long|short|default|forbid</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </cache>
+      <code>
+        <contenttype>PureText</contenttype>
+        <disabled>0</disabled>
+        <editor>PureText</editor>
+        <name>code</name>
+        <number>2</number>
+        <prettyName>Code</prettyName>
+        <restricted>0</restricted>
+        <rows>20</rows>
+        <size>50</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </code>
+      <contentType>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>contentType</name>
+        <number>6</number>
+        <prettyName>Content Type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>CSS|LESS</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </contentType>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <parse>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>parse</name>
+        <number>4</number>
+        <prettyName>Parse content</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </parse>
+      <use>
+        <cache>0</cache>
+        <disabled>0</disabled>
+        <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>use</name>
+        <number>3</number>
+        <prettyName>Use this extension</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator> </separator>
+        <separators>|, </separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>currentPage|onDemand|always</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </use>
+    </class>
+    <property>
+      <cache>long</cache>
+    </property>
+    <property>
+      <code>.inline-diagram-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 99vh;
+}
+
+#diagram-editor-inline {
+  flex: 1;
+  border: none;
+  height: 95vh;
+}
+
+#diagram-inline-buttons {
+  height: 4vh;
+  width:100%;
+}
+
+#xwikimaincontainer {
+  padding: 2px !important;
+}
+
+#diagram-editor-inline:not(.loading) ~ #diagram-inline-buttons {
+  display: block;
+  margin-top: 3px;
+}
+
+#diagram-inline-buttons {
+  display: none;
+}
+</code>
+    </property>
+    <property>
+      <contentType>CSS</contentType>
+    </property>
+    <property>
+      <name/>
+    </property>
+    <property>
+      <parse>0</parse>
+    </property>
+    <property>
+      <use>onDemand</use>
+    </property>
+  </object>
+</xwikidoc>

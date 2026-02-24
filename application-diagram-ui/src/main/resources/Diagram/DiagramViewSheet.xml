@@ -246,6 +246,35 @@ define('diagram-viewer', [
     graphAddClickHandler.apply(this, newArguments);
   };
 
+  var originalAddToolBar = GraphViewer.prototype.addToolbar;
+  GraphViewer.prototype.addToolbar = function() {
+    let container = $(this.graph.container);
+      // Check if the toolbar has the edit button enabled and if the diagram is an inline one.
+      if (this.graphConfig['toolbar-buttons']['edit'] != null &amp;&amp; container.hasClass('inline-diagram-macro-view'
+          )) {
+      // If the edit button is enabled, then we need to set up a custom event with data to be able to handle the edit
+      // action from a separate code to make everything a bit more clean and avoid overcrowding the edit module with
+      // code that is only relevant to some diagrams.
+      this.graphConfig['toolbar-buttons']['edit'].handler = function () {
+        /**
+         * source -&gt; The document that holds the content of the diagram as an attachment.
+         * diagramName -&gt; The name of the diagram to be edited, which is also the unique identifier.
+         * returnDocument -&gt; The document were the user should return when he closes the editor
+         * returnFragment -&gt; Id of the diagram that we edit, so after the edit is done, we can scroll to it.
+         */
+        let diagramDetails = {
+          "source": container.data('sourceDocumentReference'),
+          "diagramName": container.data('title'),
+          "returnDocument": container.data('returnDocumentReference'),
+          "returnFragment": container.data('returnFragment')
+        };
+        let event = new CustomEvent("editInlineDiagram", { detail: diagramDetails, bubbles: true });
+        (this).dispatchEvent(event);
+      };
+    };
+    originalAddToolBar.apply(this, arguments);
+  }
+
   var getDiagramViewerConfig = function(diagramContainer) {
     var config = {
       title: diagramContainer.data('title'),
