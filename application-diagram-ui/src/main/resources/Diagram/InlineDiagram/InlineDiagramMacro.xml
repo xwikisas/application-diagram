@@ -279,7 +279,7 @@
       #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS)
     #end
   #else
-    #set ($unescapedButtonLabel =$services.localization.render('diagram.inline.macro.createNew'))
+    #set ($unescapedButtonLabel = $services.localization.render('diagram.inline.macro.createNew'))
     #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))
     #set ($editorReference = 'Diagram.InlineDiagram.Editor')
     #set ($params = {
