@@ -188,7 +188,7 @@ public class DiagramLinkHandler
         DocumentReference oldDocumentRef) throws IOException, ParserConfigurationException, SAXException
     {
 
-        boolean returnValue = false;
+        boolean pageUpdated = false;
         String value = linkNode.getNodeValue();
         if (!value.contains(HREF)) {
             return false;
@@ -201,10 +201,10 @@ public class DiagramLinkHandler
             {
                 String newSource = getCustomLinkFromResourceReference(newDocumentRef.toString());
                 linkNode.setNodeValue(value.replace(oldSource, newSource));
-                returnValue = true;
+                pageUpdated = true;
             }
         }
-        return returnValue;
+        return pageUpdated;
     }
 
     /**

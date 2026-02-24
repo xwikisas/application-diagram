@@ -126,6 +126,8 @@ class InlineDiagramImplTest
         when(xwiki.getDocument(documentReference, context)).thenReturn(document);
         when(document.clone()).thenReturn(clonedDocument);
         when(clonedDocument.getDocumentReference()).thenReturn(documentReference);
+        when(context.getAuthorReference()).thenReturn(documentReference);
+        when(clonedDocument.setAttachment(any(), any(), any())).thenReturn(attachment);
     }
 
     @Test

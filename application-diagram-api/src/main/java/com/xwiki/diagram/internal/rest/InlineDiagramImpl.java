@@ -123,7 +123,8 @@ public class InlineDiagramImpl extends XWikiResource implements InlineDiagramRes
     private Response createAttachment(XWiki xwiki, XWikiContext context, XWikiDocument document, String name,
         InputStream body) throws IOException, XWikiException
     {
-        document.setAttachment(name, body, context);
+        XWikiAttachment attachment = document.setAttachment(name, body, context);
+        attachment.setAuthorReference(context.getAuthorReference());
         xwiki.saveDocument(document, context);
         return Response.status(Response.Status.CREATED).build();
     }
@@ -139,6 +140,7 @@ public class InlineDiagramImpl extends XWikiResource implements InlineDiagramRes
         }
 
         attachment.setContent(new ByteArrayInputStream(bodyBytes));
+        attachment.setAuthorReference(context.getAuthorReference());
         xwiki.saveDocument(document, context);
         return Response.status(Response.Status.OK).build();
     }

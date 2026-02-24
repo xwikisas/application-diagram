@@ -251,7 +251,7 @@ define('diagram-viewer', [
     let container = $(this.graph.container);
       // Check if the toolbar has the edit button enabled and if the diagram is an inline one.
       if (this.graphConfig['toolbar-buttons']['edit'] != null &amp;&amp; container.hasClass('inline-diagram-macro-view'
-          )){
+          )) {
       // If the edit button is enabled, then we need to set up a custom event with data to be able to handle the edit
       // action from a separate code to make everything a bit more clean and avoid overcrowding the edit module with
       // code that is only relevant to some diagrams.
@@ -267,12 +267,12 @@ define('diagram-viewer', [
           "diagramName": container.data('title'),
           "returnDocument": container.data('returnDocumentReference'),
           "returnFragment": container.data('returnFragment')
-        }
+        };
         let event = new CustomEvent("editInlineDiagram", { detail: diagramDetails, bubbles: true });
         (this).dispatchEvent(event);
         };
     };
-    originalAddToolBar.apply(this, arguments)
+    originalAddToolBar.apply(this, arguments);
   }
 
   var getDiagramViewerConfig = function(diagramContainer) {

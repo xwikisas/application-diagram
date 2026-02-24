@@ -81,14 +81,14 @@ public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMeta
         List<XWikiAttachment> attachments =
             document.getAttachmentList().stream().filter(attachment -> attachment.getFilename().endsWith("diagram"
                 + ".xml") && attachment.getDate().after(tenMinutesAgo)).collect(Collectors.toList());
-        boolean returnValue = false;
+        boolean pageUpdated = false;
         for (XWikiAttachment attachment : attachments) {
             String content = getContentAsString(attachment, contextProvider.get());
             List<EntityReference> references =
                 diagramContentHandler.getLinkedPages(content, document.getDocumentReference());
-            returnValue |= linkRegistry.registerBacklinks(solrDocument, references);
+            pageUpdated |= linkRegistry.registerBacklinks(solrDocument, references);
         }
 
-        return returnValue;
+        return pageUpdated;
     }
 }

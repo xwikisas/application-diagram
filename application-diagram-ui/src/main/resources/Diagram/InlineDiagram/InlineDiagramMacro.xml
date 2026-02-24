@@ -253,36 +253,46 @@
     </property>
     <property>
       <code>
-{{include reference="Diagram.InlineDiagram.ViewDiagramVelocityMacro" /}}
+{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
 
 {{velocity}}
   #set ($diagramName = $xcontext.macro.params.diagramName)
-  #getDiagramContent("", $diagramName)
+  #getDiagramContent('', $diagramName)
   #set ($returnFragment = "inline-diagram-$diagramName")
-  #if ($content != "")
+  #if ($content != '')
     ## We introduce the js only if there is content to display. We avoid making an extra request.
     #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
     #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use("Diagram.InlineDiagram.InlineDiagramMacroJavaScript"))
-    ## Display the edit button only to the users that have edit right over the current page.
+    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
+    ## Display the edit button only to the users that have edit over the current page.
     #if ($doc.hasAccessLevel("edit", $xcontext.user))
       #set ($toolbar = 'edit zoom layers pages lightbox')
     #else
       #set ($toolbar = 'zoom layers pages lightbox')
     #end
-    #if ($xcontext.action == 'edit' || $request.outputSyntax=='annotatedhtml')
+    #if ($xcontext.action == 'edit' || $request.outputSyntax == 'annotatedhtml')
       #set ($unescapedInfoLabel = $services.localization.render('diagram.inline.macro.editMode'))
       #set ($infoLabel = $services.rendering.escape($unescapedInfoLabel, 'xwiki/2.1'))
       {{info}}$infoLabel{{/info}}
     #elseif ($xcontext.action == 'view')
       #set ($extraCSS = "inline-diagram-macro-view")
-      #displayDiagram($diagramName, $returnFragment, "", $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS)
+      #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS)
     #end
   #else
     #set ($unescapedButtonLabel =$services.localization.render('diagram.inline.macro.createNew'))
     #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))
-    #set ($editorReference = "Diagram.InlineDiagram.Editor")
-    #set ($queryString = "source=$doc.getDocumentReference()&amp;returnDocument=$doc.getDocumentReference()&amp;diagramName=$diagramName&amp;xpage=plain&amp;htmlHeaderAndFooter=true&amp;outputTitle=false&amp;returnFragment=$returnFragment&amp;sync=none")
+    #set ($editorReference = 'Diagram.InlineDiagram.Editor')
+    #set ($params = {
+      'source' : $doc.getDocumentReference(),
+      'returnDocument' : $doc.getDocumentReference(),
+      'diagramName' : $diagramName,
+      'xpage' : 'plain',
+      'htmlHeaderAndFooter' : 'true',
+      'outputTitle' : 'false',
+      'returnFragment' : $returnFragment,
+      'sync' : 'none'
+    })
+    #set ($queryString = $escapetool.url($params))
     [[$buttonLabel&gt;&gt;$editorReference||queryString="$queryString"]]
   #end
 {{/velocity}}</code>
@@ -300,7 +310,7 @@
       <defaultCategories/>
     </property>
     <property>
-      <description>Create and show an inline diagram. The inline diagram creates the attachment directly on the page instead of creating a dedicated page like the default diagram creation process. You can also include the inline diagram in other pages by using the Include Inline Diagram Macro.</description>
+      <description/>
     </property>
     <property>
       <id>inlineDiagram</id>

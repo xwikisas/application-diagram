@@ -62,9 +62,11 @@
 ## @param returnDocumentReference used to identify the document to which the editor should return after saving.
 ##
 #macro (displayDiagram $diagramName, $returnFragment, $diagramConfig, $diagramToolbar, $diagramContent, $sourceDocumentReference, $returnDocumentReference, $extraCSSClass)
-  #if("$!diagramConfig" == "")
+  #if ("$!diagramConfig" == "")
     #set ($diagramConfig = $defaultConfig)
   #end
+  #set ($returnFragment = $escapetool.xml($returnFragment))
+  #set ($sourceDocumentReference = $escapetool.xml($sourceDocumentReference))
 
   {{html}}
     &lt;div 
@@ -76,7 +78,7 @@
       data-title = "$escapetool.xml($diagramName)"
       data-reference="$sourceDocumentReference"
       data-source-document-reference = "$sourceDocumentReference"
-      data-return-document-reference = "$returnDocumentReference"
+      data-return-document-reference = "$escapetool.xml($returnDocumentReference)"
       data-return-fragment = "$returnFragment"
     &gt;
       ## After the editor is done loading the diagram it cleans the items that were present in the parent div.

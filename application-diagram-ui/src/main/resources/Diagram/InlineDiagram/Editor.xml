@@ -46,6 +46,8 @@
 #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.Editor'))
 #set ($discard = $xwiki.jsx.use('Diagram.DiagramEditSheet'))
 #set ($discard = $xwiki.ssx.use('Diagram.InlineDiagram.Editor'))
+#set ($saveLabel = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.save.button')))
+#set ($returnLabel = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.return.button')))
 ##
 #set ($sourceDocument = $xwiki.getDocument($request.source))
 ## Since we rely on query parameters to find the source of the diagram that we want to edit, we have to check whether
@@ -76,7 +78,7 @@
     &lt;div id="diagram-editor-inline"
         class="diagram-editor loading"
         data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
-        data-reference="$sourceDocument"&gt;
+        data-reference="$escapetool.xml($sourceDocument)"&gt;
           &lt;input
               id="inline-diagram-content"
               class="diagram-content"
@@ -85,8 +87,8 @@
               value="$escapetool.xml($content)" /&gt;
     &lt;/div&gt;
     &lt;div id ="diagram-inline-buttons"&gt;
-      &lt;button id="diagram-inline-save" class ="btn btn-primary"&gt;Save&lt;/button&gt;
-      &lt;button id="diagram-inline-cancel" class ="btn"&gt;Return&lt;/button&gt;
+      &lt;button id="diagram-inline-save" class ="btn btn-primary"&gt;$saveLabel&lt;/button&gt;
+      &lt;button id="diagram-inline-cancel" class ="btn"&gt;$returnLabel&lt;/button&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 
