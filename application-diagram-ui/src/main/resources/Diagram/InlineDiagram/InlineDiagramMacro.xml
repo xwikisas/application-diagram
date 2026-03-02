@@ -252,13 +252,13 @@
       <async_enabled>0</async_enabled>
     </property>
     <property>
-      <code>
-{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
+      <code>{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
 
 {{velocity}}
   #set ($diagramName = $xcontext.macro.params.diagramName)
   #getDiagramContent('', $diagramName)
   #set ($returnFragment = "inline-diagram-$diagramName")
+  #set ($editModeTranslationKey = 'diagram.inline.macro.editMode')
   #if ($content != '')
     ## We introduce the js only if there is content to display. We avoid making an extra request.
     #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
@@ -270,14 +270,14 @@
     #else
       #set ($toolbar = 'zoom layers pages lightbox')
     #end
-    #if ($xcontext.action == 'edit' || $request.outputSyntax == 'annotatedhtml')
-      #set ($unescapedInfoLabel = $services.localization.render('diagram.inline.macro.editMode'))
-      #set ($infoLabel = $services.rendering.escape($unescapedInfoLabel, 'xwiki/2.1'))
-      {{info}}$infoLabel{{/info}}
+    #if ($isInEditMode)
+      #displayEditMode($editModeTranslationKey)
     #elseif ($xcontext.action == 'view')
       #set ($extraCSS = "inline-diagram-macro-view")
       #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS)
     #end
+  #elseif ($isInEditMode)
+     #displayEditMode($editModeTranslationKey)
   #else
     #set ($unescapedButtonLabel = $services.localization.render('diagram.inline.macro.createNew'))
     #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))

@@ -98,6 +98,7 @@ rendering.macro.embedInlineDiagram.parameter.diagramName.description=The name of
 rendering.macro.embedInlineDiagram.parameter.diagramSource.name=Diagram Source
 rendering.macro.embedInlineDiagram.parameter.diagramSource.description=The reference of the document that stores the original diagram.
 diagram.inline.macro.diagramDoesntExist=The diagram that you want to embed doesn't exist. Please check the parameters.
+diagram.embedInlineDiagram.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar to get redirect to the source diagram.
 
 # Inline editor
 diagram.inlineDiagram.editor.save.button=Save

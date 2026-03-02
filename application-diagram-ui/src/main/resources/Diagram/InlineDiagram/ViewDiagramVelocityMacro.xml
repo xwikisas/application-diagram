@@ -38,6 +38,9 @@
   <hidden>true</hidden>
   <content>
 {{velocity}}
+## For some reason XWiki changes the context when a macro is inserted in the editor, so we need to check for multiple conditions
+## the first 2 clauses are for the normal edit action, while the rest handles the update of the context when a macro is updated or inserted in the editor.
+#set ($isInEditMode = $xcontext.action == 'edit' || $request.outputSyntax == 'annotatedhtml' || ($xcontext.action == 'get' &amp;&amp; $request.outputSyntax == 'plain' &amp;&amp; $request.sheet=='CKEditor.HTMLConverter'))
 ## Configuration for the inline diagram macro suite. This is used as default if the 
 ## user doesn't specify a configuration.
 #set ($defaultConfig = {
@@ -49,7 +52,6 @@
   "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
   "isTemporaryUploadSupported": $temporaryUploadSupported
 })
-
 ##
 ## Displays the diagram.
 ## @param diagramName the name of the diagram, used for the title.
@@ -69,7 +71,7 @@
   #set ($sourceDocumentReference = $escapetool.xml($sourceDocumentReference))
 
   {{html}}
-    &lt;div 
+    &lt;div
       id = "$returnFragment"
       class = "diagram $extraCSSClass"
       data-diagram-config = "$escapetool.xml($jsontool.serialize($diagramConfig))"
@@ -87,7 +89,6 @@
   {{/html}}
 
 #end
-
 ##
 ## Sets the $content variable with the content of the diagram. The content is read from
 ## the current document if the document parameter is an empty string, otherwise it is read
@@ -107,7 +108,15 @@
   #set ($attachment = $diagramDocument.getAttachment($attachmentName))
   #set ($content = "$!attachment.getContentAsString()")
 #end
-
-{{/velocity}}
-</content>
+##
+## Displays the view of the macro in edit mode.
+##
+## @param translationKey the translation key of the message to display in edit mode.
+##
+#macro (displayEditMode $translationKey)
+  #set ($unescapedInfoLabel = $services.localization.render($translationKey))
+  #set ($infoLabel = $services.rendering.escape($unescapedInfoLabel, 'xwiki/2.1'))
+  {{info}}$infoLabel{{/info}}
+#end
+{{/velocity}}</content>
 </xwikidoc>

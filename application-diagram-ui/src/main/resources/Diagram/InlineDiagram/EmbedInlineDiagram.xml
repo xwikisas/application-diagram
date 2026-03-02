@@ -252,13 +252,13 @@
       <async_enabled>0</async_enabled>
     </property>
     <property>
-      <code>
-{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
+      <code>{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
 
 {{velocity}}
   #set ($diagramName = $xcontext.macro.params.diagramName)
   #set ($diagramSource = $xcontext.macro.params.diagramSource)
   #set ($returnFragment = "inline-diagram-$diagramName")
+  #set ($editModeTranslationKey = 'diagram.embedInlineDiagram.macro.editMode')
   #getDiagramContent($diagramSource, $diagramName)
   #if ($content != '')
     ## We introduce the js only if there is content to display. We avoid making an extra request.
@@ -267,10 +267,8 @@
     #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
     ## Display the edit button only to the users that have edit over the current page.
     #set ($toolbar = 'zoom layers pages lightbox')
-    #if ($xcontext.action == 'edit' || $request.outputSyntax == 'annotatedhtml')
-      #set ($unescapedInfoLabel = $services.localization.render('diagram.inline.macro.editMode'))
-      #set ($infoLabel = $services.rendering.escape($unescapedInfoLabel, 'xwiki/2.1'))
-      {{info}}$infoLabel{{/info}}
+    #if ($isInEditMode)
+      #displayEditMode($editModeTranslationKey)
     #elseif ($xcontext.action == 'view')
       #set ($extraCSS = 'inline-diagram-macro-view')
       #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $diagramSource, $doc.getDocumentReference(), $extraCSS)
