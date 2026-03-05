@@ -83,7 +83,7 @@ rendering.macro.inlineDiagram.name=Inline Diagram
 rendering.macro.inlineDiagram.description=Create and show an inline diagram. The inline diagram creates the attachment directly on the page instead of creating a dedicated page like the default diagram creation process. You can also include the inline diagram in other pages by using the Embed Inline Diagram Macro.
 rendering.macro.inlineDiagram.parameter.diagramName.name=Diagram Name
 rendering.macro.inlineDiagram.parameter.diagramName.description=The name of the diagram. It is also used for the attachment name.
-diagram.inline.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar in view mode.
+diagram.inline.macro.editMode=The diagram content cannot be edited in page edit mode. Please switch back to view for this action.
 diagram.inline.macro.createNew=Create a new inline diagram.
 inlineDiagram.actions.save=Stared the process of saving the diagram.
 inlineDiagram.actions.created=The diagram was created.
@@ -92,12 +92,15 @@ inlineDiagram.actions.error=Something went wrong while trying to save the diagra
 
 # Inline editor
 diagram.inlineDiagram.editor.save.button=Save
-diagram.inlineDiagram.editor.return.button=Return
+diagram.inlineDiagram.editor.return.button=Back to page
 
 diagram.editor.saveAsImageAttachmentError=Error when saving the diagram as an image attachment.
 diagram.editor.disabledExternalServices=External services are disabled.
 diagram.editor.menu.print.title=Print the diagram using an external device when possible, otherwise simply export and save it as PDF.
 diagram.editor.menu.print.label=Print / Export as PDF
+
+# Link modal
+diagram.link.modal.link=Link
 
 # Diagram Configuration
 Diagram.DiagramConfigClass_exportURL=Export URL

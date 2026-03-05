@@ -17,15 +17,13 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.diagram.internal.rest;
+package com.xwiki.diagram.internal;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
 
 import javax.inject.Provider;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +34,7 @@ import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
 import org.xwiki.test.annotation.BeforeComponent;
@@ -50,9 +49,11 @@ import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -60,20 +61,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link com.xwiki.diagram.InlineDiagramResources}
+ * Unit tests for {@link InlineDiagramManager}
+ *
+ * @version $Id$
+ * @since 1.22.1
  */
 @ComponentTest
-class InlineDiagramImplTest
+public class InlineDiagramManagerTests
 {
-
     private static final String SOURCE = "Space.Page";
 
     private static final String NAME = "diagram";
 
-    private static final String SUFFIX = ".diagram.xml";
+    private static final String EXACT_FILENAME = NAME + InlineDiagramManager.DIAGRAM_SUFFIX;
 
     @InjectMockComponents
-    private InlineDiagramImpl inlineDiagram;
+    private InlineDiagramManager inlineDiagramManager;
 
     @MockComponent
     private ContextualAuthorizationManager authorization;
@@ -111,7 +114,6 @@ class InlineDiagramImplTest
     @BeforeComponent
     void beforeComponent()
     {
-        // We need this before component because XWikiResource is calling the context in Initialize call.
         this.context = mock(XWikiContext.class);
         when(this.contextProvider.get()).thenReturn(this.context);
     }
@@ -119,7 +121,7 @@ class InlineDiagramImplTest
     @BeforeEach
     void setup() throws Exception
     {
-        ReflectionUtils.setFieldValue(inlineDiagram, "logger", this.logger);
+        ReflectionUtils.setFieldValue(inlineDiagramManager, "logger", this.logger);
         when(resolver.resolve(SOURCE)).thenReturn(documentReference);
         when(contextProvider.get()).thenReturn(context);
         when(context.getWiki()).thenReturn(xwiki);
@@ -131,40 +133,42 @@ class InlineDiagramImplTest
     }
 
     @Test
-    void saveShouldReturnForbiddenWhenNoEditRight() throws Exception
+    void saveExecuteShouldThrowAccessDeniedException() throws AccessDeniedException, IOException, XWikiException
     {
-        when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(false);
-
-        Response response = inlineDiagram.save(SOURCE, NAME, new ByteArrayInputStream("content".getBytes()));
-        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
-        verify(xwiki, never()).saveDocument(any(), any());
+        AccessDeniedException accessDeniedException = mock(AccessDeniedException.class);
+        doThrow(accessDeniedException).when(authorization).checkAccess(Right.EDIT, documentReference);
+        AccessDeniedException thrown = assertThrows(AccessDeniedException.class,
+            () -> inlineDiagramManager.executeSave(SOURCE, NAME, new ByteArrayInputStream("content".getBytes()),
+                "ignore"));
+        assertEquals(thrown, accessDeniedException);
     }
 
     @Test
-    void saveShouldCreateAttachmentWhenNotExisting() throws Exception
+    void saveExecuteShouldCreateAttachmentWhenNotExisting() throws AccessDeniedException, IOException, XWikiException
     {
-        when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + SUFFIX)).thenReturn(null);
+        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(null);
         InputStream body = new ByteArrayInputStream("new-content".getBytes());
 
-        Response response = inlineDiagram.save(SOURCE, NAME, body);
-
-        assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
-        verify(clonedDocument).setAttachment(eq(NAME + SUFFIX), any(InputStream.class), eq(context));
+        boolean createdOrUpdated =
+            inlineDiagramManager.executeSave(SOURCE, NAME, body, InlineDiagramManager.DIAGRAM_SUFFIX);
+        assertTrue(createdOrUpdated);
+        verify(clonedDocument).setAttachment(eq(EXACT_FILENAME), any(InputStream.class), eq(context));
         verify(xwiki).saveDocument(clonedDocument, context);
     }
 
     @Test
-    void saveShouldUpdateAttachmentWhenContentDifferent() throws Exception
+    void saveExecuteShouldUpdateAttachmentWhenContentDifferent() throws Exception
     {
+
         when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + SUFFIX)).thenReturn(attachment);
+        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(attachment);
         when(attachment.getContentInputStream(context)).thenReturn(new ByteArrayInputStream("old-content".getBytes()));
         InputStream newBody = new ByteArrayInputStream("new-content".getBytes());
 
-        Response response = inlineDiagram.save(SOURCE, NAME, newBody);
+        boolean createOrUpdate =
+            inlineDiagramManager.executeSave(SOURCE, NAME, newBody, InlineDiagramManager.DIAGRAM_SUFFIX);
 
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertFalse(createOrUpdate);
         verify(attachment).setContent(any(InputStream.class));
         verify(xwiki).saveDocument(clonedDocument, context);
     }
@@ -173,15 +177,17 @@ class InlineDiagramImplTest
     void saveShouldNotUpdateWhenContentIsSame() throws Exception
     {
         when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + SUFFIX)).thenReturn(attachment);
+        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(attachment);
 
         byte[] content = "same-content".getBytes();
         when(attachment.getContentInputStream(context)).thenReturn(new ByteArrayInputStream(content));
         InputStream sameBody = new ByteArrayInputStream(content);
 
-        Response response = inlineDiagram.save(SOURCE, NAME, sameBody);
+        boolean createOrUpdate =
+            inlineDiagramManager.executeSave(SOURCE, NAME, sameBody, InlineDiagramManager.DIAGRAM_SUFFIX);
 
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        assertFalse(createOrUpdate);
+
         verify(attachment, never()).setContent(ArgumentMatchers.<byte[]>any());
         verify(xwiki, never()).saveDocument(clonedDocument, context);
     }
@@ -190,71 +196,15 @@ class InlineDiagramImplTest
     void saveShouldReturnInternalServerErrorOnXWikiException() throws Exception
     {
         when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + SUFFIX)).thenReturn(null);
-        doThrow(new XWikiException()).when(xwiki).saveDocument(any(), any());
+        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(null);
+        XWikiException exception = new XWikiException();
+        doThrow(exception).when(xwiki).saveDocument(any(), any());
 
-        Response response = inlineDiagram.save(SOURCE, NAME, new ByteArrayInputStream("content".getBytes()));
+        XWikiException thrown = assertThrows(XWikiException.class, () -> {
+            inlineDiagramManager.executeSave(SOURCE, NAME, new ByteArrayInputStream("content".getBytes()),
+                InlineDiagramManager.DIAGRAM_SUFFIX);
+        });
 
-        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
-        verify(logger).error(startsWith("Something went wrong"), any(XWikiException.class));
+        assertEquals(exception, thrown);
     }
-
-    @Test
-    void saveRenderShouldReturnForbiddenWhenNoEditRight() throws Exception
-    {
-        when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(false);
-
-        String body = Base64.getEncoder().encodeToString("image-content".getBytes());
-        Response response = inlineDiagram.saveRender(SOURCE, NAME, body);
-
-        assertEquals(Status.FORBIDDEN.getStatusCode(), response.getStatus());
-        verify(xwiki, never()).saveDocument(any(), any());
-    }
-
-    @Test
-    void saveRenderShouldUpdateAttachmentWhenContentDifferent() throws Exception
-    {
-        when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + ".png")).thenReturn(attachment);
-        when(attachment.getContentInputStream(context)).thenReturn(new ByteArrayInputStream("old-image".getBytes()));
-
-        String body = Base64.getEncoder().encodeToString("new-image".getBytes());
-        Response response = inlineDiagram.saveRender(SOURCE, NAME, body);
-
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
-        verify(attachment).setContent(any(InputStream.class));
-        verify(xwiki).saveDocument(clonedDocument, context);
-    }
-
-    @Test
-    void saveRenderShouldNotUpdateWhenContentIsSame() throws Exception
-    {
-        when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + ".png")).thenReturn(attachment);
-
-        byte[] content = "same-image".getBytes();
-        when(attachment.getContentInputStream(context)).thenReturn(new ByteArrayInputStream(content));
-
-        String body = Base64.getEncoder().encodeToString(content);
-        Response response = inlineDiagram.saveRender(SOURCE, NAME, body);
-
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
-        verify(attachment, never()).setContent(any(InputStream.class));
-        verify(xwiki, never()).saveDocument(clonedDocument, context);
-    }
-
-    @Test
-    void saveRenderShouldReturnInternalServerErrorOnException() throws Exception
-    {
-        when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(NAME + ".png")).thenReturn(null);
-        doThrow(new XWikiException()).when(xwiki).saveDocument(any(), any());
-
-        String body = Base64.getEncoder().encodeToString("image-content".getBytes());
-        Response response = inlineDiagram.saveRender(SOURCE, NAME, body);
-
-        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
-        verify(logger).error(startsWith("Something went wrong"), any(XWikiException.class));
-    }
-
 }

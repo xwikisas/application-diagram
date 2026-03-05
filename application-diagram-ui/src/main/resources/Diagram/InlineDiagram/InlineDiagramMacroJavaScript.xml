@@ -128,16 +128,16 @@
       <code>require(['jquery'], function($) {
   // Default query parameters. They are needed to only display the editor.
   const defaultQueryParameters= {
-    "xpage": "plain",
-    "htmlHeaderAndFooter": "true",
-    "outputTitle": "false",
-    "sync": 'none'
+    'xpage': 'plain',
+    'htmlHeaderAndFooter': 'true',
+    'outputTitle': 'false',
+    'sync': 'none'
   };
 
   const editorRef = XWiki.Model.resolve('Diagram.InlineDiagram.Editor', XWiki.EntityType.DOCUMENT);
-  const editorURL = new XWiki.Document(editorRef).getURL("view");
+  const editorURL = new XWiki.Document(editorRef).getURL('view');
 
-  $(document).on("editInlineDiagram", function(event){
+  $(document).on('editInlineDiagram', function(event){
     let queryString = $.param({...defaultQueryParameters, ...event.detail});
     window.location = `${editorURL}?${queryString}`;
   });

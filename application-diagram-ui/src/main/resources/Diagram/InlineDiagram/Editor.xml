@@ -64,13 +64,13 @@
 #end
 #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
 #set ($diagramConfig = {
-    "debug": $services.debug.minify.equals(false),
-    "locale": $xcontext.locale,
-    "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
-    "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
-    "pdfImageExportZoom": 0,
-    "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
-    "isTemporaryUploadSupported": $temporaryUploadSupported
+    'debug': $services.debug.minify.equals(false),
+    'locale': $xcontext.locale,
+    'drawIOBasePath': $services.webjars.url('org.xwiki.contrib:draw.io', ''),
+    'exportURL': $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
+    'pdfImageExportZoom': 0,
+    'disableExternalServices': $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
+    'isTemporaryUploadSupported': $temporaryUploadSupported
 })
 
   {{html clean="false"}}

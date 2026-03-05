@@ -263,12 +263,12 @@ define('diagram-viewer', [
          * returnFragment -&gt; Id of the diagram that we edit, so after the edit is done, we can scroll to it.
          */
         let diagramDetails = {
-          "source": container.data('sourceDocumentReference'),
-          "diagramName": container.data('title'),
-          "returnDocument": container.data('returnDocumentReference'),
-          "returnFragment": container.data('returnFragment')
+          'source': container.data('sourceDocumentReference'),
+          'diagramName': container.data('title'),
+          'returnDocument': container.data('returnDocumentReference'),
+          'returnFragment': container.data('returnFragment')
         };
-        let event = new CustomEvent("editInlineDiagram", { detail: diagramDetails, bubbles: true });
+        let event = new CustomEvent('editInlineDiagram', { detail: diagramDetails, bubbles: true });
         (this).dispatchEvent(event);
       };
     };

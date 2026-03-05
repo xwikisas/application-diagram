@@ -17,52 +17,51 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.diagram.internal.rest;
+package com.xwiki.diagram.internal;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Base64;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.rest.XWikiResource;
+import org.xwiki.security.authorization.AccessDeniedException;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
-import org.xwiki.stability.Unstable;
 
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xwiki.diagram.InlineDiagramResources;
 
 /**
- * Default implementation of {@link InlineDiagramResources}.
+ * Responsible upserting the inline diagrams attachments.
  *
  * @version $Id$
  * @since 1.22.1
  */
-@Component
-@Named("com.xwiki.diagram.internal.rest.InlineDiagramImpl")
+@Component(roles = InlineDiagramManager.class)
 @Singleton
-@Unstable
-public class InlineDiagramImpl extends XWikiResource implements InlineDiagramResources
+public class InlineDiagramManager
 {
-    private static final String DIAGRAM_SUFFIX = ".diagram.xml";
+    /**
+     * Suffix for the attachment containing the content of a diagram.
+     */
+    public static final String DIAGRAM_SUFFIX = ".diagram.xml";
 
-    private static final String PNG_SUFFIX = ".png";
+    /**
+     * Suffix for the attachment containing a diagram preview.
+     */
+    public static final String PNG_SUFFIX = ".png";
 
     @Inject
     private ContextualAuthorizationManager authorization;
@@ -79,70 +78,55 @@ public class InlineDiagramImpl extends XWikiResource implements InlineDiagramRes
     @Inject
     private Logger logger;
 
-    @Override
-    public Response save(String sourceReference, String name, InputStream body)
+    /**
+     * Attempts to upsert the attachment for an inline diagram.
+     *
+     * @param sourceReference where the attachment that should pe upsert is located
+     * @param name the name of the attachment that we have to upsert
+     * @param body the new content of the attachment
+     * @param suffix the format of the attachment
+     * @return true if the attachment has been created, false if updated.
+     */
+    public boolean executeSave(String sourceReference, String name, InputStream body, String suffix)
+        throws AccessDeniedException, IOException, XWikiException
     {
-        return executeSave(sourceReference, name, body, DIAGRAM_SUFFIX);
-    }
-
-    @Override
-    public Response saveRender(String sourceReference, String name, String body)
-    {
-
-        byte[] img = Base64.getDecoder().decode(body);
-        ByteArrayInputStream stream = new ByteArrayInputStream(img);
-        return executeSave(sourceReference, name, stream, PNG_SUFFIX);
-    }
-
-    private Response executeSave(String sourceReference, String name, InputStream body, String suffix)
-    {
-        try {
-            DocumentReference reference = resolver.resolve(sourceReference);
-            XWikiContext context = contextProvider.get();
-            XWiki xwiki = context.getWiki();
-            XWikiDocument sourceDocument = xwiki.getDocument(reference, context).clone();
-            // Check that the user that made the request has edit rights over the document.
-            if (!authorization.hasAccess(Right.EDIT, sourceDocument.getDocumentReference())) {
-                return Response.status(Response.Status.FORBIDDEN).build();
-            }
-            String fileExactName = name + suffix;
-            XWikiAttachment attachment = sourceDocument.getExactAttachment(fileExactName);
-            if (attachment == null) {
-                return createAttachment(xwiki, context, sourceDocument, fileExactName, body);
-            }
-            return updateAttachment(xwiki, context, sourceDocument, attachment, body);
-        } catch (XWikiException e) {
-            logger.error("Something went wrong while trying to update the XWiki document", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
-            logger.error("Something went wrong while trying to update the XWiki attachment", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        DocumentReference reference = resolver.resolve(sourceReference);
+        XWikiContext context = contextProvider.get();
+        XWiki xwiki = context.getWiki();
+        XWikiDocument sourceDocument = xwiki.getDocument(reference, context).clone();
+        // Check that the user that made the request has edit rights over the document.
+        authorization.checkAccess(Right.EDIT, sourceDocument.getDocumentReference());
+        String fileExactName = name + suffix;
+        XWikiAttachment attachment = sourceDocument.getExactAttachment(fileExactName);
+        if (attachment == null) {
+            createAttachment(xwiki, context, sourceDocument, fileExactName, body);
+            return true;
         }
+        updateAttachment(xwiki, context, sourceDocument, attachment, body);
+        return false;
     }
 
-    private Response createAttachment(XWiki xwiki, XWikiContext context, XWikiDocument document, String name,
+    private void createAttachment(XWiki xwiki, XWikiContext context, XWikiDocument document, String name,
         InputStream body) throws IOException, XWikiException
     {
         XWikiAttachment attachment = document.setAttachment(name, body, context);
         attachment.setAuthorReference(context.getAuthorReference());
         xwiki.saveDocument(document, context);
-        return Response.status(Response.Status.CREATED).build();
     }
 
-    private Response updateAttachment(XWiki xwiki, XWikiContext context, XWikiDocument document,
-        XWikiAttachment attachment, InputStream body) throws IOException, XWikiException
+    private void updateAttachment(XWiki xwiki, XWikiContext context, XWikiDocument document, XWikiAttachment attachment,
+        InputStream body) throws IOException, XWikiException
     {
         byte[] bodyBytes = body.readAllBytes();
         try (InputStream attachmentContent = attachment.getContentInputStream(context)) {
             if (areStreamEqual(attachmentContent, new ByteArrayInputStream(bodyBytes))) {
-                return Response.status(Response.Status.OK).build();
+                return;
             }
         }
 
         attachment.setContent(new ByteArrayInputStream(bodyBytes));
         attachment.setAuthorReference(context.getAuthorReference());
         xwiki.saveDocument(document, context);
-        return Response.status(Response.Status.OK).build();
     }
 
     /**

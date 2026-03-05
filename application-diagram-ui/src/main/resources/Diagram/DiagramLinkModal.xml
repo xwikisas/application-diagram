@@ -47,7 +47,7 @@
             &lt;span aria-hidden="true"&gt;&amp;times;&lt;/span&gt;
           &lt;/button&gt;
           &lt;div class="modal-title" id="diagramLinkModal-label"&gt;
-            Link
+            $escapetool.xml($services.localization.render('diagram.link.modal.link'))
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div class="modal-body xform"&gt;
