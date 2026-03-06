@@ -48,9 +48,8 @@ import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 import com.xwiki.diagram.internal.handlers.DiagramLinkHandler;
 
 /**
- * Responsible for updating the content the diagram when a back reference is moved. The code will be executed on
+ * Responsible for updating the diagram content when a back reference is moved. The code will be executed on
  * move/rename actions and updates the diagrams create by the Inline Diagram Macro.
- * <p>
  *
  * @version $Id$
  * @since 1.22.11
