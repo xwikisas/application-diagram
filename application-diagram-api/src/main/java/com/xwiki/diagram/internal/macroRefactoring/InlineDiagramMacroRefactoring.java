@@ -94,7 +94,7 @@ public class InlineDiagramMacroRefactoring extends AbstractInlineDiagramMacroRef
             XWikiDocument documentContainingMacro = xwiki.getDocument(currentDocumentReference, context).clone();
             XWikiAttachment diagramAttachment = documentContainingMacro.getExactAttachment(diagramName);
             if (diagramAttachment == null) {
-                logger.debug(
+                logger.warn(
                     "Could not find the inline diagram attachment with the name [{}] on the document [{}]. The "
                         + "refactoring was attempted because the document [{}] was renamed/moved to [{}]", diagramName,
                     currentDocumentReference, sourceReference, targetReference);
