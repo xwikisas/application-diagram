@@ -73,7 +73,7 @@ public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMeta
         long tenMinutesMillis = 10L * 60L * 1000L;
         Date tenMinutesAgo = new Date(System.currentTimeMillis() - tenMinutesMillis);
         // The XWikiDocument API doesn't have a method to get all attachments with a specific file extension so we
-        // get all of them and filter them.
+        // get all and filter them.
         // We also filter the attachments to index only the new ones (no older than 10 minutes), because checking
         // every diagram attachment whenever someone updates a single one can cause performance issues. This is not a
         // foolproof time window, but if there are no huge indexing jobs running on the instance, the document
