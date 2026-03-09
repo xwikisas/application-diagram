@@ -111,8 +111,8 @@ public class DefaultInlineDiagramResourceTest
 
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 
-        verify(logger).error("The access to save the diagram stored at [{}] and the name [{}] has been denied",
-            sourceReference, name, exception);
+        verify(logger).error("Failed to save diagram [{}] on [{}] because of missing rights.",
+            name, sourceReference, exception);
     }
 
     @Test
@@ -126,7 +126,7 @@ public class DefaultInlineDiagramResourceTest
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
 
         verify(logger).error(
-            "Something went wrong while trying to update the XWiki document containing the diagram content. Content [{}]",
+            "Something went wrong while trying to save the diagram content. Content: [{}]",
             stream, exception);
     }
 
@@ -139,7 +139,7 @@ public class DefaultInlineDiagramResourceTest
         Response response = resource.save(sourceReference, name, stream);
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
         verify(logger).error(
-            "Something went wrong while trying to save the attachment that contains the content of the diagram. Content: [{}]",
+            "Something went wrong while trying to save the diagram content. Content: [{}]",
             stream, exception);
     }
 
@@ -157,8 +157,8 @@ public class DefaultInlineDiagramResourceTest
         assertEquals(Response.Status.FORBIDDEN.getStatusCode(), response.getStatus());
 
         verify(logger).error(
-            "The access to save the diagram preview for the diagram stored at [{}] and the name [{}] has been denied",
-            sourceReference, name, exception);
+            "Failed to save the preview of diagram [{}] on [{}] because of missing rights.",
+            name, sourceReference, exception);
     }
 
     @Test
@@ -172,7 +172,8 @@ public class DefaultInlineDiagramResourceTest
 
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
 
-        verify(logger).error("Something went wrong while trying to update the XWiki document", exception);
+        verify(logger).error("Something went wrong while trying to save the diagram content. Content: [{}]", validBase64Body,
+            exception);
     }
 
     @Test
@@ -186,6 +187,7 @@ public class DefaultInlineDiagramResourceTest
 
         assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
 
-        verify(logger).error("Something went wrong while trying to save the preview image of the diagram", exception);
+        verify(logger).error("Something went wrong while trying to save the diagram content. Content: [{}]",validBase64Body,
+            exception);
     }
 }

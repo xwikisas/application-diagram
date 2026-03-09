@@ -69,8 +69,8 @@ public class InlineDiagramMacroRefactoring extends AbstractInlineDiagramMacroRef
     /**
      * On XWiki document move / rename update the diagram content which could contain a backlink to that document.
      * Note that the diagram content is not actually saved inside the inlineDiagram macro definition,
-     * but in an attachment on the page. So the attachment content is updated, not the macro, since it only contains the attachment name.
-
+     * but in an attachment on the page. So the attachment content is updated, not the macro, since it only contains
+     * the attachment name.
      *
      * @param macroBlock the macro block in which to replace the reference.
      * @param currentDocumentReference the reference of the document in which the block is located
