@@ -48,6 +48,7 @@
 #set ($discard = $xwiki.ssx.use('Diagram.InlineDiagram.Editor'))
 #set ($saveLabel = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.save.button')))
 #set ($returnLabel = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.return.button')))
+#set ($returnBtnTitle = $escapetool.xml($services.localization.render('diagram.inlineDiagram.editor.return.title')))
 ##
 #set ($sourceDocument = $xwiki.getDocument($request.source))
 ## Since we rely on query parameters to find the source of the diagram that we want to edit, we have to check whether
@@ -88,7 +89,7 @@
     &lt;/div&gt;
     &lt;div id ="diagram-inline-buttons"&gt;
       &lt;button id="diagram-inline-save" class ="btn btn-primary"&gt;$saveLabel&lt;/button&gt;
-      &lt;button id="diagram-inline-cancel" class ="btn"&gt;$returnLabel&lt;/button&gt;
+      &lt;button id="diagram-inline-cancel" class ="btn" title="$returnBtnTitle" &gt;$returnLabel&lt;/button&gt;
     &lt;/div&gt;
   &lt;/div&gt;
 

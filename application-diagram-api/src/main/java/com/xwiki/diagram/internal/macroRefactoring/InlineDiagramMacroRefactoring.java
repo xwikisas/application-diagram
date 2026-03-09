@@ -157,7 +157,7 @@ public class InlineDiagramMacroRefactoring extends AbstractInlineDiagramMacroRef
 
             return updated ? Optional.of(XMLUtils.serialize(document)) : Optional.empty();
         } catch (Exception e) {
-            logger.error("Failed to update the links.", e);
+            logger.error("Failed to update the links because we failed to get the embedded links.", e);
             return Optional.empty();
         }
     }

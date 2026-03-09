@@ -146,7 +146,7 @@
       <code>const urlParams = new URLSearchParams(window.location.search);
 let sourceDocumentStringRef = null;
 if (urlParams.has('source')) {
-  sourceDocumentStringRef = XWiki.Model.resolve(urlParams.get("source"), XWiki.EntityType.DOCUMENT);
+  sourceDocumentStringRef = XWiki.Model.resolve(urlParams.get('source'), XWiki.EntityType.DOCUMENT);
 }
 
 /**

@@ -52,8 +52,6 @@ import static com.xwiki.diagram.internal.AttachmentUtils.getContentAsString;
 @Singleton
 public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
-    private static final String PARAMETER_NAME = "reference";
-
     @Inject
     private DiagramContentHandler diagramContentHandler;
 

@@ -65,20 +65,13 @@ public class DefaultInlineDiagramResource extends XWikiResource implements Inlin
     {
         try {
             boolean createdOrUpdated = inlineDiagramManager.executeSave(sourceReference, name, body, DIAGRAM_SUFFIX);
-            return createdOrUpdated ? Response.status(Response.Status.CREATED).build()
-                : Response.status(Response.Status.OK).build();
+            return createdOrUpdated ? Response.status(Response.Status.CREATED).build() :
+                Response.status(Response.Status.OK).build();
         } catch (AccessDeniedException e) {
-            logger.error("The access to save the diagram stored at [{}] and the name [{}] has been denied",
-                sourceReference, name, e);
+            logger.error("Failed to save diagram [{}] on [{}] because of missing rights.", name, sourceReference, e);
             return Response.status(Response.Status.FORBIDDEN).build();
-        } catch (XWikiException e) {
-            logger.error(
-                "Something went wrong while trying to update the XWiki document containing the diagram content. "
-                    + "Content " + "[{}]", body, e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
-            logger.error("Something went wrong while trying to save the attachment that contains the content of the "
-                + "diagram. Content: [{}]", body, e);
+        } catch (XWikiException | IOException e) {
+            logger.error("Something went wrong while trying to save the diagram content. Content: [{}]", body, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -91,17 +84,14 @@ public class DefaultInlineDiagramResource extends XWikiResource implements Inlin
         ByteArrayInputStream stream = new ByteArrayInputStream(img);
         try {
             boolean createdOrUpdated = inlineDiagramManager.executeSave(sourceReference, name, stream, PNG_SUFFIX);
-            return createdOrUpdated ? Response.status(Response.Status.CREATED).build()
-                : Response.status(Response.Status.OK).build();
+            return createdOrUpdated ? Response.status(Response.Status.CREATED).build() :
+                Response.status(Response.Status.OK).build();
         } catch (AccessDeniedException e) {
-            logger.error("The access to save the diagram preview for the diagram stored at [{}] and the name [{}] has "
-                + "been denied", sourceReference, name, e);
+            logger.error("Failed to save the preview of diagram [{}] on [{}] because of missing rights.", name,
+                sourceReference, e);
             return Response.status(Response.Status.FORBIDDEN).build();
-        } catch (XWikiException e) {
-            logger.error("Something went wrong while trying to update the XWiki document", e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (IOException e) {
-            logger.error("Something went wrong while trying to save the preview image of the diagram", e);
+        } catch (XWikiException | IOException e) {
+            logger.error("Something went wrong while trying to save the diagram content. Content: [{}]", body, e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }

@@ -44,13 +44,13 @@
 ## Configuration for the inline diagram macro suite. This is used as default if the 
 ## user doesn't specify a configuration.
 #set ($defaultConfig = {
-  "debug": $services.debug.minify.equals(false),
-  "locale": $xcontext.locale,
-  "drawIOBasePath": $services.webjars.url('org.xwiki.contrib:draw.io', ''),
-  "exportURL": $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
-  "pdfImageExportZoom": 0,
-  "disableExternalServices": $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
-  "isTemporaryUploadSupported": $temporaryUploadSupported
+  'debug': $services.debug.minify.equals(false),
+  'locale': $xcontext.locale,
+  'drawIOBasePath': $services.webjars.url('org.xwiki.contrib:draw.io', ''),
+  'exportURL': $xwiki.getDocument('Diagram.DiagramConfig').getValue('exportURL'),
+  'pdfImageExportZoom': 0,
+  'disableExternalServices': $xwiki.getDocument('Diagram.DiagramConfig').getValue('disableExternalServices'),
+  'isTemporaryUploadSupported': $temporaryUploadSupported
 })
 ##
 ## Displays the diagram.

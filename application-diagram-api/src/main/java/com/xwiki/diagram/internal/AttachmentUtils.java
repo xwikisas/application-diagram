@@ -40,10 +40,6 @@ public final class AttachmentUtils
     {
     }
 
-    // Copied from
-    // https://github.com/xwiki/xwiki-platform/blob/master/xwiki-platform-core/xwiki-platform-oldcore/src/main/java/
-    // com/xpn/xwiki/api/Attachment.java
-
     /**
      * @param attachment attachment for which we want the content
      * @param context current context

@@ -29,7 +29,6 @@ import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.rendering.block.MacroBlock;
 import org.xwiki.rendering.macro.MacroRefactoring;
-import org.xwiki.rendering.macro.MacroRefactoringException;
 
 import com.xpn.xwiki.XWikiContext;
 
@@ -56,21 +55,25 @@ public abstract class AbstractInlineDiagramMacroRefactoring implements MacroRefa
     @Override
     public Optional<MacroBlock> replaceReference(MacroBlock macroBlock, DocumentReference currentDocumentReference,
         AttachmentReference sourceReference, AttachmentReference targetReference, boolean relative)
-        throws MacroRefactoringException
     {
         String diagramName = String.format(FORMAT_NAME, macroBlock.getParameter(DIAGRAM_NAME), ATTACHMENT_SUFFIX);
 
         // We should refactor the macro block only if the old name of the moved attachment matches the
         // diagramName parameter of the macro, and if the attachment is moved on the same page, because the macro is
         // not designed to handle macros from other pages. In that case, we should just use the default diagram macro.
-        if (sourceReference.getName().equals(diagramName) && sourceReference.getParent()
-            .equals(targetReference.getParent()))
-        {
+        boolean isTheDiagramAttachment = sourceReference.getName().equals(diagramName);
+        boolean isMovedToTheSameParent = sourceReference.getParent().equals(targetReference.getParent());
+        if (!isTheDiagramAttachment) {
+            return Optional.empty();
+        }
+        if (isMovedToTheSameParent) {
             String referenceName = targetReference.getName();
             String newName = referenceName.substring(0, referenceName.length() - ATTACHMENT_SUFFIX.length());
             macroBlock.setParameter(DIAGRAM_NAME, newName);
             return Optional.of(macroBlock);
         }
+        logger.warn("Failed to update the diagram attachment name parameter after the attachment was moved "
+            + "because the attachment was moved to another document.");
         return Optional.empty();
     }
 }
