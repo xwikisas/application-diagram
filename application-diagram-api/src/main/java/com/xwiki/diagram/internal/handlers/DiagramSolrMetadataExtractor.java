@@ -26,7 +26,7 @@ import javax.inject.Singleton;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.doc.XWikiDocument;
@@ -53,7 +53,7 @@ public class DiagramSolrMetadataExtractor implements SolrEntityMetadataExtractor
     {
         // Updates for the diagram directly.
         if (document.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
-            List<DocumentReference> references =
+            List<EntityReference> references =
                 diagramContentHandler.getLinkedPages(document.getContent(), document.getDocumentReference());
             return linkRegistry.registerBacklinks(solrDocument, references);
         }

@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.validation.EntityNameValidationConfiguration;
 import org.xwiki.model.validation.EntityNameValidationManager;
 import org.xwiki.rendering.block.Block;
@@ -82,8 +83,10 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
 
         XDOM xdom = document.getXDOM();
         List<Block> macroBlocks = xdom.getBlocks(new MacroBlockMatcher("diagram"), Block.Axes.CHILD);
-        if (macroBlocks != null && !macroBlocks.isEmpty() && !updateMacroReference(document, xdom, macroBlocks)) {
-            List<DocumentReference> macroReferences = new ArrayList<>();
+        if (macroBlocks != null && !macroBlocks.isEmpty() && !updateMacroReference(
+            document, xdom, macroBlocks))
+        {
+            List<EntityReference> macroReferences = new ArrayList<>();
             for (Block macroBlock : macroBlocks) {
 
                 DocumentReference macroReference =
@@ -104,7 +107,7 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
      * @param xdom of the @document
      * @param macroBlocks list of all the diagram macro calls
      * @return true if any reference was invalid and has been updated, false if there weren't any invalid references or
-     * if an error occurred while updating the document
+     *     if an error occurred while updating the document
      */
     private boolean updateMacroReference(XWikiDocument document, XDOM xdom, List<Block> macroBlocks)
     {
@@ -133,8 +136,8 @@ public class DiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtr
                         modified = true;
                     }
                 } else if (addDefaultValue) {
-                // If the page already exists, but the macro parameter is empty we should still add a value to it
-                // because when we try to move it will fail otherwise.
+                    // If the page already exists, but the macro parameter is empty we should still add a value to it
+                    // because when we try to move it will fail otherwise.
                     macroBlock.setParameter(REFERENCE, referenceName);
                     modified = true;
                 }

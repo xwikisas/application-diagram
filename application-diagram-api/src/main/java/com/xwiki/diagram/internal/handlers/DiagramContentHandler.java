@@ -38,6 +38,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.xml.XMLUtils;
 
@@ -150,18 +151,22 @@ public class DiagramContentHandler
         Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
             .parse(new ByteArrayInputStream(backlinkDoc.getContent().getBytes()));
 
+        boolean updated = false;
         NodeList userObjectList = document.getElementsByTagName("UserObject");
         for (int i = 0; i < userObjectList.getLength(); i++) {
-            linkHandler.updateUserObjectNode(userObjectList.item(i), currentDocRef, originalDocRef);
+            updated |= linkHandler.updateUserObjectNode(userObjectList.item(i), currentDocRef, originalDocRef);
         }
 
         NodeList mxCellList = document.getElementsByTagName("mxCell");
         for (int i = 0; i < mxCellList.getLength(); i++) {
-            linkHandler.updateMxCellNode(mxCellList.item(i), currentDocRef, originalDocRef);
+            updated |= linkHandler.updateMxCellNode(mxCellList.item(i), currentDocRef, originalDocRef);
         }
 
-        backlinkDoc.setContent(XMLUtils.serialize(document));
-        context.getWiki().saveDocument(backlinkDoc, "Updated diagram after page rename", context);
+        // Since a document save is expensive we actually do the save only when are sure that a node was updated.
+        if (updated) {
+            backlinkDoc.setContent(XMLUtils.serialize(document));
+            context.getWiki().saveDocument(backlinkDoc, "Updated diagram after page rename", context);
+        }
     }
 
     /**
@@ -171,7 +176,7 @@ public class DiagramContentHandler
      * @param diagramReference the reference of current diagram
      * @return linkedPages list of pages linked in this content
      */
-    public List<DocumentReference> getLinkedPages(String content, DocumentReference diagramReference)
+    public List<EntityReference> getLinkedPages(String content, DocumentReference diagramReference)
     {
         try {
             GetDiagramLinksHandler getDiagramLinksHandler = getDiagramLinksHandlerProvider.get();

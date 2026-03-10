@@ -29,7 +29,6 @@ import javax.inject.Singleton;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.search.solr.internal.api.FieldUtils;
@@ -47,9 +46,6 @@ public class LinkRegistry
     private static final String ENTITY_PREFIX = "entity:";
 
     @Inject
-    private DiagramContentHandler diagramContentHandler;
-
-    @Inject
     @Named("withtype/withparameters")
     private EntityReferenceSerializer<String> entitySerializer;
 
@@ -63,13 +59,13 @@ public class LinkRegistry
      *         {@code false} otherwise
      */
 
-    public boolean registerBacklinks(SolrInputDocument solrDocument, List<DocumentReference> references)
+    public boolean registerBacklinks(SolrInputDocument solrDocument, List<EntityReference> references)
     {
         Set<String> links = new HashSet<>(references.size());
-        Set<String> extenedLinks = new HashSet<>(references.size());
+        Set<String> extendedLinks = new HashSet<>(references.size());
         boolean updated = false;
 
-        for (DocumentReference reference : references) {
+        for (EntityReference reference : references) {
             EntityReference entityReference =
                 new EntityReference(reference.getName(), reference.getType(), reference.getParent());
             String serializedEntity = entitySerializer.serialize(entityReference);
@@ -79,8 +75,8 @@ public class LinkRegistry
                     .contains(serializedEntity);
             if (!alreadyExists) {
                 links.add(serializedEntity);
-                extenedLinks.add(serializedEntity);
-                this.extendLink(entityReference, extenedLinks);
+                extendedLinks.add(serializedEntity);
+                this.extendLink(entityReference, extendedLinks);
                 updated = true;
             }
         }
@@ -88,7 +84,7 @@ public class LinkRegistry
         for (String link : links) {
             solrDocument.addField(FieldUtils.LINKS, link);
         }
-        for (String linkExtended : extenedLinks) {
+        for (String linkExtended : extendedLinks) {
             solrDocument.addField(FieldUtils.LINKS_EXTENDED, linkExtended);
         }
         return updated;
