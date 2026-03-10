@@ -80,14 +80,14 @@ diagram.macro.viewNotAllowed=You are not allowed to view this diagram.
 
 # Inline Diagram Macro
 rendering.macro.inlineDiagram.name=Inline Diagram
-rendering.macro.inlineDiagram.description=Create and show an inline diagram. The inline diagram creates an attachment directly on the page. You can also include the inline diagram in other pages by using the Embed Inline Diagram Macro.
+rendering.macro.inlineDiagram.description=Create and show an inline diagram. The diagram will be stored as an attachment on this page. Include it in other pages by using the Embed Diagram Macro.
 rendering.macro.inlineDiagram.parameter.diagramName.name=Diagram Name
 rendering.macro.inlineDiagram.parameter.diagramName.description=The name of the diagram. It is also used for the attachment name.
 diagram.inline.macro.editMode=The diagram content cannot be edited in page edit mode. Please switch back to view for this action.
 diagram.inline.macro.createNew=Create a new inline diagram.
-inlineDiagram.actions.save=Stared the process of saving the diagram.
-inlineDiagram.actions.created=The diagram was created.
-inlineDiagram.actions.updated=The diagram was updated.
+inlineDiagram.actions.save=Saving diagram…
+inlineDiagram.actions.created=Diagram created.
+inlineDiagram.actions.updated=Diagram updated.
 inlineDiagram.actions.error=Something went wrong while trying to save the diagram.
 
 # Inline editor
