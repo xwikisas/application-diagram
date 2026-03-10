@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.slf4j.Logger;
+import org.xwiki.component.util.ReflectionUtils;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.rendering.block.MacroBlock;
@@ -102,6 +103,7 @@ class InlineDiagramMacroRefactoringTest
     @BeforeEach
     void setUp() throws Exception
     {
+        ReflectionUtils.setFieldValue(refactoring, "logger", this.logger);
         when(macroBlock.getParameter(DIAGRAM_NAME)).thenReturn("MyDiagram");
         when(contextProvider.get()).thenReturn(context);
         when(context.getWiki()).thenReturn(xwiki);

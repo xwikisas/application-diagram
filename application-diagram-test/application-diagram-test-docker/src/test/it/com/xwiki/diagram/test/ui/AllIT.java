@@ -31,7 +31,7 @@ import org.xwiki.test.docker.junit5.UITest;
  * @since 1.22.8
  */
 @UITest
-public class AllITs
+public class AllIT
 {
     @Nested
     @DisplayName("Diagram Tests")
