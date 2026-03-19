@@ -26,6 +26,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.xwiki.component.annotation.Component;
+import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
@@ -59,8 +60,29 @@ public class EmbeddedInlineDiagramMacroRefactoring extends AbstractInlineDiagram
         DocumentReference sourceReference, DocumentReference targetReference, boolean relative)
         throws MacroRefactoringException
     {
-        DocumentReference documentReference = resolver.resolve(macroBlock.getParameter(SOURCE_DOCUMENT));
+        String param = macroBlock.getParameter(SOURCE_DOCUMENT);
+        if (param == null) {
+            return Optional.empty();
+        }
+        DocumentReference documentReference = resolver.resolve(param);
         if (documentReference.equals(sourceReference)) {
+            macroBlock.setParameter(SOURCE_DOCUMENT, serializer.serialize(targetReference));
+            return Optional.of(macroBlock);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<MacroBlock> replaceReference(MacroBlock macroBlock, DocumentReference currentDocumentReference,
+        AttachmentReference sourceReference, AttachmentReference targetReference, boolean relative)
+        throws MacroRefactoringException
+    {
+        String reference = macroBlock.getParameter(SOURCE_DOCUMENT);
+        if (reference == null) {
+            return Optional.empty();
+        }
+        String serializedSourceReference = serializer.serialize(sourceReference);
+        if (reference.equals(serializedSourceReference)) {
             macroBlock.setParameter(SOURCE_DOCUMENT, serializer.serialize(targetReference));
             return Optional.of(macroBlock);
         }

@@ -859,7 +859,16 @@ define('diagramMenuTranslations', {
   keys: [
     // File menu.
     'print.label',
-    'print.title'
+    'print.title',
+    'goBack.label',
+    'goBack.title',
+    'save.label',
+    'save.title',
+    // Notifications:
+    'save',
+    'created',
+    'updated',
+    'error'
   ]
 });
 
@@ -885,6 +894,105 @@ define('diagram-editor', [
   // EditorUi.prototype.maxImageSize = 520;
   // EditorUi.prototype.maxImageBytes = 1000000;
 
+  let returnToOriginalDocument = function (returnDocumentStringRef, returnFragment) {
+    window.onbeforeunload = null;
+    let returnDocumentReference = XWiki.Model.resolve(returnDocumentStringRef, XWiki.EntityType.DOCUMENT);
+    let url = new XWiki.Document(returnDocumentReference).getURL('view', '', returnFragment);
+    window.location = url;
+  };
+
+   let savedSuccessfully = function (response) {
+    // if response code is 201, it means the diagram was created, otherwise it was updated
+    if (response.status === 201) {
+      notification.replace(new XWiki.widgets.Notification(l10n['created'], 'done'));
+    } else {
+      notification.replace(new XWiki.widgets.Notification(l10n['updated'], 'done'));
+    }
+  };
+
+  let savedFailed = function (error) {
+    notification.replace(new XWiki.widgets.Notification(l10n['error'], 'error'));
+  };
+
+  let notification = null;
+  let saveDiagram = function (urlParams) {
+    const sourceDocumentStringRef = urlParams.get('source');
+    const diagramName = urlParams.get('diagramName');
+    const saveDiagramContent = XWiki.contextPath + '/rest/diagram/inline/save/' +
+      encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
+    const saveDiagramRendering = XWiki.contextPath + '/rest/diagram/inline/saveRender/' +
+      encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
+    notification = new XWiki.widgets.Notification(l10n['save'], "inprogress")
+    let diagramFile = window._xfiles[0];
+    // Stop editing the file.
+    diagramFile.ui.editor.graph.stopEditing(false);
+    // Update the file with the latest changes.
+    diagramFile.updateFileData();
+    // Get the updated file.
+    let diagramContent = window._xfiles[0].getData();
+    $.ajax({
+      url: saveDiagramContent,
+      method: "POST",
+      contentType: "text/plain; charset=UTF-8",
+      data: diagramContent,
+      processData: false
+    })
+    .done(function (data, textStatus, jqXHR) {
+      // After the critical XML was successfully saved we also save a png for of the first page, but we don't wait for
+      // it.
+      window._xfiles[0].getUi().getEmbeddedPng(function(png) {
+          $.ajax({
+            url: saveDiagramRendering,
+            method: 'POST',
+            contentType: 'text/plain; charset=UTF-8',
+            data: png,
+            processData: false
+          });
+        }, null, null, 1, null);
+        savedSuccessfully(jqXHR);
+        console.log('Save finished');
+      })
+    .fail(function (jqXHR) {
+      savedFailed(jqXHR);
+    });
+  };
+
+  let createInlineSaveButton = function (menubar, urlParams) {
+    const saveButton = $('&lt;a&gt;')
+      .text(l10n['save.label'])
+      .addClass('geItem btn btn-primary diagram-custom-menubar-button')
+      .attr('title', l10n['save.title'])
+      .on('click', () =&gt; saveDiagram(urlParams));
+    menubar.append(saveButton[0]);
+  }
+
+  let createGoBackButton = function (menubar, urlParams) {
+    let returnFragment = urlParams.get('returnFragment');
+    let returnDocumentReference = urlParams.get('returnDocument');
+    const gobackButton = $('&lt;a&gt;')
+      .text(l10n['goBack.label'])
+      .addClass('geItem btn btn-secondary diagram-custom-menubar-button')
+      .attr('title', l10n['goBack.title'])
+      .on('click', () =&gt; returnToOriginalDocument(returnDocumentReference, returnFragment));
+    menubar.append(gobackButton[0]);
+  }
+
+  // Used to add new buttons in the menubar if needed.
+  let enhanceMenubarButtons = function (menubar) {
+      // We want to add 2 buttons:
+      // - One for going back to the paged that initiated the edit.
+      // - One for saving the diagram, but only in the case the diagram edited is an inline one.
+      // To be able to tell which button we should add we use the url params.
+      let urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('editorType') === 'inline') {
+        createInlineSaveButton(menubar, urlParams);
+        createGoBackButton(menubar, urlParams);
+      }
+      if (urlParams.get('editorType') === 'standalone') {
+        createGoBackButton(menubar, urlParams);
+      }
+  }
+
   //
   // Diagram Editor Constructor.
   //
@@ -896,6 +1004,7 @@ define('diagram-editor', [
     var editor = new Editor(/* chromeless: */ uiTheme === 'min', options.themes, /* model: */ null, /* graph: */ null,
       /* editable: */ true);
     var editorUI = new App(editor, options.container);
+    enhanceMenubarButtons(editorUI.menubar.container);
     // This is usefull for debugging the diagram editor from the JavaScript console.
     $(editorUI.container).data('diagramEditor', editorUI).trigger('diagramEditorCreated', editorUI);
     // Fix the editor UI before loading the diagram because layout changes can influence the way the shapes are drawn.

@@ -36,8 +36,7 @@
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
-  <content>
-{{velocity}}
+  <content>{{velocity}}
 ## For some reason XWiki changes the context when a macro is inserted in the editor, so we need to check for multiple conditions
 ## the first 2 clauses are for the normal edit action, while the rest handles the update of the context when a macro is updated or inserted in the editor.
 #set ($isInEditMode = $xcontext.action == 'edit' || $request.outputSyntax == 'annotatedhtml' || ($xcontext.action == 'get' &amp;&amp; $request.outputSyntax == 'plain' &amp;&amp; $request.sheet=='CKEditor.HTMLConverter'))
@@ -53,7 +52,7 @@
   'isTemporaryUploadSupported': $temporaryUploadSupported
 })
 ##
-## Displays the diagram.
+## Displays internal diagrams.
 ## @param diagramName the name of the diagram, used for the title.
 ## @param returnFragment the fragment to which the editor should return after saving the diagram.
 ## @param diagramConfig the configuration of the diagram, used to initialize the diagram editor.
@@ -63,7 +62,7 @@
 ## where to save this diagram.
 ## @param returnDocumentReference used to identify the document to which the editor should return after saving.
 ##
-#macro (displayDiagram $diagramName, $returnFragment, $diagramConfig, $diagramToolbar, $diagramContent, $sourceDocumentReference, $returnDocumentReference, $extraCSSClass)
+#macro (displayDiagram $diagramName, $returnFragment, $diagramConfig, $diagramToolbar, $diagramContent, $sourceDocumentReference, $returnDocumentReference, $extraCSSClass, $diagramType)
   #if ("$!diagramConfig" == "")
     #set ($diagramConfig = $defaultConfig)
   #end
@@ -82,12 +81,65 @@
       data-source-document-reference = "$sourceDocumentReference"
       data-return-document-reference = "$escapetool.xml($returnDocumentReference)"
       data-return-fragment = "$returnFragment"
+      data-diagram-type = $escapetool.xml($diagramType)
     &gt;
       ## After the editor is done loading the diagram it cleans the items that were present in the parent div.
       &lt;div class = "loading"&gt; &lt;/div&gt;
     &lt;/div&gt;
   {{/html}}
+#end
+## Display an external diagram.
+## @param externalDiagramUrl the URL of the external diagram
+## @param diagramConfig the configuration of the diagram, used to initialize the diagram editor.
+#macro (displayExternalDiagram $externalDiagramUrl, $diagramConfig)
+#if ("$!diagramConfig" == "")
+  #set ($diagramConfig = $defaultConfig)
+#end
 
+{{html}}
+  &lt;div class="diagram"
+    data-external-diagram-url="$escapetool.xml($!externalDiagramUrl)"
+    data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"
+    data-title="$escapetool.xml($services.localization.render('diagram.macro.externalDiagramUrl.edit.notAllowed'))"
+  &gt;
+    &lt;span class="fa fa-spinner fa-spin"&gt;
+  &lt;/span&gt;
+  &lt;/div&gt;
+{{/html}}
+
+#end
+## Determines the type of diagram that the user wants to display and intialize the $sourceDocumentReference, $diagramName and $diagramType.
+## There are only 2 types of diagrams:
+## * Standalone, diagrams that are stode inside an XWiki page and are requested via a document reference.
+## * Inline, diagrams that are stored as attachments of an XWiki page and are requested via an attachment reference.
+#macro (parseDiagramReference $diagramReference)
+  #set ($diagramType = $NULL)
+  #set ($sourceDocumentReference = $NULL)
+  #set ($diagramName = $NULL)
+  ## If the reference ends with .diagram.xml and has an @ in the name then we consider it an inline diagram.
+  #if ($diagramReference.endsWith('.diagram.xml') &amp;&amp; $diagramReference.contains('@'))
+    #set ($diagramType = 'inline')
+    #set ($attachmentReference = $services.model.resolveAttachment($diagramReference))
+    #set ($sourceDocumentReference = $attachmentReference.getParent())
+    #set ($attachmentFullName = $attachmentReference.getName())
+    #set ($diagramName = $attachmentFullName.substring(0, $attachmentFullName.length() - 12))
+  #else
+    #set ($diagramType = 'standalone')
+    #set ($sourceDocumentReference = $services.model.resolveDocument($diagramReference))
+    #set ($diagramName = $xwiki.getDocument($sourceDocumentReference).getDisplayTitle())
+  #end
+#end
+## Responsible for setting the $content variable when a inline diagram is requested.
+#macro (getInlineDiagramContent $documnetSourceReference, $diagramName)
+  #set ($diagramDocument = $xwiki.getDocument($documnetSourceReference))
+  #set ($attachmentName = "${diagramName}.diagram.xml")
+  #set ($attachment = $diagramDocument.getAttachment($attachmentName))
+  #set ($content = "$!attachment.getContentAsString()")
+#end
+## Responsible for setting the $content variable when a standalone diagram is requested.
+#macro(getStandaloneDiagramContent $documentSourceReference)
+  #set ($diagramDocument = $xwiki.getDocument($documentSourceReference))
+  #set ($content = "$!diagramDocument.getContent()")
 #end
 ##
 ## Sets the $content variable with the content of the diagram. The content is read from
@@ -97,16 +149,13 @@
 ## @param document the document from which the diagram content should be read. If empty then the current document is used.
 ## @param diagramName the name of the diagram, used to find the attachment containing the diagram.
 ##
-#macro (getDiagramContent $document, $diagramName)
-  #set ($diagramDocument = "")
-  #if ($document == "")
-    #set ($diagramDocument = $doc)
-  #else
-    #set ($diagramDocument = $xwiki.getDocument($document))
+#macro (getDiagramContent $document, $diagramName, $diagramType)
+  #set ($content = '')
+  #if ("$!diagramType" == 'inline')
+    #getInlineDiagramContent($document, $diagramName)
+  #elseif("$!diagramType" == "standalone")
+    #getStandaloneDiagramContent($document)
   #end
-  #set ($attachmentName = "${diagramName}.diagram.xml")
-  #set ($attachment = $diagramDocument.getAttachment($attachmentName))
-  #set ($content = "$!attachment.getContentAsString()")
 #end
 ##
 ## Displays the view of the macro in edit mode.

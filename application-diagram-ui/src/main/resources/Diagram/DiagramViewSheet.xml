@@ -261,12 +261,14 @@ define('diagram-viewer', [
          * diagramName -&gt; The name of the diagram to be edited, which is also the unique identifier.
          * returnDocument -&gt; The document were the user should return when he closes the editor
          * returnFragment -&gt; Id of the diagram that we edit, so after the edit is done, we can scroll to it.
+         * editorType -&gt; the type of editor that we should use.
          */
         let diagramDetails = {
           'source': container.data('sourceDocumentReference'),
           'diagramName': container.data('title'),
           'returnDocument': container.data('returnDocumentReference'),
-          'returnFragment': container.data('returnFragment')
+          'returnFragment': container.data('returnFragment'),
+          'editorType': container.data('diagramType')
         };
         let event = new CustomEvent('editInlineDiagram', { detail: diagramDetails, bubbles: true });
         (this).dispatchEvent(event);

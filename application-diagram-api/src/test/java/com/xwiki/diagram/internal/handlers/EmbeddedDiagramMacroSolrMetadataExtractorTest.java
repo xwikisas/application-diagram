@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.xwiki.model.reference.AttachmentReference;
+import org.xwiki.model.reference.AttachmentReferenceResolver;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
@@ -69,8 +70,12 @@ class EmbeddedDiagramMacroSolrMetadataExtractorTest
     private Provider<XWikiContext> contextProvider;
 
     @MockComponent
-    @Named("explicit")
-    private DocumentReferenceResolver<String> resolver;
+    @Named("current")
+    private DocumentReferenceResolver<String> documentReferenceResolver;
+
+    @MockComponent
+    @Named("current")
+    private AttachmentReferenceResolver<String> attachmentReferenceResolver;
 
     @MockComponent
     private LinkRegistry linkRegistry;
@@ -95,6 +100,9 @@ class EmbeddedDiagramMacroSolrMetadataExtractorTest
 
     @Mock
     private DocumentReference resolvedDocRef;
+
+    @Mock
+    private AttachmentReference attachmentReference;
 
     @BeforeEach
     void setUp()
@@ -128,13 +136,13 @@ class EmbeddedDiagramMacroSolrMetadataExtractorTest
     @Test
     void extractSingleMacroRegistersBacklinks()
     {
-        when(xdom.getBlocks(any(MacroBlockMatcher.class), any())).thenReturn(Collections.singletonList(macroBlock));
+        when(xdom.getBlocks(any(MacroBlockMatcher.class), any())).thenReturn(List.of(macroBlock, macroBlock2));
 
-        when(macroBlock.getParameter("diagramSource")).thenReturn("Space.Page");
-        when(macroBlock.getParameter("diagramName")).thenReturn("myDiagram");
+        when(macroBlock.getParameter("diagramSource")).thenReturn("Space.Page@test.diagram.xml");
+        when(attachmentReferenceResolver.resolve("Space.Page@test.diagram.xml")).thenReturn(attachmentReference);
 
-        when(resolver.resolve("Space.Page", currentDocRef)).thenReturn(resolvedDocRef);
-
+        when(macroBlock2.getParameter("diagramSource")).thenReturn("test");
+        when(documentReferenceResolver.resolve("test")).thenReturn(resolvedDocRef);
         when(linkRegistry.registerBacklinks(any(), any())).thenReturn(true);
         ArgumentCaptor<List<EntityReference>> captor = ArgumentCaptor.forClass(List.class);
 
@@ -146,39 +154,9 @@ class EmbeddedDiagramMacroSolrMetadataExtractorTest
         List<EntityReference> references = captor.getValue();
 
         assertEquals(2, references.size());
-        assertInstanceOf(DocumentReference.class, references.get(0));
-        assertInstanceOf(AttachmentReference.class, references.get(1));
-
-        assertEquals("myDiagram.diagram.xml", references.get(1).getName());
-        assertEquals(resolvedDocRef, references.get(0));
-    }
-
-    @Test
-    void extractMultipleMacrosAggregatesAllReferences()
-    {
-
-        when(xdom.getBlocks(any(MacroBlockMatcher.class), any())).thenReturn(Arrays.asList(macroBlock, macroBlock2));
-
-        when(macroBlock.getParameter("diagramSource")).thenReturn("Space.Page1");
-        when(macroBlock.getParameter("diagramName")).thenReturn("diagram1");
-
-        when(macroBlock2.getParameter("diagramSource")).thenReturn("Space.Page2");
-        when(macroBlock2.getParameter("diagramName")).thenReturn("diagram2");
-
-        DocumentReference resolved1 = mock(DocumentReference.class);
-        DocumentReference resolved2 = mock(DocumentReference.class);
-
-        when(resolver.resolve("Space.Page1", currentDocRef)).thenReturn(resolved1);
-        when(resolver.resolve("Space.Page2", currentDocRef)).thenReturn(resolved2);
-
-        when(linkRegistry.registerBacklinks(any(), any())).thenReturn(true);
-        ArgumentCaptor<List<EntityReference>> captor = ArgumentCaptor.forClass(List.class);
-
-        boolean result = extractor.extract(document, solrDocument);
-
-        assertTrue(result);
-        verify(linkRegistry).registerBacklinks(eq(solrDocument), captor.capture());
-        List<EntityReference> references = captor.getValue();
-        assertEquals(4, references.size());
+        assertInstanceOf(AttachmentReference.class, references.get(0));
+        assertInstanceOf(DocumentReference.class, references.get(1));
+        assertEquals(attachmentReference, references.get(0));
+        assertEquals(resolvedDocRef, references.get(1));
     }
 }

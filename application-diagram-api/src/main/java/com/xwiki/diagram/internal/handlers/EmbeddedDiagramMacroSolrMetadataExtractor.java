@@ -30,6 +30,7 @@ import javax.inject.Singleton;
 import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.AttachmentReference;
+import org.xwiki.model.reference.AttachmentReferenceResolver;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
@@ -40,6 +41,7 @@ import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xwiki.diagram.internal.InlineDiagramManager;
 
 /**
  * Responsible for registering the backlink to the source document.
@@ -56,8 +58,12 @@ public class EmbeddedDiagramMacroSolrMetadataExtractor implements SolrEntityMeta
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-    @Named("explicit")
-    private DocumentReferenceResolver<String> explicitDocumentReferenceResolver;
+    @Named("current")
+    private DocumentReferenceResolver<String> documentReferenceResolver;
+
+    @Inject
+    @Named("current")
+    private AttachmentReferenceResolver<String> attachmentReferenceResolver;
 
     @Inject
     private LinkRegistry linkRegistry;
@@ -71,14 +77,19 @@ public class EmbeddedDiagramMacroSolrMetadataExtractor implements SolrEntityMeta
             List<EntityReference> macroReferences = new ArrayList<>();
             for (Block macroBlock : macroBlocks) {
                 // Handle the reference to the source document.
-                DocumentReference macroReference =
-                    explicitDocumentReferenceResolver.resolve(macroBlock.getParameter("diagramSource"),
-                        document.getDocumentReference());
-                macroReferences.add(macroReference);
-                // Handle the reference to the actual attachment. Yes, attachments have backreferences.
-                AttachmentReference attachmentReference =
-                    new AttachmentReference(macroBlock.getParameter("diagramName") + ".diagram.xml", macroReference);
-                macroReferences.add(attachmentReference);
+                String macroReference = macroBlock.getParameter("diagramSource");
+                if (macroReference != null && !macroReference.isEmpty()) {
+                    boolean isAttachment =
+                        macroReference.endsWith(InlineDiagramManager.DIAGRAM_SUFFIX) && macroReference.contains("@");
+                    if (isAttachment) {
+                        // Handle the reference to the actual attachment. Yes, attachments have backreferences.
+                        AttachmentReference attachmentReference = attachmentReferenceResolver.resolve(macroReference);
+                        macroReferences.add(attachmentReference);
+                    } else {
+                        DocumentReference documentReference = documentReferenceResolver.resolve(macroReference);
+                        macroReferences.add(documentReference);
+                    }
+                }
             }
             return linkRegistry.registerBacklinks(solrDocument, macroReferences);
         }

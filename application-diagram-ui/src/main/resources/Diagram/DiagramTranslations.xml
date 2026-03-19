@@ -85,21 +85,21 @@ rendering.macro.inlineDiagram.parameter.diagramName.name=Diagram Name
 rendering.macro.inlineDiagram.parameter.diagramName.description=The name of the diagram. It is also used for the attachment name.
 diagram.inline.macro.editMode=The diagram content cannot be edited in page edit mode. Please switch back to view for this action.
 diagram.inline.macro.createNew=Create a new inline diagram.
-inlineDiagram.actions.save=Saving diagram…
-inlineDiagram.actions.created=Diagram created.
-inlineDiagram.actions.updated=Diagram updated.
-inlineDiagram.actions.error=Something went wrong while trying to save the diagram.
 
 # Embed Inline Diagram
 rendering.macro.embedInlineDiagram.name=Embed Inline Diagram
 rendering.macro.embedInlineDiagram.description=Embed an inline diagram in the current page.
-rendering.macro.embedInlineDiagram.parameter.diagramName=Diagram Name
-rendering.macro.embedInlineDiagram.parameter.diagramName.description=The name of the diagram that you want to embed.
 rendering.macro.embedInlineDiagram.parameter.diagramSource.name=Diagram Source
 rendering.macro.embedInlineDiagram.parameter.diagramSource.description=The reference of the document that stores the original diagram.
+rendering.macro.embedInlineDiagram.parameter.externalDiagramSource.name=External Diagram Source
+rendering.macro.embedInlineDiagram.parameter.externalDiagramSource.description=An external link to a diagram source.
+rendering.macro.embedInlineDiagram.parameter.enableEdit.name=Enable edit
+rendering.macro.embedInlineDiagram.parameter.enableEdit.description=Enable users to edit the embeded diagram. This parameter is ignored when using external sources.
 diagram.inline.macro.diagramDoesntExist=The diagram that you want to embed doesn't exist. Please check the parameters.
 diagram.embedInlineDiagram.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar to get redirect to the source diagram.
-
+diagram.inline.macro.noSourceSet=You must select a source for the macro to work.
+diagram.inline.macro.bothSourcesSet=You must select only one source for the macro to work.
+diagram.inline.macro.externalDiagramInEditMode=You can not edit external diagram in XWiki. Please edit the source and the change should be reflected in XWiki.
 # Inline editor
 diagram.inlineDiagram.editor.save.button=Save
 diagram.inlineDiagram.editor.return.button=Back to page
@@ -109,6 +109,13 @@ diagram.editor.saveAsImageAttachmentError=Error when saving the diagram as an im
 diagram.editor.disabledExternalServices=External services are disabled.
 diagram.editor.menu.print.title=Print the diagram using an external device when possible, otherwise simply export and save it as PDF.
 diagram.editor.menu.print.label=Print / Export as PDF
+diagram.editor.menu.goBack.label=Go Back
+diagram.editor.menu.goBack.title=Return to the original document.
+diagram.editor.menu.save.label=Save
+diagram.editor.menu.save=Saving diagram…
+diagram.editor.menu.created=Diagram created.
+diagram.editor.menu.updated=Diagram updated.
+diagram.editor.menu.error=Something went wrong while trying to save the diagram.
 
 # Link modal
 diagram.link.modal.link=Link
