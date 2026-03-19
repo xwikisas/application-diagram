@@ -143,7 +143,6 @@
       let sourceStringRef = event.detail.source;
       let sourceRef = XWiki.Model.resolve(sourceStringRef, XWiki.EntityType.DOCUMENT);
       let standaloneEditorURL = new XWiki.Document(sourceRef).getURL('edit');
-      console.log(queryString)
       window.location = `${standaloneEditorURL}?${queryString}`;
     } else {
       let queryString = $.param({...defaultQueryParameters, ...event.detail});
