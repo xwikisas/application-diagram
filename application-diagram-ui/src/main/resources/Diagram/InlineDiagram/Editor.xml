@@ -56,12 +56,12 @@
   ## Maybe checking only for view rights here and for edit rights on save could also be a solution, but in
   ## my opinion a user who has only view rights should not be able to see the diagram here, because they may think they
   ## can edit it, and the save failure would be perceived as a bug.
-  #if ($sourceDocument.hasAccessLevel("edit", $xcontext.user))
+  #if ($sourceDocument.hasAccessLevel('edit', $xcontext.user))
     #set ($attachmentName = "${request.diagramName}.diagram.xml")
     #set ($attachment = $sourceDocument.getAttachment($attachmentName))
     #set ($content = "$!attachment.getContentAsString()")
   #else
-    #set ($content = "")
+    #set ($content = '')
   #end
   #set ($temporaryUploadSupported = ("$!services.temporaryAttachments" != ''))
   #set ($diagramConfig = {
@@ -224,7 +224,7 @@
 }
 
 /*There is an empty &lt;p&gt; at the beginning of the editor and I cannot figure out how to disable it otherwise.
-I tried deleting the included [page] and that made it disappear, but after I looked into the files that were included,
+I tried deleting the included pages and that made it disappear, but after I looked into the files that were included,
 I couldn't figure out what would have generated the new line, because they are using output="false".*/
 #xwikimaincontainerinner &gt; p {
   display: none;

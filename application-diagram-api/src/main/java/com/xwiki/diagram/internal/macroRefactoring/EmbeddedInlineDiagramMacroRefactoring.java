@@ -35,7 +35,7 @@ import org.xwiki.rendering.macro.MacroRefactoringException;
 import org.xwiki.stability.Unstable;
 
 /**
- * Handles the update of the embedded diagram reference when the source page is moved.
+ * Handles the update of the embedded diagram reference when the source is moved.
  *
  * @version $Id$
  * @since 1.22.11

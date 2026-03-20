@@ -196,6 +196,22 @@ define('diagram-viewer', [
     return origin;
   };
 
+  var originalGetLabel = Graph.prototype.getLabel;
+
+  Graph.prototype.getLabel = function(cell) {
+    var label = originalGetLabel.call(this, cell);
+    // We use this for exports, so we don't have 'data:xwiki' links in the pdf.
+    if (XWiki.contextaction === 'export' &amp;&amp; label &amp;&amp; label.startsWith('&lt;a href="data:xwiki')) {
+        let anchor = $(label);
+        let href = anchor.attr('href');
+        if (diagramLinkHandler.isXWikiCustomLink(href)) {
+            anchor.attr('href', diagramLinkHandler.getURLFromCustomLink(href));
+            return anchor[0].outerHTML;
+        }
+    }
+    return label;
+  };
+
   // This is required for the clipart images.
   GraphViewer.prototype.imageBaseUrl = getOrigin();
 

@@ -922,7 +922,7 @@ define('diagram-editor', [
       encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
     const saveDiagramRendering = XWiki.contextPath + '/rest/diagram/inline/saveRender/' +
       encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
-    notification = new XWiki.widgets.Notification(l10n['save'], "inprogress")
+    notification = new XWiki.widgets.Notification(l10n['save'], 'inprogress')
     let diagramFile = window._xfiles[0];
     // Stop editing the file.
     diagramFile.ui.editor.graph.stopEditing(false);
@@ -932,8 +932,8 @@ define('diagram-editor', [
     let diagramContent = window._xfiles[0].getData();
     $.ajax({
       url: saveDiagramContent,
-      method: "POST",
-      contentType: "text/plain; charset=UTF-8",
+      method: 'POST',
+      contentType: 'text/plain; charset=UTF-8',
       data: diagramContent,
       processData: false
     })
@@ -950,7 +950,6 @@ define('diagram-editor', [
           });
         }, null, null, 1, null);
         savedSuccessfully(jqXHR);
-        console.log('Save finished');
       })
     .fail(function (jqXHR) {
       savedFailed(jqXHR);
