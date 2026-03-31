@@ -262,10 +262,6 @@
   #getDiagramContent($sourceDocumentReference, $diagramName, $diagramType)
   #set ($returnFragment = "inline-diagram-$diagramName")
   #if ("$!content" != '')
-    ## We introduce the js only if there is content to display. We avoid making an extra request.
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
     ## Display the edit button only to the users that have edit over the current page.
     #set ($canEdit = "$!xcontext.macro.params.enableEdit")
     #if ($doc.hasAccessLevel("edit", $xcontext.user) &amp;&amp; $canEdit == 'true')
@@ -293,15 +289,15 @@
     #set ($externalDiagramInEditMode = $services.rendering.escape($unescapedExternalDiagramInEditMode, 'xwiki/2.1'))
     {{info}}$externalDiagramInEditMode{{/info}}
   #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
     #displayExternalDiagram($externalDiagramSource, '')
   #end
 #end
 ##
 #set ($diagramSource = $xcontext.macro.params.diagramSource)
 #set ($externalDiagramSource = $xcontext.macro.params.externalDiagramSource)
+#set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
 ## If both diagramSource and externalDiagramSource are set, we give a warning message instead of choosing one of them.
 #if ("$!diagramSource" != "" &amp;&amp; "$!externalDiagramSource" != "")
   #set ($unescapedBothSourcesSet = $services.localization.render('diagram.inline.macro.bothSourcesSet'))
