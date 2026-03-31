@@ -93,7 +93,7 @@ rendering.macro.embedInlineDiagram.parameter.diagramSource.name=Diagram Source
 rendering.macro.embedInlineDiagram.parameter.diagramSource.description=The reference of the document that stores the original diagram.
 rendering.macro.embedInlineDiagram.parameter.externalDiagramSource.name=External Diagram Source
 rendering.macro.embedInlineDiagram.parameter.externalDiagramSource.description=An external link to a diagram source.
-rendering.macro.embedInlineDiagram.parameter.enableEdit.name=Enable edit
+rendering.macro.embedInlineDiagram.parameter.enableEdit.name=Enable Edit
 rendering.macro.embedInlineDiagram.parameter.enableEdit.description=Enable users to edit the embeded diagram. This parameter is ignored when using external sources.
 diagram.inline.macro.diagramDoesntExist=The diagram that you want to embed doesn't exist. Please check the parameters.
 diagram.embedInlineDiagram.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar to get redirect to the source diagram.
@@ -112,10 +112,11 @@ diagram.editor.menu.print.label=Print / Export as PDF
 diagram.editor.menu.goBack.label=Go Back
 diagram.editor.menu.goBack.title=Return to the original document.
 diagram.editor.menu.save.label=Save
-diagram.editor.menu.save=Saving diagram…
-diagram.editor.menu.created=Diagram created.
-diagram.editor.menu.updated=Diagram updated.
-diagram.editor.menu.error=Something went wrong while trying to save the diagram.
+diagram.editor.menu.save.title=Save the diagram.
+diagram.editor.menu.notification.save=Saving diagram…
+diagram.editor.menu.notification.created=Diagram created.
+diagram.editor.menu.notification.updated=Diagram updated.
+diagram.editor.menu.notification.error=Something went wrong while trying to save the diagram.
 
 # Link modal
 diagram.link.modal.link=Link

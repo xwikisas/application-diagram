@@ -865,10 +865,10 @@ define('diagramMenuTranslations', {
     'save.label',
     'save.title',
     // Notifications:
-    'save',
-    'created',
-    'updated',
-    'error'
+    'notification.save',
+    'notification.created',
+    'notification.updated',
+    'notification.error'
   ]
 });
 
@@ -904,14 +904,14 @@ define('diagram-editor', [
    let savedSuccessfully = function (response) {
     // if response code is 201, it means the diagram was created, otherwise it was updated
     if (response.status === 201) {
-      notification.replace(new XWiki.widgets.Notification(l10n['created'], 'done'));
+      notification.replace(new XWiki.widgets.Notification(l10n['notification.created'], 'done'));
     } else {
-      notification.replace(new XWiki.widgets.Notification(l10n['updated'], 'done'));
+      notification.replace(new XWiki.widgets.Notification(l10n['notification.updated'], 'done'));
     }
   };
 
   let savedFailed = function (error) {
-    notification.replace(new XWiki.widgets.Notification(l10n['error'], 'error'));
+    notification.replace(new XWiki.widgets.Notification(l10n['notification.error'], 'error'));
   };
 
   let notification = null;
@@ -922,7 +922,7 @@ define('diagram-editor', [
       encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
     const saveDiagramRendering = XWiki.contextPath + '/rest/diagram/inline/saveRender/' +
       encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
-    notification = new XWiki.widgets.Notification(l10n['save'], 'inprogress')
+    notification = new XWiki.widgets.Notification(l10n['notification.save'], 'inprogress')
     let diagramFile = window._xfiles[0];
     // Stop editing the file.
     diagramFile.ui.editor.graph.stopEditing(false);

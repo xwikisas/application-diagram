@@ -19,7 +19,6 @@
  */
 package com.xwiki.diagram.internal.handlers;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,11 +30,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.AttachmentReferenceResolver;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.block.match.MacroBlockMatcher;
@@ -52,7 +53,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -71,11 +71,7 @@ class EmbeddedDiagramMacroSolrMetadataExtractorTest
 
     @MockComponent
     @Named("current")
-    private DocumentReferenceResolver<String> documentReferenceResolver;
-
-    @MockComponent
-    @Named("current")
-    private AttachmentReferenceResolver<String> attachmentReferenceResolver;
+    private EntityReferenceResolver<String> entityReferenceResolver;
 
     @MockComponent
     private LinkRegistry linkRegistry;
@@ -139,10 +135,10 @@ class EmbeddedDiagramMacroSolrMetadataExtractorTest
         when(xdom.getBlocks(any(MacroBlockMatcher.class), any())).thenReturn(List.of(macroBlock, macroBlock2));
 
         when(macroBlock.getParameter("diagramSource")).thenReturn("Space.Page@test.diagram.xml");
-        when(attachmentReferenceResolver.resolve("Space.Page@test.diagram.xml")).thenReturn(attachmentReference);
+        when(entityReferenceResolver.resolve("Space.Page@test.diagram.xml", EntityType.ATTACHMENT)).thenReturn(attachmentReference);
 
         when(macroBlock2.getParameter("diagramSource")).thenReturn("test");
-        when(documentReferenceResolver.resolve("test")).thenReturn(resolvedDocRef);
+        when(entityReferenceResolver.resolve("test", EntityType.DOCUMENT)).thenReturn(resolvedDocRef);
         when(linkRegistry.registerBacklinks(any(), any())).thenReturn(true);
         ArgumentCaptor<List<EntityReference>> captor = ArgumentCaptor.forClass(List.class);
 

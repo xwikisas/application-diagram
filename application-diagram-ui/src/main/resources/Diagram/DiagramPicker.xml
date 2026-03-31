@@ -236,7 +236,7 @@ require(['jquery', 'xwiki-suggestDiagram', 'xwiki-events-bridge'], function ($) 
       <name/>
     </property>
     <property>
-      <parse>0</parse>
+      <parse>1</parse>
     </property>
     <property>
       <use>currentPage</use>

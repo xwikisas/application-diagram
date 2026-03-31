@@ -28,7 +28,7 @@ import javax.inject.Singleton;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.AttachmentReference;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.block.MacroBlock;
 import org.xwiki.rendering.macro.MacroRefactoringException;
@@ -49,9 +49,6 @@ public class EmbeddedInlineDiagramMacroRefactoring extends AbstractInlineDiagram
     private static final String SOURCE_DOCUMENT = "diagramSource";
 
     @Inject
-    private DocumentReferenceResolver<String> resolver;
-
-    @Inject
     @Named("compact")
     private EntityReferenceSerializer<String> serializer;
 
@@ -60,16 +57,7 @@ public class EmbeddedInlineDiagramMacroRefactoring extends AbstractInlineDiagram
         DocumentReference sourceReference, DocumentReference targetReference, boolean relative)
         throws MacroRefactoringException
     {
-        String param = macroBlock.getParameter(SOURCE_DOCUMENT);
-        if (param == null) {
-            return Optional.empty();
-        }
-        DocumentReference documentReference = resolver.resolve(param);
-        if (documentReference.equals(sourceReference)) {
-            macroBlock.setParameter(SOURCE_DOCUMENT, serializer.serialize(targetReference));
-            return Optional.of(macroBlock);
-        }
-        return Optional.empty();
+        return replaceSerializedReference(macroBlock, sourceReference, targetReference);
     }
 
     @Override
@@ -77,12 +65,17 @@ public class EmbeddedInlineDiagramMacroRefactoring extends AbstractInlineDiagram
         AttachmentReference sourceReference, AttachmentReference targetReference, boolean relative)
         throws MacroRefactoringException
     {
-        String reference = macroBlock.getParameter(SOURCE_DOCUMENT);
-        if (reference == null) {
+        return replaceSerializedReference(macroBlock, sourceReference, targetReference);
+    }
+
+    private Optional<MacroBlock> replaceSerializedReference(MacroBlock macroBlock, EntityReference sourceReference,
+        EntityReference targetReference)
+    {
+        String serializedReference = macroBlock.getParameter(SOURCE_DOCUMENT);
+        if (serializedReference == null) {
             return Optional.empty();
         }
-        String serializedSourceReference = serializer.serialize(sourceReference);
-        if (reference.equals(serializedSourceReference)) {
+        if (serializedReference.equals(serializer.serialize(sourceReference))) {
             macroBlock.setParameter(SOURCE_DOCUMENT, serializer.serialize(targetReference));
             return Optional.of(macroBlock);
         }

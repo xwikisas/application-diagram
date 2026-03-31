@@ -29,11 +29,9 @@ import javax.inject.Singleton;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.xwiki.component.annotation.Component;
-import org.xwiki.model.reference.AttachmentReference;
-import org.xwiki.model.reference.AttachmentReferenceResolver;
-import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.EntityReference;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.rendering.block.Block;
 import org.xwiki.rendering.block.XDOM;
 import org.xwiki.rendering.block.match.MacroBlockMatcher;
@@ -59,11 +57,7 @@ public class EmbeddedDiagramMacroSolrMetadataExtractor implements SolrEntityMeta
 
     @Inject
     @Named("current")
-    private DocumentReferenceResolver<String> documentReferenceResolver;
-
-    @Inject
-    @Named("current")
-    private AttachmentReferenceResolver<String> attachmentReferenceResolver;
+    private EntityReferenceResolver<String> entityReferenceResolver;
 
     @Inject
     private LinkRegistry linkRegistry;
@@ -83,11 +77,9 @@ public class EmbeddedDiagramMacroSolrMetadataExtractor implements SolrEntityMeta
                         macroReference.endsWith(InlineDiagramManager.DIAGRAM_SUFFIX) && macroReference.contains("@");
                     if (isAttachment) {
                         // Handle the reference to the actual attachment. Yes, attachments have backreferences.
-                        AttachmentReference attachmentReference = attachmentReferenceResolver.resolve(macroReference);
-                        macroReferences.add(attachmentReference);
+                        macroReferences.add(entityReferenceResolver.resolve(macroReference, EntityType.ATTACHMENT));
                     } else {
-                        DocumentReference documentReference = documentReferenceResolver.resolve(macroReference);
-                        macroReferences.add(documentReference);
+                        macroReferences.add(entityReferenceResolver.resolve(macroReference, EntityType.DOCUMENT));
                     }
                 }
             }

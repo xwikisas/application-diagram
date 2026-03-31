@@ -256,7 +256,7 @@
 
 {{velocity}}
 ##
-#macro (handleInternalDiagra, $diagramSource)
+#macro (handleInternalDiagram, $diagramSource)
   #set ($editModeTranslationKey = 'diagram.embedInlineDiagram.macro.editMode')
   #parseDiagramReference($diagramSource)
   #getDiagramContent($sourceDocumentReference, $diagramName, $diagramType)
@@ -288,7 +288,9 @@
 ##
 #macro (handleExternalDiagram, $externalDiagramSource)
   #if ($isInEditMode)
-    #set ($externalDiagramInEditMode = $services.localization.render('diagram.inline.macro.externalDiagramInEditMode'))
+    #set ($unescapedExternalDiagramInEditMode =
+      $services.localization.render('diagram.inline.macro.externalDiagramInEditMode'))
+    #set ($externalDiagramInEditMode = $services.rendering.escape($unescapedExternalDiagramInEditMode, 'xwiki/2.1'))
     {{info}}$externalDiagramInEditMode{{/info}}
   #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
     #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
@@ -306,7 +308,7 @@
   #set ($bothSourcesSet = $services.rendering.escape($unescapedBothSourcesSet, 'xwiki/2.1'))
   {{warning}}$bothSourcesSet{{/warning}}
 #elseif ("$!diagramSource" != "")
-  #handleInternalDiagra($diagramSource)
+  #handleInternalDiagram($diagramSource)
 #elseif ("$!externalDiagramSource" != "")
   #handleExternalDiagram($externalDiagramSource)
 #else

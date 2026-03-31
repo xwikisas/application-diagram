@@ -110,7 +110,7 @@
 #end
 ## Determines the type of diagram that the user wants to display and intialize the $sourceDocumentReference, $diagramName and $diagramType.
 ## There are only 2 types of diagrams:
-## * Standalone, diagrams that are stode inside an XWiki page and are requested via a document reference.
+## * Standalone, diagrams that are stored inside an XWiki page and are requested via a document reference.
 ## * Inline, diagrams that are stored as attachments of an XWiki page and are requested via an attachment reference.
 #macro (parseDiagramReference $diagramReference)
   #set ($diagramType = $NULL)
@@ -137,7 +137,7 @@
   #set ($content = "$!attachment.getContentAsString()")
 #end
 ## Responsible for setting the $content variable when a standalone diagram is requested.
-#macro(getStandaloneDiagramContent $documentSourceReference)
+#macro (getStandaloneDiagramContent $documentSourceReference)
   #set ($diagramDocument = $xwiki.getDocument($documentSourceReference))
   #set ($content = "$!diagramDocument.getContent()")
 #end
@@ -153,7 +153,7 @@
   #set ($content = '')
   #if ("$!diagramType" == 'inline')
     #getInlineDiagramContent($document, $diagramName)
-  #elseif("$!diagramType" == 'standalone')
+  #elseif ("$!diagramType" == 'standalone')
     #getStandaloneDiagramContent($document)
   #end
 #end

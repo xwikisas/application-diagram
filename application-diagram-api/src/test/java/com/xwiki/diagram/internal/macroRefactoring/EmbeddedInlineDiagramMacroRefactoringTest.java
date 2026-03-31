@@ -26,7 +26,6 @@ import javax.inject.Named;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.rendering.block.MacroBlock;
 import org.xwiki.test.junit5.mockito.ComponentTest;
@@ -49,9 +48,6 @@ public class EmbeddedInlineDiagramMacroRefactoringTest
     @InjectMockComponents
     private EmbeddedInlineDiagramMacroRefactoring refactoring;
 
-    @MockComponent
-    private DocumentReferenceResolver<String> resolver;
-
     @Mock
     private MacroBlock macroBlock;
 
@@ -63,13 +59,16 @@ public class EmbeddedInlineDiagramMacroRefactoringTest
     void testReplaceReferenceUpdateWithSuccess() throws Exception
     {
         DocumentReference documentReference = mock(DocumentReference.class);
+        DocumentReference target = mock(DocumentReference.class);
         when(macroBlock.getParameter(SOURCE_DOCUMENT)).thenReturn("test");
-        when(resolver.resolve("test")).thenReturn(documentReference);
+        when(serializer.serialize(documentReference)).thenReturn("test");
 
         Optional<MacroBlock> optional =
-            refactoring.replaceReference(macroBlock, documentReference, documentReference, documentReference, false);
+            refactoring.replaceReference(macroBlock, documentReference, documentReference, target, false);
         assertTrue(optional.isPresent());
         verify(serializer).serialize(documentReference);
+        verify(serializer).serialize(target);
+
     }
 
     @Test
@@ -77,7 +76,7 @@ public class EmbeddedInlineDiagramMacroRefactoringTest
     {
         DocumentReference documentReference = mock(DocumentReference.class);
         when(macroBlock.getParameter(SOURCE_DOCUMENT)).thenReturn("test");
-        when(resolver.resolve("test")).thenReturn(documentReference);
+        when(serializer.serialize(documentReference)).thenReturn("test!");
 
         Optional<MacroBlock> optional =
             refactoring.replaceReference(macroBlock, documentReference, mock(DocumentReference.class),
