@@ -38,15 +38,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link EmbeddedInlineDiagramMacroRefactoring}
+ * Unit tests for {@link EmbedDiagramMacroRefactoring}
  */
 @ComponentTest
-public class EmbeddedInlineDiagramMacroRefactoringTest
+public class EmbedDiagramMacroRefactoringTest
 {
     private static final String SOURCE_DOCUMENT = "diagramSource";
 
     @InjectMockComponents
-    private EmbeddedInlineDiagramMacroRefactoring refactoring;
+    private EmbedDiagramMacroRefactoring refactoring;
 
     @Mock
     private MacroBlock macroBlock;

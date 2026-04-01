@@ -32,9 +32,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.AttachmentReference;
-import org.xwiki.model.reference.AttachmentReferenceResolver;
 import org.xwiki.model.reference.DocumentReference;
-import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.rendering.block.Block;
@@ -58,13 +56,13 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for {@link EmbeddedDiagramMacroSolrMetadataExtractor}
+ * Unit tests for {@link EmbedDiagramMacroSolrMetadataExtractor}
  */
 @ComponentTest
-class EmbeddedDiagramMacroSolrMetadataExtractorTest
+class EmbedDiagramMacroSolrMetadataExtractorTest
 {
     @InjectMockComponents
-    private EmbeddedDiagramMacroSolrMetadataExtractor extractor;
+    private EmbedDiagramMacroSolrMetadataExtractor extractor;
 
     @MockComponent
     private Provider<XWikiContext> contextProvider;

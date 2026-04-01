@@ -87,16 +87,16 @@ diagram.inline.macro.editMode=The diagram content cannot be edited in page edit 
 diagram.inline.macro.createNew=Create a new inline diagram.
 
 # Embed Inline Diagram
-rendering.macro.embedInlineDiagram.name=Embed Inline Diagram
-rendering.macro.embedInlineDiagram.description=Embed an inline diagram in the current page.
-rendering.macro.embedInlineDiagram.parameter.diagramSource.name=Diagram Source
-rendering.macro.embedInlineDiagram.parameter.diagramSource.description=The reference of the document that stores the original diagram.
-rendering.macro.embedInlineDiagram.parameter.externalDiagramSource.name=External Diagram Source
-rendering.macro.embedInlineDiagram.parameter.externalDiagramSource.description=An external link to a diagram source.
-rendering.macro.embedInlineDiagram.parameter.enableEdit.name=Enable Edit
-rendering.macro.embedInlineDiagram.parameter.enableEdit.description=Enable users to edit the embeded diagram. This parameter is ignored when using external sources.
+rendering.macro.embedDiagram.name=Embed Diagram
+rendering.macro.embedDiagram.description=Embed an inline diagram in the current page.
+rendering.macro.embedDiagram.parameter.diagramSource.name=Diagram Source
+rendering.macro.embedDiagram.parameter.diagramSource.description=The reference of the document that stores the original diagram.
+rendering.macro.embedDiagram.parameter.externalDiagramSource.name=External Diagram Source
+rendering.macro.embedDiagram.parameter.externalDiagramSource.description=An external link to a diagram source.
+rendering.macro.embedDiagram.parameter.enableEdit.name=Enable Edit
+rendering.macro.embedDiagram.parameter.enableEdit.description=Enable users to edit the embedded diagram. This parameter is ignored when using external sources.
 diagram.inline.macro.diagramDoesntExist=The diagram that you want to embed doesn't exist. Please check the parameters.
-diagram.embedInlineDiagram.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar to get redirect to the source diagram.
+diagram.embedDiagram.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar to get redirect to the source diagram.
 diagram.inline.macro.noSourceSet=You must select a source for the macro to work.
 diagram.inline.macro.bothSourcesSet=You must select only one source for the macro to work.
 diagram.inline.macro.externalDiagramInEditMode=You can not edit external diagram in XWiki. Please edit the source and the change should be reflected in XWiki.

@@ -41,10 +41,10 @@ import org.xwiki.stability.Unstable;
  * @since 1.22.11
  */
 @Component
-@Named("embedInlineDiagram")
+@Named("embedDiagram")
 @Singleton
 @Unstable
-public class EmbeddedInlineDiagramMacroRefactoring extends AbstractInlineDiagramMacroRefactoring
+public class EmbedDiagramMacroRefactoring extends AbstractInlineDiagramMacroRefactoring
 {
     private static final String SOURCE_DOCUMENT = "diagramSource";
 

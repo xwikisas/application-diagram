@@ -20,25 +20,25 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="Diagram.InlineDiagram.EmbedInlineDiagram" locale="">
+<xwikidoc version="1.5" reference="Diagram.InlineDiagram.EmbedDiagram" locale="">
   <web>Diagram.InlineDiagram</web>
-  <name>EmbedInlineDiagram</name>
+  <name>EmbedDiagram</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Diagram.InlineDiagram.WebHome</parent>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>EmbedInlineDiagram</title>
+  <title>EmbedDiagram</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>Diagram.InlineDiagram.EmbedInlineDiagram</name>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
     <number>0</number>
     <className>XWiki.WikiMacroClass</className>
     <guid>55cfa198-f3a6-4e89-a403-cb467907d1af</guid>
@@ -257,15 +257,11 @@
 {{velocity}}
 ##
 #macro (handleInternalDiagram, $diagramSource)
-  #set ($editModeTranslationKey = 'diagram.embedInlineDiagram.macro.editMode')
+  #set ($editModeTranslationKey = 'diagram.embedDiagram.macro.editMode')
   #parseDiagramReference($diagramSource)
   #getDiagramContent($sourceDocumentReference, $diagramName, $diagramType)
   #set ($returnFragment = "inline-diagram-$diagramName")
   #if ("$!content" != '')
-    ## We introduce the js only if there is content to display. We avoid making an extra request.
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
     ## Display the edit button only to the users that have edit over the current page.
     #set ($canEdit = "$!xcontext.macro.params.enableEdit")
     #if ($doc.hasAccessLevel("edit", $xcontext.user) &amp;&amp; $canEdit == 'true')
@@ -293,17 +289,18 @@
     #set ($externalDiagramInEditMode = $services.rendering.escape($unescapedExternalDiagramInEditMode, 'xwiki/2.1'))
     {{info}}$externalDiagramInEditMode{{/info}}
   #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
     #displayExternalDiagram($externalDiagramSource, '')
   #end
 #end
 ##
 #set ($diagramSource = $xcontext.macro.params.diagramSource)
 #set ($externalDiagramSource = $xcontext.macro.params.externalDiagramSource)
+#set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
 ## If both diagramSource and externalDiagramSource are set, we give a warning message instead of choosing one of them.
 #if ("$!diagramSource" != "" &amp;&amp; "$!externalDiagramSource" != "")
+  #diagramConfigPlaceHolder()
   #set ($unescapedBothSourcesSet = $services.localization.render('diagram.inline.macro.bothSourcesSet'))
   #set ($bothSourcesSet = $services.rendering.escape($unescapedBothSourcesSet, 'xwiki/2.1'))
   {{warning}}$bothSourcesSet{{/warning}}
@@ -312,6 +309,7 @@
 #elseif ("$!externalDiagramSource" != "")
   #handleExternalDiagram($externalDiagramSource)
 #else
+  #diagramConfigPlaceHolder()
   #set ($unescapedNoSourceSet = $services.localization.render('diagram.inline.macro.noSourceSet'))
   #set ($noSourceSet = $services.rendering.escape($unescapedNoSourceSet, 'xwiki/2.1'))
   {{warning}}$noSourceSet {{/warning}}
@@ -334,7 +332,7 @@
       <description/>
     </property>
     <property>
-      <id>embedInlineDiagram</id>
+      <id>embedDiagram</id>
     </property>
     <property>
       <name/>
@@ -350,7 +348,7 @@
     </property>
   </object>
   <object>
-    <name>Diagram.InlineDiagram.EmbedInlineDiagram</name>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
     <number>0</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>556cf35b-c18a-46c4-8e4b-6f5837a44fe0</guid>
@@ -440,7 +438,7 @@
     </property>
   </object>
   <object>
-    <name>Diagram.InlineDiagram.EmbedInlineDiagram</name>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
     <number>1</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>5e113847-02af-41ae-b9c5-98a0b2f3d6fc</guid>
@@ -530,7 +528,7 @@
     </property>
   </object>
   <object>
-    <name>Diagram.InlineDiagram.EmbedInlineDiagram</name>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
     <number>2</number>
     <className>XWiki.WikiMacroParameterClass</className>
     <guid>76505f69-ac45-4502-b549-53fcdd500d37</guid>

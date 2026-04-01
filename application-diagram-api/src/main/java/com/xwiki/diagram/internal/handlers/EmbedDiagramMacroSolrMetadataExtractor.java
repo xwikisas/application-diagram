@@ -48,9 +48,9 @@ import com.xwiki.diagram.internal.InlineDiagramManager;
  * @since 1.22.12
  */
 @Component
-@Named("macroembededinlinediagram")
+@Named("macroembeddiagram")
 @Singleton
-public class EmbeddedDiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
+public class EmbedDiagramMacroSolrMetadataExtractor implements SolrEntityMetadataExtractor<XWikiDocument>
 {
     @Inject
     private Provider<XWikiContext> contextProvider;
@@ -66,7 +66,7 @@ public class EmbeddedDiagramMacroSolrMetadataExtractor implements SolrEntityMeta
     public boolean extract(XWikiDocument document, SolrInputDocument solrDocument)
     {
         XDOM xdom = document.getXDOM();
-        List<Block> macroBlocks = xdom.getBlocks(new MacroBlockMatcher("embedInlineDiagram"), Block.Axes.CHILD);
+        List<Block> macroBlocks = xdom.getBlocks(new MacroBlockMatcher("embedDiagram"), Block.Axes.CHILD);
         if (macroBlocks != null && !macroBlocks.isEmpty()) {
             List<EntityReference> macroReferences = new ArrayList<>();
             for (Block macroBlock : macroBlocks) {

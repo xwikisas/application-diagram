@@ -17,5 +17,5 @@ com.xwiki.diagram.internal.rest.DefaultInlineDiagramResource
 com.xwiki.diagram.internal.InlineDiagramManager
 com.xwiki.diagram.internal.handlers.InlineDiagramContentSolrMetadataExtractor
 com.xwiki.diagram.internal.macroRefactoring.InlineDiagramMacroRefactoring
-com.xwiki.diagram.internal.handlers.EmbeddedDiagramMacroSolrMetadataExtractor
-com.xwiki.diagram.internal.macroRefactoring.EmbeddedInlineDiagramMacroRefactoring
+com.xwiki.diagram.internal.handlers.EmbedDiagramMacroSolrMetadataExtractor
+com.xwiki.diagram.internal.macroRefactoring.EmbedDiagramMacroRefactoring
