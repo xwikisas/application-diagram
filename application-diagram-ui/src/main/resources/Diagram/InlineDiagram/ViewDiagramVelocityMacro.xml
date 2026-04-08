@@ -167,5 +167,17 @@
   #set ($infoLabel = $services.rendering.escape($unescapedInfoLabel, 'xwiki/2.1'))
   {{info}}$infoLabel{{/info}}
 #end
+##
+## For the Embed Diagram macro, we always need to load the Diagram Sheet JavaScript. Without it, we get an infinite
+## spinning widget after adding an embedded diagram to the page, which persists until the page is refreshed.
+## To load the Diagram Sheet without any errors, we need to include a placeholder with some configuration settings.
+##
+#macro (diagramConfigPlaceHolder)
+
+  {{html}}
+    &lt;div style="display:none" data-diagram-config="$escapetool.xml($jsontool.serialize($defaultConfig))"&gt;&lt;/div&gt;
+  {{/html}}
+
+#end
 {{/velocity}}</content>
 </xwikidoc>
