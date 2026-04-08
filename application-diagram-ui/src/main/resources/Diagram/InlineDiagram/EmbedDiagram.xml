@@ -312,7 +312,7 @@
   #diagramConfigPlaceHolder()
   #set ($unescapedNoSourceSet = $services.localization.render('diagram.inline.macro.noSourceSet'))
   #set ($noSourceSet = $services.rendering.escape($unescapedNoSourceSet, 'xwiki/2.1'))
-  {{warning}}$noSourceSet {{/warning}}
+  {{warning}}$noSourceSet{{/warning}}
 #end
 {{/velocity}}</code>
     </property>

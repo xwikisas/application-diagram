@@ -922,7 +922,7 @@ define('diagram-editor', [
       encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
     const saveDiagramRendering = XWiki.contextPath + '/rest/diagram/inline/saveRender/' +
       encodeURIComponent(sourceDocumentStringRef) + '/' + encodeURIComponent(diagramName);
-    notification = new XWiki.widgets.Notification(l10n['notification.save'], 'inprogress')
+    notification = new XWiki.widgets.Notification(l10n['notification.save'], 'inprogress');
     let diagramFile = window._xfiles[0];
     // Stop editing the file.
     diagramFile.ui.editor.graph.stopEditing(false);
@@ -938,7 +938,7 @@ define('diagram-editor', [
       processData: false
     })
     .done(function (data, textStatus, jqXHR) {
-      // After the critical XML was successfully saved we also save a png for of the first page, but we don't wait for
+      // After the critical XML was successfully saved we also save a png for the first page, but we don't wait for
       // it.
       window._xfiles[0].getUi().getEmbeddedPng(function(png) {
           $.ajax({
