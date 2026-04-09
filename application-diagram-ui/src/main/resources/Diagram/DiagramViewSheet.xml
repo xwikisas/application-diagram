@@ -196,6 +196,22 @@ define('diagram-viewer', [
     return origin;
   };
 
+  var originalGetLabel = Graph.prototype.getLabel;
+
+  Graph.prototype.getLabel = function(cell) {
+    var label = originalGetLabel.call(this, cell);
+    // We use this for exports, so we don't have 'data:xwiki' links in the pdf.
+    if (XWiki.contextaction === 'export' &amp;&amp; label &amp;&amp; label.startsWith('&lt;a href="data:xwiki')) {
+        let anchor = $(label);
+        let href = anchor.attr('href');
+        if (diagramLinkHandler.isXWikiCustomLink(href)) {
+            anchor.attr('href', diagramLinkHandler.getURLFromCustomLink(href));
+            return anchor[0].outerHTML;
+        }
+    }
+    return label;
+  };
+
   // This is required for the clipart images.
   GraphViewer.prototype.imageBaseUrl = getOrigin();
 
@@ -261,12 +277,14 @@ define('diagram-viewer', [
          * diagramName -&gt; The name of the diagram to be edited, which is also the unique identifier.
          * returnDocument -&gt; The document were the user should return when he closes the editor
          * returnFragment -&gt; Id of the diagram that we edit, so after the edit is done, we can scroll to it.
+         * editorType -&gt; the type of editor that we should use.
          */
         let diagramDetails = {
           'source': container.data('sourceDocumentReference'),
           'diagramName': container.data('title'),
           'returnDocument': container.data('returnDocumentReference'),
-          'returnFragment': container.data('returnFragment')
+          'returnFragment': container.data('returnFragment'),
+          'editorType': container.data('diagramType')
         };
         let event = new CustomEvent('editInlineDiagram', { detail: diagramDetails, bubbles: true });
         (this).dispatchEvent(event);

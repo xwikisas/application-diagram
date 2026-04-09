@@ -138,8 +138,16 @@
   const editorURL = new XWiki.Document(editorRef).getURL('view');
 
   $(document).on('editInlineDiagram', function(event){
-    let queryString = $.param({...defaultQueryParameters, ...event.detail});
-    window.location = `${editorURL}?${queryString}`;
+    if (event.detail.editorType === 'standalone') {
+      let queryString = $.param(event.detail);
+      let sourceStringRef = event.detail.source;
+      let sourceRef = XWiki.Model.resolve(sourceStringRef, XWiki.EntityType.DOCUMENT);
+      let standaloneEditorURL = new XWiki.Document(sourceRef).getURL('edit');
+      window.location = `${standaloneEditorURL}?${queryString}`;
+    } else {
+      let queryString = $.param({...defaultQueryParameters, ...event.detail});
+      window.location = `${editorURL}?${queryString}`;
+    }
   });
 });</code>
     </property>

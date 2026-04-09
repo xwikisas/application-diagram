@@ -85,11 +85,21 @@ rendering.macro.inlineDiagram.parameter.diagramName.name=Diagram Name
 rendering.macro.inlineDiagram.parameter.diagramName.description=The name of the diagram. It is also used for the attachment name.
 diagram.inline.macro.editMode=The diagram content cannot be edited in page edit mode. Please switch back to view for this action.
 diagram.inline.macro.createNew=Create a new inline diagram.
-inlineDiagram.actions.save=Saving diagram…
-inlineDiagram.actions.created=Diagram created.
-inlineDiagram.actions.updated=Diagram updated.
-inlineDiagram.actions.error=Something went wrong while trying to save the diagram.
 
+# Embed Inline Diagram
+rendering.macro.embedDiagram.name=Embed Diagram
+rendering.macro.embedDiagram.description=Embed an inline diagram in the current page.
+rendering.macro.embedDiagram.parameter.diagramSource.name=Diagram Source
+rendering.macro.embedDiagram.parameter.diagramSource.description=The reference of the document that stores the original diagram.
+rendering.macro.embedDiagram.parameter.externalDiagramSource.name=External Diagram Source
+rendering.macro.embedDiagram.parameter.externalDiagramSource.description=An external link to a diagram source.
+rendering.macro.embedDiagram.parameter.enableEdit.name=Enable Edit
+rendering.macro.embedDiagram.parameter.enableEdit.description=Enables editing of the embedded diagram. If external sources are used, this parameter is ignored.
+diagram.inline.macro.diagramDoesntExist=The diagram that you want to embed doesn't exist. Please check the parameters.
+diagram.embedDiagram.macro.editMode=Use the WYSIWYG edit mode only for updating the parameters. To edit the diagram use the button from the diagram toolbar to get redirect to the source diagram.
+diagram.inline.macro.noSourceSet=You must select a source for the macro to work.
+diagram.inline.macro.bothSourcesSet=You must select only one source for the macro to work.
+diagram.inline.macro.externalDiagramInEditMode=You can not edit external diagram in XWiki. Please edit the source and the change should be reflected in XWiki.
 # Inline editor
 diagram.inlineDiagram.editor.save.button=Save
 diagram.inlineDiagram.editor.return.button=Back to page
@@ -99,6 +109,17 @@ diagram.editor.saveAsImageAttachmentError=Error when saving the diagram as an im
 diagram.editor.disabledExternalServices=External services are disabled.
 diagram.editor.menu.print.title=Print the diagram using an external device when possible, otherwise simply export and save it as PDF.
 diagram.editor.menu.print.label=Print / Export as PDF
+diagram.editor.menu.goBack.label=Go Back
+diagram.editor.menu.goBack.title=Return to the original document.
+diagram.editor.menu.save.label=Save
+diagram.editor.menu.save.title=Save the diagram.
+diagram.editor.menu.notification.save=Saving diagram…
+diagram.editor.menu.notification.created=Diagram created.
+diagram.editor.menu.notification.updated=Diagram updated.
+diagram.editor.menu.notification.error=Something went wrong while trying to save the diagram.
+
+# Link modal
+diagram.link.modal.link=Link
 
 # Link modal
 diagram.link.modal.link=Link
