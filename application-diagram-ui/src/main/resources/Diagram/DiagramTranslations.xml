@@ -54,7 +54,7 @@ diagram.livetable.doc.location=Location
 diagram.livetable.emptyvalue=-
 
 # Diagram Macro
-rendering.macro.diagram.description=Displays a diagram.
+rendering.macro.diagram.description=Displays a diagram. This macro will be deprecated in the near future, please use the Inline Diagram macro and the Embed Diagram macro instead.
 rendering.macro.diagram.name=Diagram
 rendering.macro.diagram.parameter.cached.description=Whether to display the cached diagram image (faster) instead of rendering the diagram live (slower). Not applied when an external diagram URL is used.
 rendering.macro.diagram.parameter.cached.name=Cached
