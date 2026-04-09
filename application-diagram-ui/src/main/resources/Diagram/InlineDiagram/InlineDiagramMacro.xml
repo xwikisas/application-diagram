@@ -255,46 +255,54 @@
       <code>{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
 
 {{velocity}}
-  #set ($diagramName = $xcontext.macro.params.diagramName)
-  #getDiagramContent($doc.getDocumentReference(), $diagramName, 'inline')
-  #set ($returnFragment = "inline-diagram-$diagramName")
-  #set ($editModeTranslationKey = 'diagram.inline.macro.editMode')
-  #if ($content != '')
-    ## We introduce the js only if there is content to display. We avoid making an extra request.
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
-    ## Display the edit button only to the users that have edit over the current page.
-    #if ($doc.hasAccessLevel("edit", $xcontext.user))
-      #set ($toolbar = 'edit zoom layers pages lightbox')
+  #macro (executeDiagramMacro)
+    #set ($diagramName = $xcontext.macro.params.diagramName)
+    #getDiagramContent($doc.getDocumentReference(), $diagramName, 'inline')
+    #set ($returnFragment = "inline-diagram-$diagramName")
+    #set ($editModeTranslationKey = 'diagram.inline.macro.editMode')
+    #if ($content != '')
+      ## We introduce the js only if there is content to display. We avoid making an extra request.
+      #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+      #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+      #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
+      ## Display the edit button only to the users that have edit over the current page.
+      #if ($doc.hasAccessLevel("edit", $xcontext.user))
+        #set ($toolbar = 'edit zoom layers pages lightbox')
+      #else
+        #set ($toolbar = 'zoom layers pages lightbox')
+      #end
+      #if ($isInEditMode)
+        #displayEditMode($editModeTranslationKey)
+      #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
+        #set ($extraCSS = "inline-diagram-macro-view")
+        #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS, 'inline')
+      #end
+    #elseif ($isInEditMode)
+       #displayEditMode($editModeTranslationKey)
     #else
-      #set ($toolbar = 'zoom layers pages lightbox')
+      #set ($unescapedButtonLabel = $services.localization.render('diagram.inline.macro.createNew'))
+      #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))
+      #set ($editorReference = 'Diagram.InlineDiagram.Editor')
+      #set ($params = {
+        'source' : $doc.getDocumentReference(),
+        'returnDocument' : $doc.getDocumentReference(),
+        'diagramName' : $diagramName,
+        'xpage' : 'plain',
+        'htmlHeaderAndFooter' : 'true',
+        'outputTitle' : 'false',
+        'returnFragment' : $returnFragment,
+        'sync' : 'none',
+        'editorType': 'inline'
+      })
+      #set ($queryString = $escapetool.url($params))
+      [[$buttonLabel&gt;&gt;$editorReference||queryString="$queryString"]]
     #end
-    #if ($isInEditMode)
-      #displayEditMode($editModeTranslationKey)
-    #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
-      #set ($extraCSS = "inline-diagram-macro-view")
-      #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS, 'inline')
-    #end
-  #elseif ($isInEditMode)
-     #displayEditMode($editModeTranslationKey)
+  #end
+##
+  #if ($services.licensing.licensor.hasLicensureForEntity($xcontext.macro.doc.documentReference))
+    #executeDiagramMacro
   #else
-    #set ($unescapedButtonLabel = $services.localization.render('diagram.inline.macro.createNew'))
-    #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))
-    #set ($editorReference = 'Diagram.InlineDiagram.Editor')
-    #set ($params = {
-      'source' : $doc.getDocumentReference(),
-      'returnDocument' : $doc.getDocumentReference(),
-      'diagramName' : $diagramName,
-      'xpage' : 'plain',
-      'htmlHeaderAndFooter' : 'true',
-      'outputTitle' : 'false',
-      'returnFragment' : $returnFragment,
-      'sync' : 'none',
-      'editorType': 'inline'
-    })
-    #set ($queryString = $escapetool.url($params))
-    [[$buttonLabel&gt;&gt;$editorReference||queryString="$queryString"]]
+    {{missingLicenseMessage extensionName="diagram.extension.name"/}}
   #end
 {{/velocity}}</code>
     </property>
