@@ -63,8 +63,8 @@
   #end
 #end
 
-#set ($filter = $request.filter)
-#if ("$!filter" != "" &amp;&amp; $xcontext.action == 'get')
+#set ($filter = "$!request.filter")
+#if ($xcontext.action == 'get')
   #set ($filter = $filter.toLowerCase())
   ## When we attempt to search for inline diagram, we search after
   ## the attachment name and the document reference.
@@ -81,7 +81,6 @@
     WHERE
       (lower(att.filename) like '%$filter%.diagram.xml' or (lower(doc.fullName) like '%$filter%' and lower(att.filename) like '%.diagram.xml'))
   ")
-  ## Get all
   #set ($hql2 = "select
       doc.fullName,
       doc.title,
@@ -93,6 +92,7 @@
       doc.fullName = diagramObject.name
       and diagramObject.className = 'Diagram.DiagramClass'
       and doc.title like '%$filter%'
+      and doc.fullName &lt;&gt; 'Diagram.DiagramTemplate'
   ")
   #set ($result = $services.query.hql($hql).setLimit(5).execute())
   #set ($result2 = $services.query.hql($hql2).setLimit(5).execute())

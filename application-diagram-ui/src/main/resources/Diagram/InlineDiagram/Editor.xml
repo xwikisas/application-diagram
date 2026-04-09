@@ -225,6 +225,9 @@
   width:6em;
 }
 
+.geItem.btn-primary {
+  color: white;
+}
 </code>
     </property>
     <property>
