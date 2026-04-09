@@ -17,33 +17,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package com.xwiki.diagram.internal.macroRefactoring;
-
-import javax.inject.Inject;
-import javax.inject.Provider;
-
-import org.slf4j.Logger;
-import org.xwiki.rendering.macro.MacroRefactoring;
-
-import com.xpn.xwiki.XWikiContext;
+package com.xwiki.diagram.internal;
 
 /**
- * Common behavior for updating the name of the diagram when an attachment is moved.
+ * Diagram picker.
  *
  * @version $Id$
- * @since 1.22.12
+ * @since 1.22.11
  */
-public abstract class AbstractInlineDiagramMacroRefactoring implements MacroRefactoring
+public class DiagramReference
 {
-    protected static final String ATTACHMENT_SUFFIX = ".diagram.xml";
+    private final String source;
 
-    protected static final String FORMAT_NAME = "%s%s";
+    /**
+     * @param source the value of the soruce
+     */
+    public DiagramReference(String source)
+    {
+        this.source = source;
+    }
 
-    protected static final String DIAGRAM_NAME = "diagramName";
-
-    @Inject
-    protected Provider<XWikiContext> contextProvider;
-
-    @Inject
-    protected Logger logger;
+    /**
+     * @return the value of the soruce
+     */
+    public String getSource()
+    {
+        return source;
+    }
 }

@@ -20,28 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 -->
 
-<xwikidoc version="1.5" reference="Diagram.InlineDiagram.InlineDiagramMacro" locale="">
+<xwikidoc version="1.5" reference="Diagram.InlineDiagram.EmbedDiagram" locale="">
   <web>Diagram.InlineDiagram</web>
-  <name>InlineDiagramMacro</name>
+  <name>EmbedDiagram</name>
   <language/>
   <defaultLanguage/>
   <translation>0</translation>
   <creator>xwiki:XWiki.Admin</creator>
-  <parent>Diagram.InlineDiagram.WebHome</parent>
+  <parent>WebHome</parent>
   <author>xwiki:XWiki.Admin</author>
   <contentAuthor>xwiki:XWiki.Admin</contentAuthor>
   <version>1.1</version>
-  <title>InlineDiagramMacro</title>
+  <title>EmbedDiagram</title>
   <comment/>
   <minorEdit>false</minorEdit>
   <syntaxId>xwiki/2.1</syntaxId>
   <hidden>true</hidden>
   <content/>
   <object>
-    <name>Diagram.InlineDiagram.InlineDiagramMacro</name>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
     <number>0</number>
     <className>XWiki.WikiMacroClass</className>
-    <guid>cd888962-5ceb-4809-8741-c78a11b0a51b</guid>
+    <guid>55cfa198-f3a6-4e89-a403-cb467907d1af</guid>
     <class>
       <name>XWiki.WikiMacroClass</name>
       <customClass/>
@@ -255,17 +255,16 @@
       <code>{{include reference='Diagram.InlineDiagram.ViewDiagramVelocityMacro' /}}
 
 {{velocity}}
-  #set ($diagramName = $xcontext.macro.params.diagramName)
-  #getDiagramContent($doc.getDocumentReference(), $diagramName, 'inline')
+##
+#macro (handleInternalDiagram, $diagramSource)
+  #set ($editModeTranslationKey = 'diagram.embedDiagram.macro.editMode')
+  #parseDiagramReference($diagramSource)
+  #getDiagramContent($sourceDocumentReference, $diagramName, $diagramType)
   #set ($returnFragment = "inline-diagram-$diagramName")
-  #set ($editModeTranslationKey = 'diagram.inline.macro.editMode')
-  #if ($content != '')
-    ## We introduce the js only if there is content to display. We avoid making an extra request.
-    #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-    #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
+  #if ("$!content" != '')
     ## Display the edit button only to the users that have edit over the current page.
-    #if ($doc.hasAccessLevel("edit", $xcontext.user))
+    #set ($canEdit = "$!xcontext.macro.params.enableEdit")
+    #if ($doc.hasAccessLevel("edit", $xcontext.user) &amp;&amp; $canEdit == 'true')
       #set ($toolbar = 'edit zoom layers pages lightbox')
     #else
       #set ($toolbar = 'zoom layers pages lightbox')
@@ -273,29 +272,48 @@
     #if ($isInEditMode)
       #displayEditMode($editModeTranslationKey)
     #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
-      #set ($extraCSS = "inline-diagram-macro-view")
-      #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $doc.getDocumentReference(), $doc.getDocumentReference(), $extraCSS, 'inline')
+      #set ($extraCSS = 'inline-diagram-macro-view')
+      #displayDiagram($diagramName, $returnFragment, '', $toolbar, $content, $sourceDocumentReference, $doc.getDocumentReference(), $extraCSS, $diagramType)
     #end
-  #elseif ($isInEditMode)
-     #displayEditMode($editModeTranslationKey)
   #else
-    #set ($unescapedButtonLabel = $services.localization.render('diagram.inline.macro.createNew'))
-    #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))
-    #set ($editorReference = 'Diagram.InlineDiagram.Editor')
-    #set ($params = {
-      'source' : $doc.getDocumentReference(),
-      'returnDocument' : $doc.getDocumentReference(),
-      'diagramName' : $diagramName,
-      'xpage' : 'plain',
-      'htmlHeaderAndFooter' : 'true',
-      'outputTitle' : 'false',
-      'returnFragment' : $returnFragment,
-      'sync' : 'none',
-      'editorType': 'inline'
-    })
-    #set ($queryString = $escapetool.url($params))
-    [[$buttonLabel&gt;&gt;$editorReference||queryString="$queryString"]]
+    #set ($unescapedDiagramDoesntExist = $services.localization.render('diagram.inline.macro.diagramDoesntExist'))
+    #set ($diagramDoesntExist = $services.rendering.escape($unescapedDiagramDoesntExist, 'xwiki/2.1'))
+    {{info}}$diagramDoesntExist{{/info}}
   #end
+#end
+##
+#macro (handleExternalDiagram, $externalDiagramSource)
+  #if ($isInEditMode)
+    #set ($unescapedExternalDiagramInEditMode =
+      $services.localization.render('diagram.inline.macro.externalDiagramInEditMode'))
+    #set ($externalDiagramInEditMode = $services.rendering.escape($unescapedExternalDiagramInEditMode, 'xwiki/2.1'))
+    {{info}}$externalDiagramInEditMode{{/info}}
+  #elseif ($xcontext.action == 'view' || $xcontext.action == 'export')
+    #displayExternalDiagram($externalDiagramSource, '')
+  #end
+#end
+##
+#set ($diagramSource = $xcontext.macro.params.diagramSource)
+#set ($externalDiagramSource = $xcontext.macro.params.externalDiagramSource)
+#set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+#set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
+## If both diagramSource and externalDiagramSource are set, we give a warning message instead of choosing one of them.
+#if ("$!diagramSource" != "" &amp;&amp; "$!externalDiagramSource" != "")
+  #diagramConfigPlaceHolder()
+  #set ($unescapedBothSourcesSet = $services.localization.render('diagram.inline.macro.bothSourcesSet'))
+  #set ($bothSourcesSet = $services.rendering.escape($unescapedBothSourcesSet, 'xwiki/2.1'))
+  {{warning}}$bothSourcesSet{{/warning}}
+#elseif ("$!diagramSource" != "")
+  #handleInternalDiagram($diagramSource)
+#elseif ("$!externalDiagramSource" != "")
+  #handleExternalDiagram($externalDiagramSource)
+#else
+  #diagramConfigPlaceHolder()
+  #set ($unescapedNoSourceSet = $services.localization.render('diagram.inline.macro.noSourceSet'))
+  #set ($noSourceSet = $services.rendering.escape($unescapedNoSourceSet, 'xwiki/2.1'))
+  {{warning}}$noSourceSet{{/warning}}
+#end
 {{/velocity}}</code>
     </property>
     <property>
@@ -314,10 +332,10 @@
       <description/>
     </property>
     <property>
-      <id>inlineDiagram</id>
+      <id>embedDiagram</id>
     </property>
     <property>
-      <name>Inline Diagram</name>
+      <name/>
     </property>
     <property>
       <priority/>
@@ -330,10 +348,10 @@
     </property>
   </object>
   <object>
-    <name>Diagram.InlineDiagram.InlineDiagramMacro</name>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
     <number>0</number>
     <className>XWiki.WikiMacroParameterClass</className>
-    <guid>cdbd06bc-137e-4edb-9efa-8dadeb9a736e</guid>
+    <guid>556cf35b-c18a-46c4-8e4b-6f5837a44fe0</guid>
     <class>
       <name>XWiki.WikiMacroParameterClass</name>
       <customClass/>
@@ -410,13 +428,193 @@
       <description/>
     </property>
     <property>
-      <mandatory>1</mandatory>
+      <mandatory>0</mandatory>
     </property>
     <property>
-      <name>diagramName</name>
+      <name>diagramSource</name>
     </property>
     <property>
-      <type>java.lang.String</type>
+      <type>com.xwiki.diagram.internal.DiagramReference</type>
+    </property>
+  </object>
+  <object>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
+    <number>1</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>5e113847-02af-41ae-b9c5-98a0b2f3d6fc</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <restricted>0</restricted>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <type>
+        <cache>0</cache>
+        <defaultValue>Unknown</defaultValue>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <freeText>allowed</freeText>
+        <largeStorage>1</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>type</name>
+        <number>5</number>
+        <picker>1</picker>
+        <prettyName>Parameter type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>|</separator>
+        <separators>|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>Unknown|Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </type>
+    </class>
+    <property>
+      <defaultValue/>
+    </property>
+    <property>
+      <description/>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>externalDiagramSource</name>
+    </property>
+    <property>
+      <type/>
+    </property>
+  </object>
+  <object>
+    <name>Diagram.InlineDiagram.EmbedDiagram</name>
+    <number>2</number>
+    <className>XWiki.WikiMacroParameterClass</className>
+    <guid>76505f69-ac45-4502-b549-53fcdd500d37</guid>
+    <class>
+      <name>XWiki.WikiMacroParameterClass</name>
+      <customClass/>
+      <customMapping/>
+      <defaultViewSheet/>
+      <defaultEditSheet/>
+      <defaultWeb/>
+      <nameField/>
+      <validationScript/>
+      <defaultValue>
+        <disabled>0</disabled>
+        <name>defaultValue</name>
+        <number>4</number>
+        <prettyName>Parameter default value</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </defaultValue>
+      <description>
+        <disabled>0</disabled>
+        <name>description</name>
+        <number>2</number>
+        <prettyName>Parameter description</prettyName>
+        <restricted>0</restricted>
+        <rows>5</rows>
+        <size>40</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+      </description>
+      <mandatory>
+        <disabled>0</disabled>
+        <displayFormType>select</displayFormType>
+        <displayType>yesno</displayType>
+        <name>mandatory</name>
+        <number>3</number>
+        <prettyName>Parameter mandatory</prettyName>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+      </mandatory>
+      <name>
+        <disabled>0</disabled>
+        <name>name</name>
+        <number>1</number>
+        <prettyName>Parameter name</prettyName>
+        <size>30</size>
+        <unmodifiable>0</unmodifiable>
+        <classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+      </name>
+      <type>
+        <cache>0</cache>
+        <defaultValue>Unknown</defaultValue>
+        <disabled>0</disabled>
+        <displayType>input</displayType>
+        <freeText>allowed</freeText>
+        <largeStorage>1</largeStorage>
+        <multiSelect>0</multiSelect>
+        <name>type</name>
+        <number>5</number>
+        <picker>1</picker>
+        <prettyName>Parameter type</prettyName>
+        <relationalStorage>0</relationalStorage>
+        <separator>|</separator>
+        <separators>|</separators>
+        <size>1</size>
+        <unmodifiable>0</unmodifiable>
+        <values>Unknown|Wiki</values>
+        <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+      </type>
+    </class>
+    <property>
+      <defaultValue>0</defaultValue>
+    </property>
+    <property>
+      <description/>
+    </property>
+    <property>
+      <mandatory>0</mandatory>
+    </property>
+    <property>
+      <name>enableEdit</name>
+    </property>
+    <property>
+      <type>java.lang.Boolean</type>
     </property>
   </object>
 </xwikidoc>
