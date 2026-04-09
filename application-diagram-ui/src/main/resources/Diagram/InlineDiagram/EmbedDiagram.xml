@@ -293,26 +293,34 @@
   #end
 #end
 ##
-#set ($diagramSource = $xcontext.macro.params.diagramSource)
-#set ($externalDiagramSource = $xcontext.macro.params.externalDiagramSource)
-#set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
-#set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
-#set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
-## If both diagramSource and externalDiagramSource are set, we give a warning message instead of choosing one of them.
-#if ("$!diagramSource" != "" &amp;&amp; "$!externalDiagramSource" != "")
-  #diagramConfigPlaceHolder()
-  #set ($unescapedBothSourcesSet = $services.localization.render('diagram.inline.macro.bothSourcesSet'))
-  #set ($bothSourcesSet = $services.rendering.escape($unescapedBothSourcesSet, 'xwiki/2.1'))
-  {{warning}}$bothSourcesSet{{/warning}}
-#elseif ("$!diagramSource" != "")
-  #handleInternalDiagram($diagramSource)
-#elseif ("$!externalDiagramSource" != "")
-  #handleExternalDiagram($externalDiagramSource)
+#macro (executeDiagramMacro)
+  #set ($diagramSource = $xcontext.macro.params.diagramSource)
+  #set ($externalDiagramSource = $xcontext.macro.params.externalDiagramSource)
+  #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
+  #set ($discard = $xwiki.jsx.use('Diagram.DiagramViewSheet'))
+  #set ($discard = $xwiki.jsx.use('Diagram.InlineDiagram.InlineDiagramMacroJavaScript'))
+  ## If both diagramSource and externalDiagramSource are set, we give a warning message instead of choosing one of them.
+  #if ("$!diagramSource" != "" &amp;&amp; "$!externalDiagramSource" != "")
+    #diagramConfigPlaceHolder()
+    #set ($unescapedBothSourcesSet = $services.localization.render('diagram.inline.macro.bothSourcesSet'))
+    #set ($bothSourcesSet = $services.rendering.escape($unescapedBothSourcesSet, 'xwiki/2.1'))
+    {{warning}}$bothSourcesSet{{/warning}}
+  #elseif ("$!diagramSource" != "")
+    #handleInternalDiagram($diagramSource)
+  #elseif ("$!externalDiagramSource" != "")
+    #handleExternalDiagram($externalDiagramSource)
+  #else
+    #diagramConfigPlaceHolder()
+    #set ($unescapedNoSourceSet = $services.localization.render('diagram.inline.macro.noSourceSet'))
+    #set ($noSourceSet = $services.rendering.escape($unescapedNoSourceSet, 'xwiki/2.1'))
+    {{warning}}$noSourceSet {{/warning}}
+  #end
+#end
+##
+#if ($services.licensing.licensor.hasLicensureForEntity($xcontext.macro.doc.documentReference))
+  #executeDiagramMacro
 #else
-  #diagramConfigPlaceHolder()
-  #set ($unescapedNoSourceSet = $services.localization.render('diagram.inline.macro.noSourceSet'))
-  #set ($noSourceSet = $services.rendering.escape($unescapedNoSourceSet, 'xwiki/2.1'))
-  {{warning}}$noSourceSet{{/warning}}
+  {{missingLicenseMessage extensionName="diagram.extension.name"/}}
 #end
 {{/velocity}}</code>
     </property>
