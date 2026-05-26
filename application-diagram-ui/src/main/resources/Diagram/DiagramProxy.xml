@@ -51,16 +51,20 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         response.setContentType(connection.getContentType());
         def data = connection.getInputStream().readAllBytes();
         if (importDiagramParam) {
-          def convertedData = new DiagramImporter().importDiagram(new String(data), url);
-          data = convertedData ? convertedData : data;
+            def convertedData = new DiagramImporter().importDiagram(new String(data, "UTF-8"), url);
+            if (convertedData) {
+                data = convertedData.getBytes("UTF-8");
+            }
         }
-        response.getOutputStream() &lt;&lt; data;
-    } catch(MalformedURLException e) {
+        response.setContentLength(data.length);
+        response.getOutputStream().write(data);
+
+    } catch (MalformedURLException e) {
         response.setStatus(400);
-        response.getOutputStream() &lt;&lt; e;
-    } catch(Exception e) {
+        response.getOutputStream().write(e.toString().getBytes("UTF-8"));
+    } catch (Exception e) {
         response.setStatus(500);
-        response.getOutputStream() &lt;&lt; e;
+        response.getOutputStream().write(e.toString().getBytes("UTF-8"));
     }
 }
 {{/groovy}}</content>
@@ -82,20 +86,18 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         <cache>0</cache>
         <disabled>0</disabled>
         <displayType>select</displayType>
+        <freeText>forbidden</freeText>
+        <largeStorage>0</largeStorage>
         <multiSelect>0</multiSelect>
         <name>level</name>
         <number>1</number>
-        <picker>0</picker>
-        <prettyName>level</prettyName>
+        <prettyName>Level</prettyName>
         <relationalStorage>0</relationalStorage>
         <separator> </separator>
         <separators> ,|</separators>
         <size>1</size>
-        <sort>none</sort>
         <unmodifiable>0</unmodifiable>
-        <validationMessage/>
-        <validationRegExp/>
-        <values>edit|programming</values>
+        <values>edit|script|wiki_admin|programming</values>
         <classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
       </level>
     </class>
