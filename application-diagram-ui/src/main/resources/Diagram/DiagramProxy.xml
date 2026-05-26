@@ -51,7 +51,7 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         response.setContentType(connection.getContentType());
         def data = connection.getInputStream().readAllBytes();
         if (importDiagramParam) {
-            def convertedData = new DiagramImporter().importDiagram(new String(data, "UTF-8"), url);
+            def convertedData = new DiagramImporter().importDiagram(new String(data, 'UTF-8'), url);
             if (convertedData) {
                 data = convertedData.getBytes("UTF-8");
             }
@@ -61,10 +61,10 @@ if (url &amp;&amp; xcontext.getUserReference()) {
 
     } catch (MalformedURLException e) {
         response.setStatus(400);
-        response.getOutputStream().write(e.toString().getBytes("UTF-8"));
+        response.getOutputStream().write(e.toString().getBytes('UTF-8'));
     } catch (Exception e) {
         response.setStatus(500);
-        response.getOutputStream().write(e.toString().getBytes("UTF-8"));
+        response.getOutputStream().write(e.toString().getBytes('UTF-8'));
     }
 }
 {{/groovy}}</content>
