@@ -1429,8 +1429,8 @@ body.geEditor {
     </property>
     <property>
       <content>{{velocity}}
-#set ($sheet = 'CKEditor.FileUploader')##
-#if (!$xwiki.exists($sheet))##
+#set ($sheet = 'CKEditor.FileUploader')
+#if (!$xwiki.exists($sheet))
   #set ($sheet = 'XWiki.WYSIWYG.FileUploader')
 #end
 
