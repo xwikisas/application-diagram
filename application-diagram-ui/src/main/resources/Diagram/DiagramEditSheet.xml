@@ -75,6 +75,10 @@
   #set ($keyboardShortcutsEnabled = false)
   #set ($discard = $xwiki.ssx.use('Diagram.DiagramSheet'))
   #set ($discard = $xwiki.jsx.use('Diagram.DiagramEditSheet'))
+  #set ($sheet = 'CKEditor.FileUploader')
+  #if (!$xwiki.exists($sheet))
+    #set ($sheet = 'XWiki.WYSIWYG.FileUploader')
+  #end
   ## Issue #219: Cannot modify diagram title in diagram editor
   &lt;div class="row xform"&gt;
     &lt;div class="col-xs-12"&gt;
@@ -91,7 +95,7 @@
     &lt;/div&gt;
   &lt;/div&gt;
 
-  &lt;div class="diagram-editor loading" data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"&gt;
+  &lt;div class="diagram-editor loading" data-file-sheet="$sheet" data-diagram-config="$escapetool.xml($jsontool.serialize($diagramConfig))"&gt;
     &lt;input class="diagram-content" type="hidden" name="content" value="$escapetool.xml($tdoc.content)" /&gt;
   &lt;/div&gt;
   #diagramLinkModal()
