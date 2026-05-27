@@ -53,7 +53,7 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         if (importDiagramParam) {
             def convertedData = new DiagramImporter().importDiagram(new String(data, 'UTF-8'), url);
             if (convertedData) {
-                data = convertedData.getBytes("UTF-8");
+                data = convertedData.getBytes('UTF-8');
             }
         }
         response.setContentLength(data.length);
