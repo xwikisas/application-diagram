@@ -35,7 +35,7 @@ import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
  * Updates content and attachment of a diagram after the rename of backlinked pages.
- * 
+ *
  * @version $Id$
  * @since 1.13
  */
@@ -83,6 +83,9 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
                         contentHandler.updateDiagramContent(backlinkDoc, originalDocRef, currentDocRef, context);
 
                         contentHandler.updateAttachment(backlinkDoc, originalDocRef, currentDocRef);
+                    } else {
+                        contentHandler.updateDiagramAttachmentContent(backlinkDoc, originalDocRef, currentDocRef,
+                            context);
                     }
                 }
             } catch (Exception e) {
