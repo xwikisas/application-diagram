@@ -424,7 +424,7 @@ define('diagram-store', ['jquery', 'xwiki-meta', 'xwiki-utils', 'diagram-utils',
           l10n['saveAsImageAttachmentError'], 'error');
       })
       .always(function() {
-        saveButton.prop('disabled', false).click();
+        saveButton.prop('disabled', false).trigger('click');
       });
     } else {
       uploadInProgress = false;
@@ -1218,7 +1218,7 @@ define('diagram-editor', [
   var fixFullScreenToggle = function(editorUI) {
     mxEvent.removeAllListeners(editorUI.fullscreenElement);
     editorUI.container._x_fullScreenActivator = editorUI.fullscreenElement;
-    $(editorUI.fullscreenElement).click(function(event) {
+    $(editorUI.fullscreenElement).on('click', function(event) {
       event.preventDefault();
       var isFullScreen = $(editorUI.container).parent('.fullScreenWrapper').length &gt; 0;
       if (isFullScreen) {
