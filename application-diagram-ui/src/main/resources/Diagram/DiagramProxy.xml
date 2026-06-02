@@ -51,16 +51,20 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         response.setContentType(connection.getContentType());
         def data = connection.getInputStream().readAllBytes();
         if (importDiagramParam) {
-          def convertedData = new DiagramImporter().importDiagram(new String(data), url);
-          data = convertedData ? convertedData : data;
+            def convertedData = new DiagramImporter().importDiagram(new String(data, 'UTF-8'), url);
+            if (convertedData) {
+                data = convertedData.getBytes('UTF-8');
+            }
         }
-        response.getOutputStream() &lt;&lt; data;
-    } catch(MalformedURLException e) {
+        response.setContentLength(data.length);
+        response.getOutputStream().write(data);
+
+    } catch (MalformedURLException e) {
         response.setStatus(400);
-        response.getOutputStream() &lt;&lt; e;
-    } catch(Exception e) {
+        response.getOutputStream().write(e.toString().getBytes('UTF-8'));
+    } catch (Exception e) {
         response.setStatus(500);
-        response.getOutputStream() &lt;&lt; e;
+        response.getOutputStream().write(e.toString().getBytes('UTF-8'));
     }
 }
 {{/groovy}}</content>
