@@ -179,7 +179,7 @@ define('xwiki-utils', ['jquery', 'xwiki-meta'], function($, xm) {
     formData.append('upload', blob);
     const params = {
       'form_token': xm.form_token,
-      'sheet': 'CKEditor.FileUploader',
+      'sheet': $('.diagram-editor').data('fileSheet'),
       'outputSyntax': 'plain',
       'filename': attachment
     };
