@@ -19,3 +19,4 @@ com.xwiki.diagram.internal.handlers.InlineDiagramContentSolrMetadataExtractor
 com.xwiki.diagram.internal.macroRefactoring.InlineDiagramMacroRefactoring
 com.xwiki.diagram.internal.handlers.EmbedDiagramMacroSolrMetadataExtractor
 com.xwiki.diagram.internal.macroRefactoring.EmbedDiagramMacroRefactoring
+com.xwiki.diagram.internal.DiagramRenameStateManager

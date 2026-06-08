@@ -23,26 +23,25 @@ import java.util.List;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import org.slf4j.Logger;
-import org.xwiki.bridge.event.DocumentCreatedEvent;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.component.manager.ComponentLifecycleException;
-import org.xwiki.component.manager.ComponentManager;
 import org.xwiki.component.phase.Disposable;
-import org.xwiki.job.Job;
 import org.xwiki.job.JobContext;
 import org.xwiki.job.event.JobStartedEvent;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.observation.AbstractEventListener;
 import org.xwiki.observation.ObservationContext;
 import org.xwiki.observation.event.Event;
+import org.xwiki.refactoring.event.DocumentRenamingEvent;
+import org.xwiki.refactoring.event.EntitiesRenamedEvent;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
  * Listens to rename of pages and starts a thread that will update the content of backlinked diagrams. Also, for diagram
@@ -78,7 +77,10 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     protected JobContext jobContext;
 
     @Inject
-    protected ComponentManager componentManager;
+    protected Provider<XWikiContext> contextProvider;
+
+    @Inject
+    private DiagramRenameStateManager renameStateManager;
 
     @Inject
     private Logger logger;
@@ -94,7 +96,9 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
      */
     public PageRenameListener()
     {
-        super(ROLE_HINT, new DocumentCreatedEvent());
+        // The former event is responsible for handling the actual updates, while the latter is responsible for
+        // cleaning up the memory so we don't create leaks.
+        super(ROLE_HINT, new DocumentRenamingEvent(), new EntitiesRenamedEvent());
     }
 
     @Override
@@ -104,48 +108,44 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
             startThreads();
         }
 
+        // When the job ends, mark it finished and clean up if all entries are done.
+        if (event instanceof EntitiesRenamedEvent) {
+            String jobId = getCurrentJobId();
+            if (jobId != null) {
+                renameStateManager.markJobFinished(jobId);
+            }
+            return;
+        }
+
         if (observationContext.isIn(new JobStartedEvent("refactoring/rename"))) {
-            Job job = jobContext.getCurrentJob();
-            DocumentReference destinationRef = job.getRequest().getProperty("destination");
-            List<DocumentReference> references = job.getRequest().getProperty("entityReferences");
+            DocumentRenamingEvent renamedEvent = (DocumentRenamingEvent) event;
 
-            if (references != null && references.size() > 0) {
-                XWikiDocument currentDoc = (XWikiDocument) source;
+            DocumentReference originalDocRef = renamedEvent.getSourceReference();
+            DocumentReference destinationRef = renamedEvent.getTargetReference();
+            logger.info("Original document {}, destination {}", originalDocRef, destinationRef);
+            String jobId = getCurrentJobId();
+            // Because the event if fired in sequence, and we don't know when we might reach a page that interests us
+            // we always record the new mapping so the other entires runnables can resolve it to the new reference if
+            // it appears as a backlink somewhere.
+            renameStateManager.recordRename(jobId, originalDocRef, destinationRef);
 
-                DocumentReference originalDocRef = references.get(0);
-                DocumentReference currentDocRef = currentDoc.getDocumentReference();
+            XWikiContext context = contextProvider.get();
+            try {
 
-                if (destinationRef.equals(currentDocRef)) {
-                    startContentUpdating((XWikiContext) data, currentDoc, originalDocRef);
+                XWikiDocument originalDoc = context.getWiki().getDocument(originalDocRef, context);
+                // We check the original document because the new one doesn't have any object yet.
+                List<DocumentReference> backlinks = originalDoc.getBackLinkedReferences(context);
+                if (!backlinks.isEmpty()) {
+                    JobRenameState state = renameStateManager.getOrCreateState(jobId);
+                    DiagramQueueEntry queueEntry =
+                        new DiagramQueueEntry(originalDocRef, destinationRef, backlinks, jobId, state.renameMap);
+                    state.pendingEntries.incrementAndGet();
+                    diagramLinksRunnable.addToQueue(queueEntry);
                 }
-            }
-        }
-    }
+            } catch (XWikiException e) {
 
-    /**
-     * Add entries in the queue of threads that will update the content of pages after rename, in just two cases: update
-     * content of a diagram after renaming pages that are linked in the content, update reference parameter of diagram
-     * macro after renaming a diagram.
-     *
-     * @param context the current context
-     * @param currentDoc current document
-     * @param originalDocRef the reference of the document before rename
-     */
-    public void startContentUpdating(XWikiContext context, XWikiDocument currentDoc, DocumentReference originalDocRef)
-    {
-        DiagramQueueEntry queueEntry = new DiagramQueueEntry(originalDocRef, currentDoc.getDocumentReference());
-        if (currentDoc.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null) {
-            this.diagramMacroRunnable.addToQueue(queueEntry);
-        }
-
-        try {
-            // Restrain the number of documents added to queue to only those that have backlinks. We need to take
-            // backlinks from the original document because at this step they are not loaded to the new document.
-            if (!context.getWiki().getDocument(originalDocRef, context).getBackLinkedReferences(context).isEmpty()) {
-                this.diagramLinksRunnable.addToQueue(queueEntry);
+                logger.error("Error when getting backlinks of renamed document [{}]", originalDocRef, e);
             }
-        } catch (XWikiException e) {
-            logger.warn("Error when getting backlinks of renamed document");
         }
     }
 
@@ -204,5 +204,13 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
         } catch (InterruptedException e) {
             logger.warn("Diagram backlinks update thread interruped", e);
         }
+    }
+
+    private String getCurrentJobId()
+    {
+        if (jobContext.getCurrentJob() == null) {
+            return null;
+        }
+        return jobContext.getCurrentJob().getStatus().getRequest().getId().toString();
     }
 }
