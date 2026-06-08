@@ -49,6 +49,6 @@ public class JobRenameState
      * Set to true when EntitiesRenamedEvent fires, meaning the rename job itself is done.
      * Cleanup can only happen once this is true AND pendingEntries reaches zero.
      */
-    public volatile boolean jobFinished = false;
+    public volatile boolean jobFinished;
 
 }

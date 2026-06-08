@@ -188,8 +188,8 @@ public class DiagramContentHandler
             updated |= maybeUpdateContent(document, originalDocRef, currentDocRef);
 
             if (updated) {
-                logger.info("Found an inline diagram that should be updated. Digram name: [{}] Document containing "
-                    + "the diagram [{}] Original Reference [{}] New Reference [{}]", attachment.getFilename(),
+                logger.info("Found an inline diagram that should be updated. Digram name: [{}] Document containing the"
+                        + " diagram [{}] Original Reference [{}] New Reference [{}]", attachment.getFilename(),
                     backlinkDoc.getDocumentReference(), originalDocRef, currentDocRef);
                 attachment.setContent(
                     new ByteArrayInputStream(XMLUtils.serialize(document).getBytes(StandardCharsets.UTF_8)));

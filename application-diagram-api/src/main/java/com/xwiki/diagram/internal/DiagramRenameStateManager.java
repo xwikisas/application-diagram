@@ -30,8 +30,8 @@ import org.xwiki.component.annotation.Component;
 import org.xwiki.model.reference.DocumentReference;
 
 /**
- * Manages the rename state map for active rename jobs, allowing both the listener and
- * the runnables to interact with it without creating circular dependencies.
+ * Manages the rename state map for active rename jobs, allowing both the listener and the runnables to interact with it
+ * without creating circular dependencies.
  *
  * @version $Id$
  * @since 1.24.0
@@ -77,8 +77,7 @@ public class DiagramRenameStateManager
      * @param originalRef the document reference before rename
      * @param destinationRef the document reference after rename
      */
-    public void recordRename(String jobId, DocumentReference originalRef,
-        DocumentReference destinationRef)
+    public void recordRename(String jobId, DocumentReference originalRef, DocumentReference destinationRef)
     {
         getOrCreateState(jobId).renameMap.put(originalRef, destinationRef);
     }
@@ -98,8 +97,7 @@ public class DiagramRenameStateManager
     }
 
     /**
-     * Decrements the pending entry count for the job and cleans up if both the job
-     * is finished and no entries remain.
+     * Decrements the pending entry count for the job and cleans up if both the job is finished and no entries remain.
      *
      * @param queueEntry the queue entry that just finished processing
      */

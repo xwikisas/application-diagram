@@ -42,6 +42,7 @@ import org.xwiki.refactoring.event.EntitiesRenamedEvent;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
  * Listens to rename of pages and starts a thread that will update the content of backlinked diagrams. Also, for diagram
@@ -60,16 +61,6 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
      */
     protected static final String ROLE_HINT = "PageRenameEventListener";
 
-    /**
-     * Thread that will handle updating diagram's content and attachment after a page rename.
-     */
-    public Thread diagramLinksThread;
-
-    /**
-     * Thread that will handle updating the reference of a diagram macro after a diagram rename.
-     */
-    public Thread diagramMacroThread;
-
     @Inject
     protected ObservationContext observationContext;
 
@@ -86,10 +77,7 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     private Logger logger;
 
     @Inject
-    private DiagramLinksRunnable diagramLinksRunnable;
-
-    @Inject
-    private DiagramMacroRunnable diagramMacroRunnable;
+    private DiagramRunnableThreadsManager diagramRunnableThreadsManager;
 
     /**
      * Constructor.
@@ -104,9 +92,8 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     @Override
     public void onEvent(Event event, Object source, Object data)
     {
-        if (this.diagramLinksThread == null || this.diagramMacroThread == null) {
-            startThreads();
-        }
+
+        diagramRunnableThreadsManager.maybeStart();
 
         // When the job ends, mark it finished and clean up if all entries are done.
         if (event instanceof EntitiesRenamedEvent) {
@@ -117,93 +104,49 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
             return;
         }
 
-        if (observationContext.isIn(new JobStartedEvent("refactoring/rename"))) {
-            DocumentRenamingEvent renamedEvent = (DocumentRenamingEvent) event;
+        if (!observationContext.isIn(new JobStartedEvent("refactoring/rename"))) {
+            return;
+        }
 
-            DocumentReference originalDocRef = renamedEvent.getSourceReference();
-            DocumentReference destinationRef = renamedEvent.getTargetReference();
-            logger.info("Original document {}, destination {}", originalDocRef, destinationRef);
-            String jobId = getCurrentJobId();
-            // Because the event if fired in sequence, and we don't know when we might reach a page that interests us
-            // we always record the new mapping so the other entires runnables can resolve it to the new reference if
-            // it appears as a backlink somewhere.
-            renameStateManager.recordRename(jobId, originalDocRef, destinationRef);
+        DocumentRenamingEvent renamedEvent = (DocumentRenamingEvent) event;
+        DocumentReference originalDocRef = renamedEvent.getSourceReference();
+        DocumentReference destinationRef = renamedEvent.getTargetReference();
+        logger.info("Original document {}, destination {}", originalDocRef, destinationRef);
+        String jobId = getCurrentJobId();
+        // Because the event if fired in sequence, and we don't know when we might reach a page that interests us
+        // we always record the new mapping so the other entires runnables can resolve it to the new reference if
+        // it appears as a backlink somewhere.
+        renameStateManager.recordRename(jobId, originalDocRef, destinationRef);
 
-            XWikiContext context = contextProvider.get();
-            try {
+        XWikiContext context = contextProvider.get();
+        try {
+            XWikiDocument originalDoc = context.getWiki().getDocument(originalDocRef, context);
+            // We check the original document because the new one doesn't have any object yet.
+            List<DocumentReference> backlinks = originalDoc.getBackLinkedReferences(context);
+            boolean isDiagram = originalDoc.getXObject(DiagramContentHandler.DIAGRAM_CLASS) != null;
+            JobRenameState state = renameStateManager.getOrCreateState(jobId);
+            DiagramQueueEntry queueEntry =
+                new DiagramQueueEntry(originalDocRef, destinationRef, backlinks, jobId, state.renameMap);
 
-                XWikiDocument originalDoc = context.getWiki().getDocument(originalDocRef, context);
-                // We check the original document because the new one doesn't have any object yet.
-                List<DocumentReference> backlinks = originalDoc.getBackLinkedReferences(context);
-                if (!backlinks.isEmpty()) {
-                    JobRenameState state = renameStateManager.getOrCreateState(jobId);
-                    DiagramQueueEntry queueEntry =
-                        new DiagramQueueEntry(originalDocRef, destinationRef, backlinks, jobId, state.renameMap);
-                    state.pendingEntries.incrementAndGet();
-                    diagramLinksRunnable.addToQueue(queueEntry);
-                }
-            } catch (XWikiException e) {
-
-                logger.error("Error when getting backlinks of renamed document [{}]", originalDocRef, e);
+            if (isDiagram) {
+                state.pendingEntries.incrementAndGet();
+                diagramRunnableThreadsManager.submitDiagramMacroUpdate(queueEntry);
             }
-        }
-    }
 
-    /**
-     * Multiple rename jobs could be started at very close dates in the moment when the threads were not initialized yet
-     * (for example, at installation step) and we need to be sure that only a single instance of each thread is created.
-     */
-    public synchronized void startThreads()
-    {
-        if (this.diagramLinksThread == null) {
-            this.diagramLinksThread = startThread(this.diagramLinksRunnable, "Update Diagram Links Thread");
-        }
-        if (this.diagramMacroThread == null) {
-            this.diagramMacroThread = startThread(this.diagramMacroRunnable, "Update Diagram Macro Thread");
-        }
-    }
+            if (!backlinks.isEmpty()) {
+                state.pendingEntries.incrementAndGet();
+                diagramRunnableThreadsManager.submitDiagramLinksUpdate(queueEntry);
+            }
+        } catch (XWikiException e) {
 
-    /**
-     * Actions for starting a thread.
-     *
-     * @param diagramRunnable runnable object that implements the run method
-     * @param threadName name of the thread
-     * @return thread that was started
-     */
-    public Thread startThread(AbstractDiagramRunnable diagramRunnable, String threadName)
-    {
-        Thread diagramThread = new Thread(diagramRunnable);
-        diagramThread.setName(threadName);
-        diagramThread.setDaemon(true);
-        diagramThread.start();
-
-        return diagramThread;
-    }
-
-    /**
-     * Actions for closing a thread.
-     * 
-     * @param diagramThread thread to be stopped
-     * @param diagramRunnable runnable object of the thread
-     * @throws InterruptedException if any thread has interrupted the current thread
-     */
-    public void stopThread(Thread diagramThread, AbstractDiagramRunnable diagramRunnable) throws InterruptedException
-    {
-        if (diagramThread != null) {
-            diagramRunnable.addToQueue(AbstractDiagramRunnable.STOP_RUNNABLE_ENTRY);
-            diagramThread.join();
+            logger.error("Error when getting backlinks of renamed document [{}]", originalDocRef, e);
         }
     }
 
     @Override
     public void dispose() throws ComponentLifecycleException
     {
-        try {
-            stopThread(this.diagramLinksThread, this.diagramLinksRunnable);
-            stopThread(this.diagramMacroThread, this.diagramMacroRunnable);
-        } catch (InterruptedException e) {
-            logger.warn("Diagram backlinks update thread interruped", e);
-        }
+        diagramRunnableThreadsManager.stopThreads();
     }
 
     private String getCurrentJobId()

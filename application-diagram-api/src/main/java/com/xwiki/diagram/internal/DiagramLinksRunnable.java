@@ -37,7 +37,6 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.util.AbstractXWikiRunnable;
 import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 
 /**
