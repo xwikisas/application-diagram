@@ -129,11 +129,13 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
                 new DiagramQueueEntry(originalDocRef, destinationRef, backlinks, jobId, state.renameMap);
 
             if (isDiagram) {
+                logger.info("The entity is a diagram [{}]", queueEntry);
                 state.pendingEntries.incrementAndGet();
                 diagramRunnableThreadsManager.submitDiagramMacroUpdate(queueEntry);
             }
 
             if (!backlinks.isEmpty()) {
+                logger.info("The entity has backlinks [{}]", queueEntry);
                 state.pendingEntries.incrementAndGet();
                 diagramRunnableThreadsManager.submitDiagramLinksUpdate(queueEntry);
             }
