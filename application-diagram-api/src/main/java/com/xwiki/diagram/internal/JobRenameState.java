@@ -20,7 +20,9 @@ package com.xwiki.diagram.internal;
  */
 
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.xwiki.model.reference.DocumentReference;
@@ -28,27 +30,39 @@ import org.xwiki.model.reference.DocumentReference;
 /**
  * Holds the state of a rename job. It contains a map with old-> new reference and a count of the entries added into the
  * queue for updating the backreferences of a diagram.
+ *
  * @version $Id$
  * @since 1.24.0
  */
 public class JobRenameState
 {
     /**
-     * Maps each original document reference to its destination reference for every document
-     * processed in this rename job. Populated incrementally as DocumentRenamingEvents fire.
+     * Maps each original document reference to its destination reference for every document processed in this rename
+     * job. Populated incrementally as DocumentRenamingEvents fire.
      */
     public final Map<DocumentReference, DocumentReference> renameMap = new ConcurrentHashMap<>();
 
     /**
-     * Number of queue entries that have been submitted but not yet finished processing.
-     * Incremented when an entry is added to a queue; decremented in the runnable's finally block.
+     * Entries eligible for a diagram macro reference update, collected while the job is still running. They are only
+     * submitted to the macro thread once the whole job has finished.
+     */
+    public final Queue<DiagramQueueEntry> collectedMacroEntries = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Entries eligible for a diagram links update, collected while the job is still running. They are only submitted to
+     * the links thread once the whole job has finished.
+     */
+    public final Queue<DiagramQueueEntry> collectedLinksEntries = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Number of queue entries that have been submitted but not yet finished processing. Incremented when an entry is
+     * added to a queue; decremented in the runnable's finally block.
      */
     public final AtomicInteger pendingEntries = new AtomicInteger(0);
 
     /**
-     * Set to true when EntitiesRenamedEvent fires, meaning the rename job itself is done.
-     * Cleanup can only happen once this is true AND pendingEntries reaches zero.
+     * Set to true when EntitiesRenamedEvent fires, meaning the rename job itself is done. Cleanup can only happen once
+     * this is true AND pendingEntries reaches zero.
      */
     public volatile boolean jobFinished;
-
 }

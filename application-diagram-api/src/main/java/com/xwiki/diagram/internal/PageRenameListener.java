@@ -47,7 +47,7 @@ import com.xwiki.diagram.internal.handlers.DiagramContentHandler;
 /**
  * Listens to rename of pages and starts a thread that will update the content of backlinked diagrams. Also, for diagram
  * pages it will start a thread for updating references of the diagram macro.
- * 
+ *
  * @version $Id$
  * @since 1.13
  */
@@ -95,10 +95,12 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
 
         diagramRunnableThreadsManager.maybeStart();
 
-        // When the job ends, mark it finished and clean up if all entries are done.
+        // When the job ends, every page has been moved and the rename map is complete: only now do we hand the
+        // collected entries to the runnable threads, then mark the job finished and clean up if all entries are done.
         if (event instanceof EntitiesRenamedEvent) {
             String jobId = getCurrentJobId();
             if (jobId != null) {
+                submitCollectedEntries(jobId);
                 renameStateManager.markJobFinished(jobId);
             }
             return;
@@ -128,16 +130,16 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
             DiagramQueueEntry queueEntry =
                 new DiagramQueueEntry(originalDocRef, destinationRef, backlinks, jobId, state.renameMap);
 
+            // The documents are captured here. The actual processing is deferred until the whole job is done
+            // to avoid race condition.
             if (isDiagram) {
                 logger.info("The entity is a diagram [{}]", queueEntry);
-                state.pendingEntries.incrementAndGet();
-                diagramRunnableThreadsManager.submitDiagramMacroUpdate(queueEntry);
+                state.collectedMacroEntries.add(queueEntry);
             }
 
             if (!backlinks.isEmpty()) {
                 logger.info("The entity has backlinks [{}]", queueEntry);
-                state.pendingEntries.incrementAndGet();
-                diagramRunnableThreadsManager.submitDiagramLinksUpdate(queueEntry);
+                state.collectedLinksEntries.add(queueEntry);
             }
         } catch (XWikiException e) {
 
@@ -149,6 +151,30 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
     public void dispose() throws ComponentLifecycleException
     {
         diagramRunnableThreadsManager.stopThreads();
+    }
+
+    /**
+     * Submits every entry collected during the rename job to its runnable thread. Called once the job has finished and
+     * all pages have been moved, so the runnables operate on a fully renamed hierarchy and a complete rename map.
+     *
+     * @param jobId the rename job ID
+     */
+    private void submitCollectedEntries(String jobId)
+    {
+        JobRenameState state = renameStateManager.getState(jobId);
+        if (state == null) {
+            return;
+        }
+
+        state.pendingEntries.addAndGet(state.collectedMacroEntries.size() + state.collectedLinksEntries.size());
+
+        DiagramQueueEntry queueEntry;
+        while ((queueEntry = state.collectedMacroEntries.poll()) != null) {
+            diagramRunnableThreadsManager.submitDiagramMacroUpdate(queueEntry);
+        }
+        while ((queueEntry = state.collectedLinksEntries.poll()) != null) {
+            diagramRunnableThreadsManager.submitDiagramLinksUpdate(queueEntry);
+        }
     }
 
     private String getCurrentJobId()

@@ -45,6 +45,7 @@ public class DiagramQueueEntry
     /**
      * Backlinks of the original document, captured at DocumentRenamingEvent time while they still exist in the
      * database.
+     * @since 1.24.0
      */
     public final List<DocumentReference> backlinks;
 

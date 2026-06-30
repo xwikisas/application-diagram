@@ -46,6 +46,7 @@ import com.xwiki.diagram.test.util.DockerDiagramTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * UI tests for making sure that the backreferences are updated.
@@ -152,13 +153,13 @@ public class BacklinksIT
         testUtils.createPage(diagramChild, linkedPageContent, "DiagramChild");
         testUtils.createPage(anotherSpaceNested, linkedPageContent, "AnotherSpaceNestedLinked");
 
-//        ViewPage viewPage = testUtils.createPageWithAttachment(diagramInlineWebHome, diagramInlinePageContent,
-//        "DiagramInline",
-//        "test.diagram.xml",
-//            new ByteArrayInputStream(diagramContent.getBytes(
-//            StandardCharsets.UTF_8)));
+        ViewPage viewPage = testUtils.createPageWithAttachment(diagramInlineWebHome, diagramInlinePageContent,
+        "DiagramInline",
+        "test.diagram.xml",
+            new ByteArrayInputStream(diagramContent.getBytes(
+            StandardCharsets.UTF_8)));
 
-//        viewPage.editWYSIWYG().clickSaveAndView();
+        viewPage.editWYSIWYG().clickSaveAndView();
 
 
         // Creat the page that has the diagram
@@ -189,13 +190,13 @@ public class BacklinksIT
         ViewPage movedPage = movePage(setup, anotherSpaceNested, "AnotherSpaceNestedLinked - Moved");
         assertPageMovedAndBackrefUpdated(movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace.AnotherSpaceNestedLinked - Moved",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
         // Move the page back so we don't mess the tree.
         ViewPage restoredPage = movePage(setup, movedPage, "AnotherSpaceNestedLinked");
         assertPageMovedAndBackrefUpdated(restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace.AnotherSpaceNestedLinked",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
     }
 
     /**
@@ -208,13 +209,15 @@ public class BacklinksIT
         ViewPage movedPage = movePage(setup, diagramSibling, "DiagramSibling - Moved");
         assertPageMovedAndBackrefUpdated(movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramSibling - Moved",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
+                + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
         // Move the page back so we don't mess the tree.
         ViewPage restoredPage = movePage(setup, movedPage, "DiagramSibling");
         assertPageMovedAndBackrefUpdated(restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramSibling",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
+                + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
     }
 
@@ -228,13 +231,15 @@ public class BacklinksIT
         ViewPage movedPage = movePage(setup, diagramChild, "DiagramChild - Moved");
         assertPageMovedAndBackrefUpdated(movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.DiagramChild - Moved",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
+                + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
         // Move the page back so we don't mess the tree.
         ViewPage restoredPage = movePage(setup, movedPage, "DiagramChild");
         assertPageMovedAndBackrefUpdated(restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.DiagramChild",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
+                + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
     }
 
@@ -250,7 +255,8 @@ public class BacklinksIT
         setup.gotoPage(newAnotherSpaceNestedLinked);
         assertPageMovedAndBackrefUpdated(movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace - Moved.AnotherSpaceNestedLinked",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
+                + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
         DocumentReference newAnotherSpaceWebHome =
             new DocumentReference("xwiki", List.of("Main", "BackreferencesTests", "Backlinks", "AnotherSpace - Moved"), "WebHome");
         setup.gotoPage(newAnotherSpaceWebHome);
@@ -259,7 +265,8 @@ public class BacklinksIT
         ViewPage restoredPage = setup.gotoPage(anotherSpaceNested);
         assertPageMovedAndBackrefUpdated(restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace.AnotherSpaceNestedLinked",
-            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome"));
+            List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
+                + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
     }
 
     @Test
@@ -300,18 +307,17 @@ public class BacklinksIT
         ViewPage diagramSiblingPage = setup.gotoPage(newDiagramSibling);
         assertPageMovedAndBackrefUpdated(diagramSiblingPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.DiagramSpace.DiagramSibling",
-            List.of(newDiagramReference));
+            List.of(newDiagramReference, newInlineDiagramReference));
 
         ViewPage diagramChildPage = setup.gotoPage(newDiagramChild);
         assertPageMovedAndBackrefUpdated(diagramChildPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.DiagramSpace.Diagram.DiagramChild",
-            List.of(newDiagramReference));
+            List.of(newDiagramReference, newInlineDiagramReference));
 
         ViewPage anotherSpaceNestedPage = setup.gotoPage(newAnotherSpaceNested);
         assertPageMovedAndBackrefUpdated(anotherSpaceNestedPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.AnotherSpace.AnotherSpaceNestedLinked",
-            List.of(newDiagramReference));
-
+            List.of(newDiagramReference, newInlineDiagramReference));
         // Since this is the last test we don't need to move them back.
     }
 
