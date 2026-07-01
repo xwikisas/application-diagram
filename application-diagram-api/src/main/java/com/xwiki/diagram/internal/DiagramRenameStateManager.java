@@ -34,7 +34,7 @@ import org.xwiki.model.reference.DocumentReference;
  * without creating circular dependencies.
  *
  * @version $Id$
- * @since 1.24.0
+ * @since 2.0
  */
 @Component(roles = DiagramRenameStateManager.class)
 @Singleton

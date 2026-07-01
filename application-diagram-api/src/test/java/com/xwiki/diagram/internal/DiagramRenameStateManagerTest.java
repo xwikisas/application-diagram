@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Unit tests for {@link DiagramRenameStateManager}.
  *
  * @version $Id$
- * @since 1.24.0
+ * @since 2.0
  */
 @ComponentTest
 class DiagramRenameStateManagerTest

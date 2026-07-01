@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * UI tests for making sure that the backreferences are updated.
  *
  * @version $Id$
- * @since 1.24.0
+ * @since 2.0
  */
 @UITest(properties = { "xwikiPropertiesAdditionalProperties=test.prchecker.excludePattern=.*:XWiki\\"
     + ".EntityNameValidation\\.AdministrationJSON" })

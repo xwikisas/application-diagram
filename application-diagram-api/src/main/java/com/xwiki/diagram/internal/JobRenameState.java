@@ -32,7 +32,7 @@ import org.xwiki.model.reference.DocumentReference;
  * queue for updating the backreferences of a diagram.
  *
  * @version $Id$
- * @since 1.24.0
+ * @since 2.0
  */
 public class JobRenameState
 {

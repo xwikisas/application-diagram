@@ -29,7 +29,7 @@ import org.xwiki.component.annotation.Component;
  * Manages the state of the diagram runnable threads.
  *
  * @version $Id$
- * @since 1.24.0
+ * @since 2.0
  */
 @Component(roles = DiagramRunnableThreadsManager.class)
 @Singleton

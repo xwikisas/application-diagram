@@ -45,12 +45,13 @@ public class DiagramQueueEntry
     /**
      * Backlinks of the original document, captured at DocumentRenamingEvent time while they still exist in the
      * database.
-     * @since 1.24.0
+     * @since 2.0
      */
     public final List<DocumentReference> backlinks;
 
     /**
      * The ID of the rename job this entry belongs to, used to look up and clean up the shared JobRenameState.
+     * @since 2.0
      */
     public final String jobID;
 
@@ -58,8 +59,8 @@ public class DiagramQueueEntry
      * Live reference to the job's rename map, shared across all queue entries for the same job. Maps old
      * DocumentReference -> new DocumentReference for every document renamed in this job. Used to resolve backlinks
      * that were themselves also renamed before processing the current entry.
+     * @since 2.0
      */
-
     public final Map<DocumentReference, DocumentReference> renameMap;
     /**
      * Constructor.
@@ -81,6 +82,9 @@ public class DiagramQueueEntry
         this.renameMap = renameMap;
     }
 
+    /**
+     * @since 2.0
+     */
     @Override
     public String toString()
     {

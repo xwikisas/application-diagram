@@ -45,7 +45,7 @@ import static org.mockito.Mockito.verify;
  * Unit tests for {@link DiagramRunnableThreadsManager}.
  *
  * @version $Id$
- * @since 1.24.0
+ * @since 2.0
  */
 @ComponentTest
 class DiagramRunnableThreadsManagerTest
