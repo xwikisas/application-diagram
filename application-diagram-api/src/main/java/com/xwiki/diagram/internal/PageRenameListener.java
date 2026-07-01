@@ -132,6 +132,11 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
 
             // The documents are captured here. The actual processing is deferred until the whole job is done
             // to avoid race condition.
+            // We have 2 cases where we should add pages for further processing:
+            // 1. When the page is a diagram, in this case we have to check there are any DiagramMacros that might
+            // need refactoring.
+            // 2. When the page has backlinks, in this case one of those backlinks might be a diagram and we should
+            // update it's content to the new name so the links don't go stale.
             if (isDiagram) {
                 logger.info("The entity is a diagram [{}]", queueEntry);
                 state.collectedMacroEntries.add(queueEntry);
@@ -142,7 +147,6 @@ public class PageRenameListener extends AbstractEventListener implements Disposa
                 state.collectedLinksEntries.add(queueEntry);
             }
         } catch (XWikiException e) {
-
             logger.error("Error when getting backlinks of renamed document [{}]", originalDocRef, e);
         }
     }
