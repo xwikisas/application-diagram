@@ -54,7 +54,7 @@ diagram.livetable.doc.location=Emplacement
 diagram.livetable.emptyvalue=-
 
 # Diagram Macro
-rendering.macro.diagram.description=Affiche un diagramme.
+rendering.macro.diagram.description=Affiche un diagramme. Cette macro sera dépréciée le 01/06/2027, merci d'utiliser la macro Inline Diagram ou la macro Embed Diagram à la place.
 rendering.macro.diagram.name=Diagramme
 rendering.macro.diagram.parameter.cached.description=Afficher le diagramme sous la forme d'une image mise en cache (plus rapide) plutôt que d'un dessin vectoriel (plus lent). Pas appliqué si un lien vers un diagramme externe est utilisé.
 rendering.macro.diagram.parameter.cached.name=Mise en cache
@@ -78,11 +78,52 @@ diagram.macro.invalidReference=La page spécifiée n'est pas un diagramme.
 diagram.macro.view=Voir le diagramme
 diagram.macro.viewNotAllowed=Vous n'êtes pas autorisé(e) à voir ce diagramme.
 
+# Inline Diagram Macro
+rendering.macro.inlineDiagram.name=Inline Diagram
+rendering.macro.inlineDiagram.description=Créer et afficher un diagramme en ligne. Le diagramme sera stocké comme pièce jointe dans cette page. Embarquez-le dans une autre page en utilisant la macro Embed Diagram.
+rendering.macro.inlineDiagram.parameter.diagramName.name=Nom du diagramme
+rendering.macro.inlineDiagram.parameter.diagramName.description=Le nom du diagramme. Il est aussi utilisé pour le nom de la pièce-jointe.
+diagram.inline.macro.editMode=Le contenu du diagramme ne peut pas être édité en mode édition. Merci de retourner en mode lecture pour cette action.
+diagram.inline.macro.createNew=Créer un nouveau diagramme en ligne
+
+# Embed Inline Diagram
+rendering.macro.embedDiagram.name=Embed Diagram
+rendering.macro.embedDiagram.description=Embarquer un diagramme en ligne dans la page courante.
+rendering.macro.embedDiagram.parameter.diagramSource.name=Source du diagramme
+rendering.macro.embedDiagram.parameter.diagramSource.description=La référence du document qui stocke le diagramme original.
+rendering.macro.embedDiagram.parameter.externalDiagramSource.name=Source externe du diagramme
+rendering.macro.embedDiagram.parameter.externalDiagramSource.description=Un lien externe vers un fournisseur de diagramme.
+rendering.macro.embedDiagram.parameter.enableEdit.name=Autoriser l'édition
+rendering.macro.embedDiagram.parameter.enableEdit.description=Autorise l'édition du diagramme embarqué. Si une source externe est utilisée, ce paramètre est ignoré.
+diagram.inline.macro.diagramDoesntExist=Le diagramme que vous voulez embarquer n'existe pas. Merci de vérifier les paramètres.
+diagram.embedDiagram.macro.editMode=Utiliser le mode d'édition WYSIWYG uniquement pour mettre à jour les paramètres. Pour éditer le diagramme, utiliser le bouton de la barre d'outils diagramme pour être redirigé vers le diagramme source.
+diagram.inline.macro.noSourceSet=Vous devez sélectionner une source pour que la macro fonctionne.
+diagram.inline.macro.bothSourcesSet=Vous devez sélectionner une source uniquement pour que la macro fonctionne.
+diagram.inline.macro.externalDiagramInEditMode=Vous ne pouvez pas éditer un diagramme externe dans XWiki. Merci d'éditer la source, et les changements devraient être reflétés dans XWiki.
+# Inline editor
+diagram.inlineDiagram.editor.save.button=Sauvegarder
+diagram.inlineDiagram.editor.return.button=Retour à la page
+diagram.inlineDiagram.editor.return.title=Retour au document général.
+
 # Diagram editor
 diagram.editor.saveAsImageAttachmentError=Erreur lors de la sauvegarde du diagramme sous forme de pièce jointe.
 diagram.editor.disabledExternalServices=Les services externes sont désactivés.
 diagram.editor.menu.print.title=Imprimer le diagramme en utilisant un service externe lorsque possible, sinon exporter simplement et le sauvegarder comme PDF.
 diagram.editor.menu.print.label=Imprimer / Exporter en PDF
+diagram.editor.menu.goBack.label=Revenir en arrière
+diagram.editor.menu.goBack.title=Revenir au document original.
+diagram.editor.menu.save.label=Sauvegarder
+diagram.editor.menu.save.title=Sauvegarder le diagramme.
+diagram.editor.menu.notification.save=Sauvegarde du diagramme en cours…
+diagram.editor.menu.notification.created=Diagramme créé.
+diagram.editor.menu.notification.updated=Diagramme mis à jour.
+diagram.editor.menu.notification.error=Quelque chose s'est mal passé lors de la tentative de sauvegarde du diagramme.
+
+# Link modal
+diagram.link.modal.link=Lien
+
+# Link modal
+diagram.link.modal.link=Lien
 
 # Diagram Configuration
 Diagram.DiagramConfigClass_exportURL=URL d'export
