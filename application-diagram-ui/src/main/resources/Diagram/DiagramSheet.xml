@@ -996,6 +996,11 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
   position: relative;
 }
 
+.diagram hr, .geDiagramContainer hr {
+  margin-top: revert;
+  margin-bottom: revert;
+}
+
 .diagram-editor input[type="checkbox"], .diagram-editor input[type="radio"],
 .mxPopupMenu input[type="checkbox"], .mxPopupMenu input[type="radio"],
 .mxWindow input[type="checkbox"], .mxWindow input[type="radio"],
@@ -1049,7 +1054,6 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
   vertical-align: baseline;
 }
 
-.diagram-editor hr,
 .mxPopupMenu hr,
 .mxWindow hr,
 .geDialog hr {
