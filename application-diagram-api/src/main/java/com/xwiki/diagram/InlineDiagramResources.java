@@ -44,7 +44,7 @@ public interface InlineDiagramResources extends XWikiRestComponent
 {
     /**
      * Handles the initial save of a diagram and subsequent updates. If is the first save it creates both the png and
-     * the .diagram.xml and if is an update it updates the content.
+     * the .drawio attachments and if is an update it updates the content.
      *
      * @param sourceReference the document where the diagram should be stored
      * @param name the name of the diagram that we want to save

@@ -35,7 +35,9 @@ import com.xpn.xwiki.XWikiContext;
  */
 public abstract class AbstractInlineDiagramMacroRefactoring implements MacroRefactoring
 {
-    protected static final String ATTACHMENT_SUFFIX = ".diagram.xml";
+    protected static final String XML_ATTACHMENT_SUFFIX = ".diagram.xml";
+
+    protected static final String DRAWIO_ATTACHMENT_SUFFIX = ".drawio";
 
     protected static final String FORMAT_NAME = "%s%s";
 

@@ -23,6 +23,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.xwiki.component.util.ReflectionUtils;
@@ -76,14 +78,15 @@ class InlineDiagramMacroRefactoringTest
         assertTrue(result.isEmpty());
     }
 
-    @Test
-    void testReplaceAttachmentReferenceNotMatchingDiagram()
+    @ParameterizedTest
+    @ValueSource(strings = {".drawio", ".diagram.xml"})
+    void testReplaceAttachmentReferenceNotMatchingDiagram(String suffix)
     {
         DocumentReference parentRef = new DocumentReference("wiki", "Space", "Page");
         when(macroBlock.getParameter(DIAGRAM_NAME)).thenReturn("mydiagram");
 
-        AttachmentReference source = new AttachmentReference("somename.diagram.xml", parentRef);
-        AttachmentReference target = new AttachmentReference("other.diagram.xml", parentRef);
+        AttachmentReference source = new AttachmentReference("somename" + suffix, parentRef);
+        AttachmentReference target = new AttachmentReference("other" + suffix, parentRef);
 
         Optional<MacroBlock> result =
             refactoring.replaceReference(macroBlock, parentRef, source, target, false);
@@ -92,14 +95,15 @@ class InlineDiagramMacroRefactoringTest
         verify(macroBlock, never()).setParameter(DIAGRAM_NAME, "other");
     }
 
-    @Test
-    void testReplaceAttachmentReferenceMatchingDiagramSameParent()
+    @ParameterizedTest
+    @ValueSource(strings = {".drawio", ".diagram.xml"})
+    void testReplaceAttachmentReferenceMatchingDiagramSameParent(String suffix)
     {
         DocumentReference parentRef = new DocumentReference("wiki", "Space", "Page");
         when(macroBlock.getParameter(DIAGRAM_NAME)).thenReturn("mydiagram");
 
-        AttachmentReference source = new AttachmentReference("mydiagram.diagram.xml", parentRef);
-        AttachmentReference target = new AttachmentReference("newname.diagram.xml", parentRef);
+        AttachmentReference source = new AttachmentReference("mydiagram" + suffix, parentRef);
+        AttachmentReference target = new AttachmentReference("newname" + suffix, parentRef);
 
         Optional<MacroBlock> result =
             refactoring.replaceReference(macroBlock, parentRef, source, target, false);
@@ -108,15 +112,16 @@ class InlineDiagramMacroRefactoringTest
         verify(macroBlock).setParameter(DIAGRAM_NAME, "newname");
     }
 
-    @Test
-    void testReplaceAttachmentReferenceMatchingDiagramDifferentParent()
+    @ParameterizedTest
+    @ValueSource(strings = {".drawio", ".diagram.xml"})
+    void testReplaceAttachmentReferenceMatchingDiagramDifferentParent(String suffix)
     {
         DocumentReference sourceParent = new DocumentReference("wiki", "Space", "OldPage");
         DocumentReference targetParent = new DocumentReference("wiki", "Space", "NewPage");
         when(macroBlock.getParameter(DIAGRAM_NAME)).thenReturn("mydiagram");
 
-        AttachmentReference source = new AttachmentReference("mydiagram.diagram.xml", sourceParent);
-        AttachmentReference target = new AttachmentReference("mydiagram.diagram.xml", targetParent);
+        AttachmentReference source = new AttachmentReference("mydiagram" + suffix, sourceParent);
+        AttachmentReference target = new AttachmentReference("mydiagram" + suffix, targetParent);
 
         Optional<MacroBlock> result =
             refactoring.replaceReference(macroBlock, sourceParent, source, target, false);

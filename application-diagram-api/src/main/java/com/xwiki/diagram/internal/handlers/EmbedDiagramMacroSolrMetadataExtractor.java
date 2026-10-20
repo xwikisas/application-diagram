@@ -39,7 +39,6 @@ import org.xwiki.search.solr.SolrEntityMetadataExtractor;
 
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
-import com.xwiki.diagram.internal.InlineDiagramManager;
 
 /**
  * Responsible for registering the backlink to the source document.
@@ -74,7 +73,8 @@ public class EmbedDiagramMacroSolrMetadataExtractor implements SolrEntityMetadat
                 String macroReference = macroBlock.getParameter("diagramSource");
                 if (macroReference != null && !macroReference.isEmpty()) {
                     boolean isAttachment =
-                        macroReference.endsWith(InlineDiagramManager.DIAGRAM_SUFFIX) && macroReference.contains("@");
+                        (macroReference.endsWith(".drawio") || macroReference.endsWith(".diagram.xml"))
+                            && macroReference.contains("@");
                     if (isAttachment) {
                         // Handle the reference to the actual attachment. Yes, attachments have backreferences.
                         macroReferences.add(entityReferenceResolver.resolve(macroReference, EntityType.ATTACHMENT));

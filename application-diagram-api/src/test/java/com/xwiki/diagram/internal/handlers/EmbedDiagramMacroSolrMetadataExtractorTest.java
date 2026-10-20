@@ -28,6 +28,8 @@ import javax.inject.Provider;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.xwiki.model.EntityType;
@@ -127,13 +129,14 @@ class EmbedDiagramMacroSolrMetadataExtractorTest
         verifyNoInteractions(linkRegistry);
     }
 
-    @Test
-    void extractSingleMacroRegistersBacklinks()
+    @ParameterizedTest
+    @ValueSource(strings = {".drawio", ".diagram.xml"})
+    void extractSingleMacroRegistersBacklinks(String suffix)
     {
         when(xdom.getBlocks(any(MacroBlockMatcher.class), any())).thenReturn(List.of(macroBlock, macroBlock2));
 
-        when(macroBlock.getParameter("diagramSource")).thenReturn("Space.Page@test.diagram.xml");
-        when(entityReferenceResolver.resolve("Space.Page@test.diagram.xml", EntityType.ATTACHMENT)).thenReturn(attachmentReference);
+        when(macroBlock.getParameter("diagramSource")).thenReturn("Space.Page@test" + suffix);
+        when(entityReferenceResolver.resolve("Space.Page@test" + suffix, EntityType.ATTACHMENT)).thenReturn(attachmentReference);
 
         when(macroBlock2.getParameter("diagramSource")).thenReturn("test");
         when(entityReferenceResolver.resolve("test", EntityType.DOCUMENT)).thenReturn(resolvedDocRef);

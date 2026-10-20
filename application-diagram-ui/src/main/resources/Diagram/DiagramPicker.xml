@@ -79,7 +79,12 @@
     ON
       att.docId = doc.id
     WHERE
-      (lower(att.filename) like '%$filter%.diagram.xml' or (lower(doc.fullName) like '%$filter%' and lower(att.filename) like '%.diagram.xml'))
+         lower(att.filename) like '%$filter%.diagram.xml'
+      or lower(att.filename) like '%$filter%.drawio'
+      or (lower(doc.fullName) like '%$filter%' and (
+           lower(att.filename) like '%.diagram.xml'
+        or lower(att.filename) like '%.drawio'
+      ))
   ")
   #set ($hql2 = "select
       doc.fullName,

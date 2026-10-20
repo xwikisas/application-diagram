@@ -56,7 +56,7 @@ public class InlineDiagramManager
     /**
      * Suffix for the attachment containing the content of a diagram.
      */
-    public static final String DIAGRAM_SUFFIX = ".diagram.xml";
+    public static final String DIAGRAM_SUFFIX = ".drawio";
 
     /**
      * Suffix for the attachment containing a diagram preview.

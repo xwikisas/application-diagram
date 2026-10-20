@@ -56,18 +56,33 @@ public class InlineDiagramMacroRefactoring extends AbstractInlineDiagramMacroRef
     public Optional<MacroBlock> replaceReference(MacroBlock macroBlock, DocumentReference currentDocumentReference,
         AttachmentReference sourceReference, AttachmentReference targetReference, boolean relative)
     {
-        String diagramName = String.format(FORMAT_NAME, macroBlock.getParameter(DIAGRAM_NAME), ATTACHMENT_SUFFIX);
+        String diagramName = macroBlock.getParameter(DIAGRAM_NAME);
+        String xmlDiagramName = String.format(FORMAT_NAME, diagramName, XML_ATTACHMENT_SUFFIX);
+        String drawioDiagramName = String.format(FORMAT_NAME, diagramName, DRAWIO_ATTACHMENT_SUFFIX);
 
         // We should refactor the macro block only if the old name of the moved attachment matches the
         // diagramName parameter of the macro, and if the attachment is moved on the same page.
-        boolean isTheDiagramAttachment = sourceReference.getName().equals(diagramName);
+        String sourceRef = sourceReference.getName();
+        boolean srcMatchesXmlDiagramName = sourceRef.equals(xmlDiagramName);
+        boolean srcMatchesDrawioDiagramName = sourceRef.equals(drawioDiagramName);
+        boolean isTheDiagramAttachment = srcMatchesXmlDiagramName || srcMatchesDrawioDiagramName;
         boolean isMovedToTheSameParent = sourceReference.getParent().equals(targetReference.getParent());
         if (!isTheDiagramAttachment) {
             return Optional.empty();
         }
         if (isMovedToTheSameParent) {
             String referenceName = targetReference.getName();
-            String newName = referenceName.substring(0, referenceName.length() - ATTACHMENT_SUFFIX.length());
+            String suffix = referenceName.endsWith(XML_ATTACHMENT_SUFFIX)
+                ? XML_ATTACHMENT_SUFFIX
+                : referenceName.endsWith(DRAWIO_ATTACHMENT_SUFFIX)
+                    ? DRAWIO_ATTACHMENT_SUFFIX
+                    : "";
+            String newName = referenceName.substring(0, referenceName.length() - suffix.length());
+            if (newName.equals(diagramName)) {
+                // The diagram still has the same name, no need to update the macro.
+                // This can happen if the extension is changed, for instance mydiag.diagram.xml -> mydiag.drawio
+                return Optional.empty();
+            }
             macroBlock.setParameter(DIAGRAM_NAME, newName);
             return Optional.of(macroBlock);
         }
