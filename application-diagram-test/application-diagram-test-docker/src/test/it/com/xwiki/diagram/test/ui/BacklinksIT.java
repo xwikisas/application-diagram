@@ -155,7 +155,7 @@ public class BacklinksIT
 
         ViewPage viewPage = testUtils.createPageWithAttachment(diagramInlineWebHome, diagramInlinePageContent,
         "DiagramInline",
-        "test.diagram.xml",
+        "test.drawio",
             new ByteArrayInputStream(diagramContent.getBytes(
             StandardCharsets.UTF_8)));
 

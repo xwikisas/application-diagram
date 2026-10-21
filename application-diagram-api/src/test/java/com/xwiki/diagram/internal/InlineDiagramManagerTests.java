@@ -27,6 +27,8 @@ import javax.inject.Provider;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.slf4j.Logger;
@@ -156,35 +158,37 @@ public class InlineDiagramManagerTests
         verify(xwiki).saveDocument(clonedDocument, context);
     }
 
-    @Test
-    void saveExecuteShouldUpdateAttachmentWhenContentDifferent() throws Exception
+    @ParameterizedTest
+    @ValueSource(strings =  {".drawio", ".diagram.xml"})
+    void saveExecuteShouldUpdateAttachmentWhenContentDifferent(String suffix) throws Exception
     {
 
         when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(attachment);
+        when(clonedDocument.getExactAttachment(NAME + suffix)).thenReturn(attachment);
         when(attachment.getContentInputStream(context)).thenReturn(new ByteArrayInputStream("old-content".getBytes()));
         InputStream newBody = new ByteArrayInputStream("new-content".getBytes());
 
         boolean createOrUpdate =
-            inlineDiagramManager.executeSave(SOURCE, NAME, newBody, InlineDiagramManager.DIAGRAM_SUFFIX);
+            inlineDiagramManager.executeSave(SOURCE, NAME, newBody, suffix);
 
         assertFalse(createOrUpdate);
         verify(attachment).setContent(any(InputStream.class));
         verify(xwiki).saveDocument(clonedDocument, context);
     }
 
-    @Test
-    void saveShouldNotUpdateWhenContentIsSame() throws Exception
+    @ParameterizedTest
+    @ValueSource(strings =  {".drawio", ".diagram.xml"})
+    void saveShouldNotUpdateWhenContentIsSame(String suffix) throws Exception
     {
         when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(attachment);
+        when(clonedDocument.getExactAttachment(NAME + suffix)).thenReturn(attachment);
 
         byte[] content = "same-content".getBytes();
         when(attachment.getContentInputStream(context)).thenReturn(new ByteArrayInputStream(content));
         InputStream sameBody = new ByteArrayInputStream(content);
 
         boolean createOrUpdate =
-            inlineDiagramManager.executeSave(SOURCE, NAME, sameBody, InlineDiagramManager.DIAGRAM_SUFFIX);
+            inlineDiagramManager.executeSave(SOURCE, NAME, sameBody, suffix);
 
         assertFalse(createOrUpdate);
 
@@ -192,11 +196,12 @@ public class InlineDiagramManagerTests
         verify(xwiki, never()).saveDocument(clonedDocument, context);
     }
 
-    @Test
-    void saveShouldReturnInternalServerErrorOnXWikiException() throws Exception
+    @ParameterizedTest
+    @ValueSource(strings =  {".drawio", ".diagram.xml"})
+    void saveShouldReturnInternalServerErrorOnXWikiException(String suffix) throws Exception
     {
         when(authorization.hasAccess(eq(Right.EDIT), eq(documentReference))).thenReturn(true);
-        when(clonedDocument.getExactAttachment(EXACT_FILENAME)).thenReturn(null);
+        when(clonedDocument.getExactAttachment(NAME + suffix)).thenReturn(null);
         XWikiException exception = new XWikiException();
         doThrow(exception).when(xwiki).saveDocument(any(), any());
 

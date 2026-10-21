@@ -116,8 +116,9 @@
   #set ($diagramType = $NULL)
   #set ($sourceDocumentReference = $NULL)
   #set ($diagramName = $NULL)
-  ## If the reference ends with .diagram.xml and has an @ in the name then we consider it an inline diagram.
-  #if ($diagramReference.endsWith('.diagram.xml') &amp;&amp; $diagramReference.contains('@'))
+  ## If the reference has a diagram extension and has an @ in the name then we consider it an inline diagram.
+  #if (($diagramReference.endsWith('.drawio') || $diagramReference.endsWith('.diagram.xml'))
+      &amp;&amp; $diagramReference.contains('@'))
     #set ($diagramType = 'inline')
     #set ($attachmentReference = $services.model.resolveAttachment($diagramReference))
     #set ($sourceDocumentReference = $attachmentReference.getParent())
@@ -132,7 +133,11 @@
 ## Responsible for setting the $content variable when a inline diagram is requested.
 #macro (getInlineDiagramContent $documnetSourceReference, $diagramName)
   #set ($diagramDocument = $xwiki.getDocument($documnetSourceReference))
-  #set ($attachmentName = "${diagramName}.diagram.xml")
+  #set ($attachmentName = "${diagramName}.drawio")
+  #set ($attachment = $diagramDocument.getAttachment($attachmentName))
+  #if ($objecttool.isNull($attachment))
+    #set ($attachmentName = "${diagramName}.diagram.xml")
+  #end
   #set ($attachment = $diagramDocument.getAttachment($attachmentName))
   #set ($content = "$!attachment.getContentAsString()")
 #end

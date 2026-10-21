@@ -24,6 +24,8 @@ import java.util.Optional;
 import javax.inject.Named;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.xwiki.model.EntityType;
@@ -65,8 +67,9 @@ public class EmbedDiagramMacroRefactoringTest
     @Named("current")
     private EntityReferenceResolver<String> resolver;
 
- @Test
-void testReplaceReferenceUpdateWithSuccess() throws Exception
+@ParameterizedTest
+@ValueSource(strings = {".drawio", ".diagram.xml"})
+void testReplaceReferenceUpdateWithSuccess(String suffix) throws Exception
 {
     DocumentReference currentDocumentReference = mock(DocumentReference.class);
     DocumentReference sourceReference = mock(DocumentReference.class);
@@ -74,14 +77,14 @@ void testReplaceReferenceUpdateWithSuccess() throws Exception
 
     EntityReference attachmentReference = mock(EntityReference.class);
 
-    when(macroBlock.getParameter(SOURCE_DOCUMENT)).thenReturn("test.diagram.xml");
-    when(resolver.resolve("test.diagram.xml", EntityType.ATTACHMENT)).thenReturn(attachmentReference);
+    when(macroBlock.getParameter(SOURCE_DOCUMENT)).thenReturn("test" + suffix);
+    when(resolver.resolve("test" + suffix, EntityType.ATTACHMENT)).thenReturn(attachmentReference);
 
     when(attachmentReference.getParent()).thenReturn(sourceReference);
-    when(attachmentReference.getName()).thenReturn("file.diagram.xml");
+    when(attachmentReference.getName()).thenReturn("file" + suffix);
 
     ArgumentCaptor<AttachmentReference> captor = ArgumentCaptor.forClass(AttachmentReference.class);
-    when(serializer.serialize(captor.capture())).thenReturn("Space.TargetPage@file.diagram.xml");
+    when(serializer.serialize(captor.capture())).thenReturn("Space.TargetPage@file" + suffix);
 
     Optional<MacroBlock> optional =
         refactoring.replaceReference(macroBlock, currentDocumentReference, sourceReference, targetReference, false);
@@ -89,10 +92,10 @@ void testReplaceReferenceUpdateWithSuccess() throws Exception
     assertTrue(optional.isPresent());
 
     AttachmentReference captured = captor.getValue();
-    assertEquals("file.diagram.xml", captured.getName());
+    assertEquals("file" + suffix, captured.getName());
     assertEquals(targetReference, captured.getParent());
 
-    verify(macroBlock).setParameter(SOURCE_DOCUMENT, "Space.TargetPage@file.diagram.xml");
+    verify(macroBlock).setParameter(SOURCE_DOCUMENT, "Space.TargetPage@file" + suffix);
 }
 
     @Test

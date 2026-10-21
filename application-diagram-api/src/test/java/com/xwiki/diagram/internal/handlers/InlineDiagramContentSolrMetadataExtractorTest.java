@@ -31,6 +31,8 @@ import javax.inject.Provider;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -115,12 +117,13 @@ public class InlineDiagramContentSolrMetadataExtractorTest
         when(this.xwikiContext.getWiki()).thenReturn(this.wiki);
     }
 
-    @Test
-    void extractIgnoresOldAttachments()
+    @ParameterizedTest
+    @ValueSource(strings = {".drawio", ".diagram.xml"})
+    void extractIgnoresOldAttachments(String suffix)
     {
         Date oldDate = new Date(System.currentTimeMillis() - (20 * 60 * 1000));
 
-        when(attachment.getFilename()).thenReturn("test.diagram.xml");
+        when(attachment.getFilename()).thenReturn("test" + suffix);
         when(attachment.getDate()).thenReturn(oldDate);
 
         when(document.getAttachmentList()).thenReturn(Collections.singletonList(attachment));
@@ -150,12 +153,13 @@ public class InlineDiagramContentSolrMetadataExtractorTest
         verifyNoInteractions(linkRegistry);
     }
 
-    @Test
-    void extractWithValidDiagramAttachment() throws XWikiException
+    @ParameterizedTest
+    @ValueSource(strings = {".drawio", ".diagram.xml"})
+    void extractWithValidDiagramAttachment(String suffix) throws XWikiException
     {
         Date now = new Date();
 
-        when(attachment.getFilename()).thenReturn("test.diagram.xml");
+        when(attachment.getFilename()).thenReturn("test" + suffix);
         when(attachment.getDate()).thenReturn(now);
         when(attachment.getContentInputStream(xwikiContext)).thenReturn(
             new ByteArrayInputStream("<diagram/>".getBytes(StandardCharsets.UTF_8)));

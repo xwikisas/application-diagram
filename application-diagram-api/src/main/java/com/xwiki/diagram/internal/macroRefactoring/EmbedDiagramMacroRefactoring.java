@@ -68,7 +68,7 @@ public class EmbedDiagramMacroRefactoring extends AbstractInlineDiagramMacroRefa
             return Optional.empty();
         }
 
-        if (serializedReference.endsWith(".diagram.xml")) {
+        if (serializedReference.endsWith(".drawio") || serializedReference.endsWith(".diagram.xml")) {
             return handleInlineDiagramMoved(serializedReference, sourceReference, targetReference, macroBlock);
         } else {
             return replaceSerializedReference(serializedReference, macroBlock, sourceReference, targetReference);

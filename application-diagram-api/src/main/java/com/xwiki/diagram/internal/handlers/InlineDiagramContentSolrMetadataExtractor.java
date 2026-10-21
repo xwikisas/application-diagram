@@ -77,8 +77,11 @@ public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMeta
         // foolproof time window, but if there are no huge indexing jobs running on the instance, the document
         // should be indexed immediately after it is saved.
         List<XWikiAttachment> attachments =
-            document.getAttachmentList().stream().filter(attachment -> attachment.getFilename().endsWith("diagram"
-                + ".xml") && attachment.getDate().after(tenMinutesAgo)).collect(Collectors.toList());
+            document.getAttachmentList().stream()
+            .filter(attachment ->
+                (attachment.getFilename().endsWith(".drawio") || attachment.getFilename().endsWith(".diagram.xml"))
+                    && attachment.getDate().after(tenMinutesAgo))
+            .collect(Collectors.toList());
         boolean pageUpdated = false;
         for (XWikiAttachment attachment : attachments) {
             String content = getContentAsString(attachment, contextProvider.get());

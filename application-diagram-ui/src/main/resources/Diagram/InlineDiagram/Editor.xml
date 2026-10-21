@@ -59,8 +59,14 @@
     ## my opinion a user who has only view rights should not be able to see the diagram here, because they may think they
     ## can edit it, and the save failure would be perceived as a bug.
     #if ($sourceDocument.hasAccessLevel('edit', $xcontext.user))
+      ## The diagram might be under the old extension.
       #set ($attachmentName = "${request.diagramName}.diagram.xml")
       #set ($attachment = $sourceDocument.getAttachment($attachmentName))
+      #if ($objecttool.isNull($attachment))
+        ## New diagram, or file with a .drawio extension
+        #set ($attachmentName = "${request.diagramName}.drawio")
+        #set ($attachment = $sourceDocument.getAttachment($attachmentName))
+      #end
       #set ($content = "$!attachment.getContentAsString()")
     #else
       #set ($content = '')
