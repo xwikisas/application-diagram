@@ -117,7 +117,7 @@
   #set ($sourceDocumentReference = $NULL)
   #set ($diagramName = $NULL)
   ## If the reference has a diagram extension and has an @ in the name then we consider it an inline diagram.
-  #if (($diagramReference.endsWith('.diagram.xml') || $diagramReference.endsWith('.drawio'))
+  #if (($diagramReference.endsWith('.drawio') || $diagramReference.endsWith('.diagram.xml'))
       &amp;&amp; $diagramReference.contains('@'))
     #set ($diagramType = 'inline')
     #set ($attachmentReference = $services.model.resolveAttachment($diagramReference))

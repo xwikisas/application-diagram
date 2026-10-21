@@ -79,7 +79,7 @@ public class InlineDiagramContentSolrMetadataExtractor implements SolrEntityMeta
         List<XWikiAttachment> attachments =
             document.getAttachmentList().stream()
             .filter(attachment ->
-                (attachment.getFilename().endsWith(".diagram.xml") || attachment.getFilename().endsWith(".drawio"))
+                (attachment.getFilename().endsWith(".drawio") || attachment.getFilename().endsWith(".diagram.xml"))
                     && attachment.getDate().after(tenMinutesAgo))
             .collect(Collectors.toList());
         boolean pageUpdated = false;
