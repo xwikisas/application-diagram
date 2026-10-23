@@ -281,7 +281,7 @@
        #displayEditMode($editModeTranslationKey)
     #else
       #set ($unescapedButtonLabel = $services.localization.render('diagram.inline.macro.createNew'))
-      #set ($buttonLabel = $services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'))
+      #set ($buttonLabel = $services.rendering.escape($services.rendering.escape($unescapedButtonLabel, 'xwiki/2.1'), 'xwiki/2.1'))
       #set ($editorReference = 'Diagram.InlineDiagram.Editor')
       #set ($params = {
         'source' : $doc.getDocumentReference(),
