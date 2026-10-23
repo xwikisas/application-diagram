@@ -123,7 +123,11 @@
     #set ($attachmentReference = $services.model.resolveAttachment($diagramReference))
     #set ($sourceDocumentReference = $attachmentReference.getParent())
     #set ($attachmentFullName = $attachmentReference.getName())
-    #set ($diagramName = $attachmentFullName.substring(0, $attachmentFullName.length() - 12))
+    #if ($diagramReference.endsWith('.drawio'))
+      #set ($diagramName = $attachmentFullName.substring(0, $attachmentFullName.length() - 7))
+    #elseif ($diagramReference.endsWith('.diagram.xml'))
+      #set ($diagramName = $attachmentFullName.substring(0, $attachmentFullName.length() - 12))
+    #end
   #else
     #set ($diagramType = 'standalone')
     #set ($sourceDocumentReference = $services.model.resolveDocument($diagramReference))
