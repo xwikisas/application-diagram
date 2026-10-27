@@ -112,7 +112,8 @@ public class DiagramLinksRunnable extends AbstractDiagramRunnable
                 }
 
                 List<XWikiAttachment> attachments = backlinkDoc.getAttachmentList().stream()
-                    .filter(attachment -> attachment.getFilename().endsWith("diagram" + ".xml"))
+                    .filter(attachment -> attachment.getFilename().endsWith(".drawio")
+                        || attachment.getFilename().endsWith(".diagram.xml"))
                     .collect(Collectors.toList());
                 if (!attachments.isEmpty()) {
                     logger.info("The backlink was an inline diagram.");

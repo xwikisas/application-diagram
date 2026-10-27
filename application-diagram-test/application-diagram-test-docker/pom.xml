@@ -25,7 +25,7 @@
   <parent>
     <groupId>com.xwiki.diagram</groupId>
     <artifactId>application-diagram-test</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>2.1.2-SNAPSHOT</version>
   </parent>
   <artifactId>application-diagram-test-docker</artifactId>
   <properties>
@@ -62,11 +62,6 @@
       <artifactId>xwiki-platform-test-docker</artifactId>
       <version>${platform.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-component-wiki</artifactId>
-      <version>${platform.version}</version>
     </dependency>
     <dependency>
       <groupId>org.xwiki.platform</groupId>
