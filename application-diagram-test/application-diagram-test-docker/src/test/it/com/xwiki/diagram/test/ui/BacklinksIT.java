@@ -21,14 +21,16 @@ package com.xwiki.diagram.test.ui;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.xwiki.model.reference.DocumentReference;
+import org.xwiki.model.reference.LocalDocumentReference;
+import org.xwiki.rendering.syntax.Syntax;
 import org.xwiki.test.docker.junit5.TestReference;
 import org.xwiki.test.docker.junit5.UITest;
 import org.xwiki.test.ui.TestUtils;
@@ -45,7 +47,6 @@ import com.xwiki.diagram.test.po.DiagramViewPage;
 import com.xwiki.diagram.test.util.DockerDiagramTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -58,6 +59,13 @@ import static org.junit.jupiter.api.Assertions.fail;
     + ".EntityNameValidation\\.AdministrationJSON" })
 public class BacklinksIT
 {
+    private static final LocalDocumentReference SOLR_QUEUE_SIZE_PAGE =
+        new LocalDocumentReference(List.of("Test", "BacklinksIT"), "SolrQueueSize");
+
+    private static final int SOLR_INDEXING_TIMEOUT_SECONDS = 60;
+
+    private static final int BACKLINKS_UPDATE_TIMEOUT_SECONDS = 30;
+
     private final DocumentReference backLinksTestSpace =
         new DocumentReference("xwiki", List.of("Main", "BackreferencesTests"), "WebHome");
 
@@ -171,6 +179,12 @@ public class BacklinksIT
         InlinePage inlinePage = plainPage.editInline();
         inlinePage.clickSaveAndView();
         testUtils.loginAsAdmin();
+
+        // The backlinks are read from the Solr index, which is filled asynchronously. Make sure the links of the
+        // diagrams are indexed before renaming the pages they reference.
+        testUtils.rest().savePage(SOLR_QUEUE_SIZE_PAGE, "{{velocity}}$services.solr.queueSize{{/velocity}}",
+            Syntax.XWIKI_2_1.toIdString(), "", null);
+        waitForSolrIndexing(testUtils);
     }
 
     @BeforeEach
@@ -188,13 +202,13 @@ public class BacklinksIT
     void moveExactBackLinkTest(TestUtils setup, TestReference testReference)
     {
         ViewPage movedPage = movePage(setup, anotherSpaceNested, "AnotherSpaceNestedLinked - Moved");
-        assertPageMovedAndBackrefUpdated(movedPage,
+        assertPageMovedAndBackrefUpdated(setup, movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace.AnotherSpaceNestedLinked - Moved",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
         // Move the page back so we don't mess the tree.
         ViewPage restoredPage = movePage(setup, movedPage, "AnotherSpaceNestedLinked");
-        assertPageMovedAndBackrefUpdated(restoredPage,
+        assertPageMovedAndBackrefUpdated(setup, restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace.AnotherSpaceNestedLinked",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
     }
@@ -207,14 +221,14 @@ public class BacklinksIT
     @Order(2)
     void moveSiblingPageOfDiagramTest(TestUtils setup, TestReference testReference) {
         ViewPage movedPage = movePage(setup, diagramSibling, "DiagramSibling - Moved");
-        assertPageMovedAndBackrefUpdated(movedPage,
+        assertPageMovedAndBackrefUpdated(setup, movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramSibling - Moved",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
                 + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
         // Move the page back so we don't mess the tree.
         ViewPage restoredPage = movePage(setup, movedPage, "DiagramSibling");
-        assertPageMovedAndBackrefUpdated(restoredPage,
+        assertPageMovedAndBackrefUpdated(setup, restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.DiagramSibling",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
                 + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
@@ -229,14 +243,14 @@ public class BacklinksIT
     @Order(3)
     void moveChildPageOfDiagramTest (TestUtils setup, TestReference testReference) {
         ViewPage movedPage = movePage(setup, diagramChild, "DiagramChild - Moved");
-        assertPageMovedAndBackrefUpdated(movedPage,
+        assertPageMovedAndBackrefUpdated(setup, movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.DiagramChild - Moved",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
                 + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
 
         // Move the page back so we don't mess the tree.
         ViewPage restoredPage = movePage(setup, movedPage, "DiagramChild");
-        assertPageMovedAndBackrefUpdated(restoredPage,
+        assertPageMovedAndBackrefUpdated(setup, restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.DiagramChild",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
                 + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
@@ -253,7 +267,7 @@ public class BacklinksIT
             new DocumentReference("xwiki", List.of("Main", "BackreferencesTests", "Backlinks", "AnotherSpace - Moved"),
                 "AnotherSpaceNestedLinked");
         setup.gotoPage(newAnotherSpaceNestedLinked);
-        assertPageMovedAndBackrefUpdated(movedPage,
+        assertPageMovedAndBackrefUpdated(setup, movedPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace - Moved.AnotherSpaceNestedLinked",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
                 + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
@@ -263,7 +277,7 @@ public class BacklinksIT
         ViewPage oldAnotherSpace = movePage(setup, newAnotherSpaceWebHome, "AnotherSpace");
 
         ViewPage restoredPage = setup.gotoPage(anotherSpaceNested);
-        assertPageMovedAndBackrefUpdated(restoredPage,
+        assertPageMovedAndBackrefUpdated(setup, restoredPage,
             "xwiki:Main.BackreferencesTests.Backlinks.AnotherSpace.AnotherSpaceNestedLinked",
             List.of("xwiki:Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome", "xwiki:Main"
                 + ".BackreferencesTests.Backlinks.DiagramSpace.DiagramInline.WebHome"));
@@ -272,12 +286,10 @@ public class BacklinksIT
     @Test
     @Order(5)
     void moveRootParentOfDiagramAndReferencedPagesTest(TestUtils setup, TestReference testReference)
-        throws InterruptedException
     {
 
         // Move the common root of the diagram and all referenced pages.
         ViewPage movedPage = movePage(setup, backlinksWebHome, "Common Root - Moved");
-        Thread.sleep(Duration.ofSeconds(10).toMillis());
         DocumentReference newDiagramWebHome =
             new DocumentReference("xwiki",
                 List.of("Main", "BackreferencesTests", "Common Root - Moved", "DiagramSpace", "Diagram"),
@@ -305,17 +317,17 @@ public class BacklinksIT
 
         // Assert that each referenced page now points back to the diagram at its new location.
         ViewPage diagramSiblingPage = setup.gotoPage(newDiagramSibling);
-        assertPageMovedAndBackrefUpdated(diagramSiblingPage,
+        assertPageMovedAndBackrefUpdated(setup, diagramSiblingPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.DiagramSpace.DiagramSibling",
             List.of(newDiagramReference, newInlineDiagramReference));
 
         ViewPage diagramChildPage = setup.gotoPage(newDiagramChild);
-        assertPageMovedAndBackrefUpdated(diagramChildPage,
+        assertPageMovedAndBackrefUpdated(setup, diagramChildPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.DiagramSpace.Diagram.DiagramChild",
             List.of(newDiagramReference, newInlineDiagramReference));
 
         ViewPage anotherSpaceNestedPage = setup.gotoPage(newAnotherSpaceNested);
-        assertPageMovedAndBackrefUpdated(anotherSpaceNestedPage,
+        assertPageMovedAndBackrefUpdated(setup, anotherSpaceNestedPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.AnotherSpace.AnotherSpaceNestedLinked",
             List.of(newDiagramReference, newInlineDiagramReference));
         // Since this is the last test we don't need to move them back.
@@ -324,20 +336,53 @@ public class BacklinksIT
 
     private ViewPage movePage(TestUtils setup, DocumentReference reference, String newTitle)
     {
-        return movePage(setup, setup.gotoPage(reference), newTitle);
+        waitForSolrIndexing(setup);
+        return movePage(setup.gotoPage(reference), newTitle);
     }
 
     private ViewPage movePage(TestUtils setup, ViewPage sourcePage, String newTitle)
+    {
+        String sourcePageURL = setup.getDriver().getCurrentUrl();
+        waitForSolrIndexing(setup);
+        setup.gotoPage(sourcePageURL);
+        return movePage(new ViewPage(), newTitle);
+    }
+
+    private ViewPage movePage(ViewPage sourcePage, String newTitle)
     {
         RenamePage renamePage = sourcePage.rename();
         renamePage.getDocumentPicker().setTitle(newTitle);
         return renamePage.clickRenameButton().gotoNewPage();
     }
 
-    private void assertPageMovedAndBackrefUpdated(ViewPage page, String expectedReference,
+    /**
+     * The rename listener computes the backlinks of the renamed page from the Solr index, so the index needs to be up
+     * to date before renaming a page.
+     */
+    private void waitForSolrIndexing(TestUtils setup)
+    {
+        setup.getDriver().waitUntilCondition(driver -> {
+            try {
+                return "0".equals(setup.executeAndGetBodyAsString(SOLR_QUEUE_SIZE_PAGE,
+                    Map.of("outputSyntax", "plain")).trim());
+            } catch (Exception e) {
+                return false;
+            }
+        }, SOLR_INDEXING_TIMEOUT_SECONDS);
+    }
+
+    private void assertPageMovedAndBackrefUpdated(TestUtils setup, ViewPage page, String expectedReference,
         List<String> diagramPageReferences)
     {
         assertEquals(expectedReference, page.getMetaDataValue("reference"));
-        assertTrue(BackreferenceViewPage.getInstance().containsPageReferences(diagramPageReferences));
+        // The diagrams are updated by a background thread after the rename and then re-indexed, so the backlinks
+        // might not be up to date yet.
+        setup.getDriver().waitUntilCondition(driver -> {
+            if (BackreferenceViewPage.getInstance().containsPageReferences(diagramPageReferences)) {
+                return true;
+            }
+            driver.navigate().refresh();
+            return false;
+        }, BACKLINKS_UPDATE_TIMEOUT_SECONDS);
     }
 }
