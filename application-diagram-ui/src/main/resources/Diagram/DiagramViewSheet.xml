@@ -450,22 +450,38 @@ define('diagram-viewer', [
     $(element).children().text(text);
   };
 
+  // The theme controls how the shapes are rendered (e.g. named styles such as 'ellipse'), so the diagrams must not be
+  // rendered before it is loaded, otherwise they are displayed with the default (rectangle) shapes.
+  const themeLoaded = diagramUtils.loadTranslationAndTheme().done(function(theme) {
+    // Configure the default viewer theme.
+    Graph.prototype.defaultThemes = Graph.prototype.defaultThemes || {};
+    Graph.prototype.defaultThemes[Graph.prototype.defaultThemeName] = theme;
+  });
+
   const initializedDiagramMarkerClass = 'diagram-initialized';
+  const viewDiagram = function(element, configOverride) {
+    try {
+      // Guard against re-rendering an existing diagram or one which is in the process of displaying.
+      if (!element.classList.contains(initializedDiagramMarkerClass)) {
+        element.classList.add(initializedDiagramMarkerClass);
+        let [fromStorage, diagramXML] = getDiagramXML(element);
+        renderDiagram(element, diagramXML, fromStorage, configOverride);
+      }
+    } catch (e) {
+      console.error(e);
+      const externalDiagramUrl = element.getAttribute('data-external-diagram-url');
+      const errorMessage = getErrorKey(externalDiagramUrl, xm.userReference);
+      renderError(element, l10n.get(errorMessage));
+    }
+  };
+
   $.fn.viewDiagram = function(configOverride) {
     return this.each(function() {
-      try {
-        // Guard against re-rendering an existing diagram or one which is in the process of displaying.
-        if (!this.classList.contains(initializedDiagramMarkerClass)) {
-          this.classList.add(initializedDiagramMarkerClass);
-          let [fromStorage, diagramXML] = getDiagramXML(this);
-          renderDiagram(this, diagramXML, fromStorage, configOverride);
-        }
-      } catch (e) {
-        console.error(e);
-        const externalDiagramUrl = this.getAttribute('data-external-diagram-url');
-        const errorMessage = getErrorKey(externalDiagramUrl, xm.userReference);
-        renderError(this, l10n.get(errorMessage));
-      }
+      const element = this;
+      // Wait for the theme to be loaded. The callback is called right away if the theme is already loaded.
+      themeLoaded.done(function() {
+        viewDiagram(element, configOverride);
+      });
     });
   };
 
@@ -474,11 +490,7 @@ define('diagram-viewer', [
     $('.diagram').viewDiagram();
   });
 
-  return diagramUtils.loadTranslationAndTheme().done(function(theme) {
-    // Configure the default viewer theme.
-    Graph.prototype.defaultThemes = Graph.prototype.defaultThemes || {};
-    Graph.prototype.defaultThemes[Graph.prototype.defaultThemeName] = theme;
-  });
+  return themeLoaded;
 });</code>
     </property>
     <property>
