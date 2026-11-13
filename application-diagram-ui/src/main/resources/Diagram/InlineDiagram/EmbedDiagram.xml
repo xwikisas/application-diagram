@@ -262,9 +262,10 @@
   #getDiagramContent($sourceDocumentReference, $diagramName, $diagramType)
   #set ($returnFragment = "inline-diagram-$diagramName")
   #if ("$!content" != '')
-    ## Display the edit button only to the users that have edit over the current page.
+    ## Display the edit button only to the users that can edit the embedded diagram, i.e. that have edit right on the
+    ## page holding the diagram (which is not necessarily the current page).
     #set ($canEdit = "$!xcontext.macro.params.enableEdit")
-    #if ($doc.hasAccessLevel("edit", $xcontext.user) &amp;&amp; $canEdit == 'true')
+    #if ($services.security.authorization.hasAccess('edit', $sourceDocumentReference) &amp;&amp; $canEdit == 'true')
       #set ($toolbar = 'edit zoom layers pages lightbox')
     #else
       #set ($toolbar = 'zoom layers pages lightbox')

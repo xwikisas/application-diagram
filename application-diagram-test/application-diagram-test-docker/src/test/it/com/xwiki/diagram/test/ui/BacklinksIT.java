@@ -44,9 +44,11 @@ import org.xwiki.user.test.po.ProfileUserProfilePage;
 
 import com.xwiki.diagram.test.po.BackreferenceViewPage;
 import com.xwiki.diagram.test.po.DiagramViewPage;
+import com.xwiki.diagram.test.po.DiagramViewer;
 import com.xwiki.diagram.test.util.DockerDiagramTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -82,6 +84,10 @@ public class BacklinksIT
         new DocumentReference("xwiki", List.of("Main", "BackreferencesTests", "Backlinks", "DiagramSpace",
             "DiagramInline"),
             "WebHome");
+
+    // A page outside the moved tree that embeds the diagram, to check that the Embed Diagram macro is updated.
+    private final DocumentReference embedDiagramPage =
+        new DocumentReference("xwiki", List.of("Main", "BackreferencesTests", "EmbedDiagram"), "WebHome");
 
     private final DocumentReference anotherSpaceWebHome =
         new DocumentReference("xwiki", List.of("Main", "BackreferencesTests", "Backlinks", "AnotherSpace"), "WebHome");
@@ -179,6 +185,10 @@ public class BacklinksIT
         InlinePage inlinePage = plainPage.editInline();
         inlinePage.clickSaveAndView();
         testUtils.loginAsAdmin();
+
+        testUtils.createPage(embedDiagramPage,
+            "{{embedDiagram diagramSource=\"Main.BackreferencesTests.Backlinks.DiagramSpace.Diagram.WebHome\"/}}",
+            "EmbedDiagram");
 
         // The backlinks are read from the Solr index, which is filled asynchronously. Make sure the links of the
         // diagrams are indexed before renaming the pages they reference.
@@ -330,6 +340,16 @@ public class BacklinksIT
         assertPageMovedAndBackrefUpdated(setup, anotherSpaceNestedPage,
             "xwiki:Main.BackreferencesTests.Common Root - Moved.AnotherSpace.AnotherSpaceNestedLinked",
             List.of(newDiagramReference, newInlineDiagramReference));
+        // The Embed Diagram macro that references the moved diagram (from outside the moved tree) is updated.
+        String newDiagramLocation = "Common Root - Moved.DiagramSpace.Diagram.WebHome";
+        DockerDiagramTestUtils.waitUntilPageContentContains(setup, embedDiagramPage, newDiagramLocation,
+            BACKLINKS_UPDATE_TIMEOUT_SECONDS);
+        setup.gotoPage(embedDiagramPage);
+        DiagramViewer embeddedDiagram = new DiagramViewPage().getDiagram();
+        assertTrue(embeddedDiagram.isRendered());
+        assertTrue(embeddedDiagram.getSourceReference().endsWith(newDiagramLocation),
+            embeddedDiagram.getSourceReference());
+
         // Since this is the last test we don't need to move them back.
     }
 

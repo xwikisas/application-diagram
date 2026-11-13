@@ -98,6 +98,41 @@ public class DiagramMacro extends BaseElement
         return diagram.getAttribute("data-reference");
     }
 
+    /**
+     * Clicks on the diagram title, which links to the diagram page.
+     *
+     * @return the diagram page
+     * @since 2.1.4
+     */
+    public DiagramViewPage clickTitle()
+    {
+        this.diagram.findElement(By.cssSelector(".diagram-title")).click();
+        return new DiagramViewPage();
+    }
+
+    /**
+     * @return whether the "Edit diagram" (pencil) button is displayed
+     * @since 2.1.4
+     */
+    public boolean hasEditButton()
+    {
+        return !this.diagram.findElements(By.cssSelector("a.diagram-edit")).isEmpty();
+    }
+
+    /**
+     * Clicks on the "Edit diagram" (pencil) button displayed below the diagram.
+     *
+     * @return the diagram edit page
+     * @since 2.1.4
+     */
+    public DiagramEditPage clickEdit()
+    {
+        // The button opens the diagram editor in a new tab, which we load in the current tab instead.
+        WebElement editButton = this.diagram.findElement(By.cssSelector("a.diagram-edit"));
+        LinkFollower.follow(editButton::click);
+        return new DiagramEditPage();
+    }
+
     public boolean hasWarningMessage()
     {
         return !diagram.findElements(By.cssSelector(".box.warningmessage")).isEmpty();

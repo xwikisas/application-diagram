@@ -46,4 +46,16 @@ public class DiagramMacroPage extends ViewPage
     {
         return getDiagramMacros().get(index);
     }
+
+    /**
+     * Clicks on the "Create a new inline diagram" link displayed by an Inline Diagram macro that has no diagram yet.
+     *
+     * @return the inline diagram editor
+     * @since 2.1.4
+     */
+    public InlineDiagramEditPage clickCreateInlineDiagram()
+    {
+        getDriver().findElement(By.linkText("Create a new inline diagram")).click();
+        return new InlineDiagramEditPage();
+    }
 }
