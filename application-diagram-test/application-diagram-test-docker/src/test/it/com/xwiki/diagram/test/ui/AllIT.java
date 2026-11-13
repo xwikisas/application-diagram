@@ -44,4 +44,34 @@ public class AllIT
     class NestedBacklinksIT extends BacklinksIT
     {
     }
+
+    @Nested
+    @DisplayName("Diagram application")
+    class NestedDiagramAppIT extends DiagramAppIT
+    {
+    }
+
+    @Nested
+    @DisplayName("Diagram editor")
+    class NestedDiagramEditorIT extends DiagramEditorIT
+    {
+    }
+
+    @Nested
+    @DisplayName("Diagram macros")
+    class NestedDiagramMacrosIT extends DiagramMacrosIT
+    {
+    }
+
+    @Nested
+    @DisplayName("Diagram rights")
+    class NestedDiagramRightsIT extends DiagramRightsIT
+    {
+    }
+
+    @Nested
+    @DisplayName("Diagram exports")
+    class NestedDiagramExportIT extends DiagramExportIT
+    {
+    }
 }
