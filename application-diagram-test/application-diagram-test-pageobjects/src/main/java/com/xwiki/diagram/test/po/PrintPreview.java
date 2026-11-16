@@ -20,7 +20,7 @@
 package com.xwiki.diagram.test.po;
 
 /**
- * The print preview of a diagram, opened from File > Print / Export as PDF.
+ * The print preview of a diagram, opened from File &gt; Print / Export as PDF.
  *
  * @version $Id$
  * @since 2.1.4

@@ -28,7 +28,7 @@ import org.openqa.selenium.support.ui.Select;
 import org.xwiki.test.ui.po.BaseElement;
 
 /**
- * The File > Page Setup... dialog of the diagram editor.
+ * The File &gt; Page Setup... dialog of the diagram editor.
  *
  * @version $Id$
  * @since 2.1.4

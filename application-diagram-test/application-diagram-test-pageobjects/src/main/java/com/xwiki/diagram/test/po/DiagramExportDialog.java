@@ -32,7 +32,7 @@ import org.xwiki.test.ui.XWikiWebDriver;
 import org.xwiki.test.ui.po.BaseElement;
 
 /**
- * The dialog displayed when exporting a diagram (File > Export as > PNG..., SVG..., etc.) or printing it (File > Print
+ * The dialog displayed when exporting a diagram (File &gt; Export as &gt; PNG..., SVG..., etc.) or printing it (File &gt; Print
  * / Export as PDF).
  *
  * @version $Id$

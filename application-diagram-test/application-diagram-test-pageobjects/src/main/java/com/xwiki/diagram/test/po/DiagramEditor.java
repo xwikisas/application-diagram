@@ -402,7 +402,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Clears the selection using Edit > Select None.
+     * Clears the selection using Edit &gt; Select None.
      */
     public void selectNone()
     {
@@ -730,7 +730,7 @@ public class DiagramEditor extends BaseElement
     // Menu actions
 
     /**
-     * Selects all the cells using Edit > Select All.
+     * Selects all the cells using Edit &gt; Select All.
      */
     public void selectAll()
     {
@@ -738,7 +738,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Deletes the selected cells using Edit > Delete. Nothing happens if the selected cells can't be deleted (e.g.
+     * Deletes the selected cells using Edit &gt; Delete. Nothing happens if the selected cells can't be deleted (e.g.
      * because they are locked).
      */
     public void deleteSelectionUsingMenu()
@@ -748,7 +748,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Locks or unlocks the selected cells using Edit > Lock/Unlock.
+     * Locks or unlocks the selected cells using Edit &gt; Lock/Unlock.
      */
     public void lockUnlockSelection()
     {
@@ -756,7 +756,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Rotates the selected shape by 90 degrees using Arrange > Rotate Shape Only by 90° / Reverse.
+     * Rotates the selected shape by 90 degrees using Arrange &gt; Rotate Shape Only by 90° / Reverse.
      */
     public void rotateSelectionBy90()
     {
@@ -764,7 +764,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Brings the selected shapes to the front using Arrange > To Front.
+     * Brings the selected shapes to the front using Arrange &gt; To Front.
      */
     public void bringToFrontUsingMenu()
     {
@@ -772,7 +772,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Opens File > Page Setup...
+     * Opens File &gt; Page Setup...
      *
      * @return the page setup dialog
      */
@@ -783,7 +783,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Exports the diagram using File > Export as > URL...
+     * Exports the diagram using File &gt; Export as &gt; URL...
      *
      * @return the URL generated for the diagram
      */
@@ -799,7 +799,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Opens the dialog used to export the diagram in the given format, from File > Export as.
+     * Opens the dialog used to export the diagram in the given format, from File &gt; Export as.
      *
      * @param format the format, as displayed in the menu (e.g. "PNG...", "JPEG...", "WebP...", "SVG...", "XML...",
      *     "VSDX (beta)...")
@@ -813,7 +813,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Opens File > Print / Export as PDF.
+     * Opens File &gt; Print / Export as PDF.
      *
      * @return the print dialog
      */
@@ -824,7 +824,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Imports a diagram using File > Import from > URL...
+     * Imports a diagram using File &gt; Import from &gt; URL...
      *
      * @param url the URL of the diagram to import
      */
@@ -841,7 +841,7 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Imports a file (a diagram or an image) using File > Import from > Device...
+     * Imports a file (a diagram or an image) using File &gt; Import from &gt; Device...
      *
      * @param file the file to import
      */
