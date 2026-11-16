@@ -160,7 +160,8 @@ public class DiagramEditor extends BaseElement
      */
     public String getDisplayedZoom()
     {
-        return getToolbarLabel("Zoom").getText().trim();
+        // The zoom level is displayed in an input field.
+        return getDriver().findElement(By.cssSelector(".geToolbar input.geZoomInput")).getAttribute("value").trim();
     }
 
     /**
@@ -249,8 +250,16 @@ public class DiagramEditor extends BaseElement
     public boolean isPaletteExpanded(String title)
     {
         WebElement content = getPaletteContent(title);
-        return content.isDisplayed() && !getDriver().findElementsWithoutWaiting(content, By.cssSelector(GE_ITEM))
-            .isEmpty();
+        // Collapsed palettes are not hidden, their height is set to 0.
+        return content.isDisplayed() && content.getSize().getHeight() > 0
+            && !getDriver().findElementsWithoutWaiting(content, By.cssSelector(GE_ITEM)).isEmpty();
+    }
+
+    private boolean isPaletteTransitionDone(String title)
+    {
+        // The palette content is animated when expanded or collapsed. The transition style is removed at the end.
+        return (Boolean) getDriver().executeJavascript(
+            "var c = arguments[0].firstChild; return c == null || !c.style.transition;", getPaletteContent(title));
     }
 
     /**
@@ -263,6 +272,8 @@ public class DiagramEditor extends BaseElement
         boolean expanded = isPaletteExpanded(title);
         click(getPaletteTitle(title));
         getDriver().waitUntilCondition(driver -> isPaletteExpanded(title) != expanded);
+        // Clicking the palette title again before the expand / collapse animation ends has no effect.
+        getDriver().waitUntilCondition(driver -> isPaletteTransitionDone(title));
     }
 
     /**
@@ -324,7 +335,9 @@ public class DiagramEditor extends BaseElement
     {
         int count = getModel().getCells().size();
         click(shape);
-        getDriver().waitUntilCondition(driver -> getModel().getCells().size() > count);
+        // The inserted shape is selected asynchronously.
+        getDriver().waitUntilCondition(
+            driver -> getModel().getCells().size() > count && !getSelectedCellIds().isEmpty());
         return getSelectedCellIds().get(0);
     }
 
@@ -588,8 +601,9 @@ public class DiagramEditor extends BaseElement
     {
         closeMenus();
         showEditorAtTop();
-        click(getToolbarLabel("Zoom"));
-        clickPopupMenuItem(getLastPopupMenu(), "Fit Window / Reset View");
+        // The zoom drop down is opened by clicking the input that displays the zoom level.
+        click(getDriver().findElement(By.cssSelector(".geToolbar input.geZoomInput")));
+        clickPopupMenuItem(getLastPopupMenu(), "Reset View");
         getDriver().waitUntilCondition(driver -> getZoom() == 1);
     }
 
@@ -611,7 +625,9 @@ public class DiagramEditor extends BaseElement
         urlInput.clear();
         urlInput.sendKeys(imageURL);
         clickDialogButton(dialog, APPLY);
-        getDriver().waitUntilCondition(driver -> getModel().getCells().size() > count);
+        // The inserted image is selected asynchronously.
+        getDriver().waitUntilCondition(
+            driver -> getModel().getCells().size() > count && !getSelectedCellIds().isEmpty());
         return getSelectedCellIds().get(0);
     }
 
@@ -625,9 +641,9 @@ public class DiagramEditor extends BaseElement
 
     private WebElement getToolbarLabel(String title)
     {
-        return getDriver().findElement(By.xpath(String
-            .format("//div[contains(@class, 'geToolbar')]//a[contains(@class, 'geLabel') and starts-with(@title, '%s')]",
-                title)));
+        return getDriver().findElement(By.xpath(String.format("//div[contains(@class, 'geToolbar')]"
+            + "//a[(contains(@class, 'geLabel') or contains(@class, 'geButton')) and starts-with(@title, '%s')]",
+            title)));
     }
 
     // Menu bar
@@ -740,11 +756,11 @@ public class DiagramEditor extends BaseElement
     }
 
     /**
-     * Rotates the selected shape by 90 degrees using Arrange > Rotate shape only by 90° / Reverse.
+     * Rotates the selected shape by 90 degrees using Arrange > Rotate Shape Only by 90° / Reverse.
      */
     public void rotateSelectionBy90()
     {
-        clickMenuItem(ARRANGE_MENU, "Rotate shape only by 90° / Reverse");
+        clickMenuItem(ARRANGE_MENU, "Rotate Shape Only by 90° / Reverse");
     }
 
     /**

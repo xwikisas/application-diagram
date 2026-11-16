@@ -20,6 +20,8 @@
 package com.xwiki.diagram.test.po;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
@@ -74,7 +76,7 @@ public class DiagramFormatPanel extends BaseElement
 
     /**
      * Changes the color associated with one of the check boxes from the panel (e.g. "Fill", "Line", "Gradient",
-     * "Background Color") using the color dialog.
+     * "Gradient") using the color window.
      *
      * @param label the check box label
      * @param hexColor the color in hexadecimal format, without the leading # (e.g. "FF0000")
@@ -84,13 +86,27 @@ public class DiagramFormatPanel extends BaseElement
         WebElement checkbox = getCheckbox(label);
         WebElement colorButton = checkbox.findElement(By.xpath("..//*[contains(@class, 'geColorBtn')]"));
         DiagramEditor.click(colorButton);
-        WebElement dialog = getDriver().findElement(By.cssSelector(".geDialog"));
-        // The first input of the color dialog holds the color code.
-        WebElement colorInput = dialog.findElement(By.tagName("input"));
+        // The color window is not modal and it applies the color as soon as it is entered (on Enter).
+        By colorWindowLocator = By.cssSelector("div.mxWindow.geColorWindow");
+        getDriver().waitUntilCondition(driver -> getVisibleColorWindow(colorWindowLocator) != null);
+        WebElement colorWindow = getVisibleColorWindow(colorWindowLocator);
+        // The first text input holds the light color code (the second one holds the dark color code).
+        WebElement colorInput = colorWindow.findElement(By.xpath(".//input[not(@type) or @type = 'text']"));
         DiagramEditor.click(colorInput);
         selectAllAndType(hexColor);
-        DiagramEditor.clickDialogButton(dialog, "Apply");
-        getDriver().waitUntilElementDisappears(By.cssSelector(".geDialog"));
+        DiagramEditor.actions().sendKeys(Keys.ENTER).perform();
+        // Close the color window, if it's still open.
+        if (getVisibleColorWindow(colorWindowLocator) != null) {
+            colorWindow.findElements(By.cssSelector("img[title='Close']")).stream().filter(WebElement::isDisplayed)
+                .findFirst().ifPresent(DiagramEditor::click);
+        }
+        getDriver().waitUntilCondition(driver -> getVisibleColorWindow(colorWindowLocator) == null);
+    }
+
+    private WebElement getVisibleColorWindow(By locator)
+    {
+        return getDriver().findElementsWithoutWaiting(locator).stream().filter(WebElement::isDisplayed).findFirst()
+            .orElse(null);
     }
 
     /**
@@ -123,7 +139,7 @@ public class DiagramFormatPanel extends BaseElement
      */
     public void setLineWidth(int width)
     {
-        setNumber(getDisplayedElement(PANEL + "//input[@title = 'Linewidth']"), width);
+        setNumber(getDisplayedElement(PANEL + "//input[@title = 'Line Width' or @title = 'Linewidth']"), width);
     }
 
     /**
@@ -192,6 +208,22 @@ public class DiagramFormatPanel extends BaseElement
         DiagramEditor.actions().sendKeys(Keys.ENTER).perform();
     }
 
+    /**
+     * Opens the dialog used to set the diagram background (image and color), from the Diagram tab.
+     *
+     * @return the background dialog
+     */
+    public BackgroundImageDialog openBackgroundDialog()
+    {
+        WebElement button = getCheckbox("Background").findElement(By.xpath("..//button"));
+        DiagramEditor.click(button);
+        getDriver().waitUntilCondition(driver -> getDriver().findElementsWithoutWaiting(By.cssSelector(".geDialog"))
+            .stream().anyMatch(WebElement::isDisplayed));
+        List<WebElement> dialogs = getDriver().findElementsWithoutWaiting(By.cssSelector(".geDialog")).stream()
+            .filter(WebElement::isDisplayed).collect(Collectors.toList());
+        return new BackgroundImageDialog(dialogs.get(dialogs.size() - 1));
+    }
+
     private void selectAllAndType(String text)
     {
         DiagramEditor.actions().keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL)
@@ -200,7 +232,23 @@ public class DiagramFormatPanel extends BaseElement
 
     private WebElement getCheckbox(String label)
     {
-        return getDriver().findElementsWithoutWaiting(By.xpath(String.format(CHECKBOX, label))).stream()
-            .filter(WebElement::isDisplayed).findFirst().orElseThrow();
+        List<WebElement> checkboxes = getDriver().findElementsWithoutWaiting(By.xpath(String.format(CHECKBOX, label)));
+        Optional<WebElement> displayedCheckbox = checkboxes.stream().filter(WebElement::isDisplayed).findFirst();
+        if (displayedCheckbox.isPresent()) {
+            return displayedCheckbox.get();
+        }
+        // Some of the check boxes are inside a collapsible section (e.g. "Effects") that is collapsed by default.
+        for (WebElement checkbox : checkboxes) {
+            Optional<WebElement> sectionTitle = checkbox.findElements(By.xpath(
+                "ancestor::div[contains(@class, 'geCollapsibleContent')][1]"
+                    + "/preceding-sibling::*[contains(@class, 'geCollapsibleTitle')][1]"))
+                .stream().filter(WebElement::isDisplayed).findFirst();
+            if (sectionTitle.isPresent()) {
+                DiagramEditor.click(sectionTitle.get());
+                getDriver().waitUntilCondition(driver -> checkbox.isDisplayed());
+                return checkbox;
+            }
+        }
+        throw new NoSuchElementException(String.format("Check box [%s] not found.", label));
     }
 }

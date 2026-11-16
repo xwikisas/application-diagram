@@ -37,6 +37,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -130,8 +131,9 @@ class DiagramExportIT
         DiagramEditor editor = editPage.getDiagramEditor();
 
         DiagramExportDialog dialog = editor.openExportDialog("PNG...");
-        assertTrue(dialog.getOptions().containsAll(List.of(SELECTION_ONLY, "Transparent Background", "Shadow",
-            "Grid", "Include a copy of my diagram")), dialog.getOptions().toString());
+        // The "Selection Only" option is displayed only when there are selected shapes (see below).
+        assertTrue(dialog.getOptions().containsAll(List.of("Transparent Background", "Shadow", "Grid",
+            "Include a copy of my diagram")), dialog.getOptions().toString());
         DownloadedFile png = dialog.export("full-diagram.png");
         assertEquals("full-diagram.png", png.getName());
         assertTrue(isPNG(png.getContent()), "Not a PNG image");
@@ -263,6 +265,8 @@ class DiagramExportIT
      */
     @Test
     @Order(6)
+    @Disabled("The VSDX export is not included in the public draw.io source code anymore (VsdxExport.js is loaded"
+        + " only when DRAWIO_PUBLIC_BUILD is not set), so the File > Export as > VSDX menu entry is missing.")
     void exportAsVSDX() throws IOException
     {
         DiagramEditPage editPage = DiagramEditPage.gotoPage(DIAGRAM);

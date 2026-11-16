@@ -20,6 +20,7 @@
 package com.xwiki.diagram.test.po;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -67,6 +68,41 @@ public class BackgroundImageDialog extends BaseElement
         getDriver().waitUntilCondition(driver -> !inputs.get(1).getAttribute("value").isEmpty());
         setValue(inputs.get(1), width);
         setValue(inputs.get(2), height);
+    }
+
+    /**
+     * Sets the background color.
+     *
+     * @param hexColor the color code, without the leading hash (e.g. "FFFFCC")
+     */
+    public void setFillColor(String hexColor)
+    {
+        WebElement row = this.container.findElement(
+            By.xpath(".//div[contains(@class, 'geDialogCheckRow')][normalize-space(.) = 'Fill Color']"));
+        WebElement checkbox = row.findElement(By.cssSelector("input[type='checkbox']"));
+        if (!checkbox.isSelected()) {
+            DiagramEditor.click(checkbox);
+        }
+        WebElement colorButton = row.findElement(By.cssSelector(".geColorBtn"));
+        getDriver().waitUntilCondition(driver -> colorButton.isDisplayed());
+        int dialogCount = getVisibleDialogs().size();
+        DiagramEditor.click(colorButton);
+        getDriver().waitUntilCondition(driver -> getVisibleDialogs().size() > dialogCount);
+        List<WebElement> dialogs = getVisibleDialogs();
+        WebElement colorDialog = dialogs.get(dialogs.size() - 1);
+        // The first input of the color dialog holds the color code.
+        WebElement colorInput = colorDialog.findElement(By.tagName("input"));
+        DiagramEditor.click(colorInput);
+        DiagramEditor.actions().keyDown(Keys.CONTROL).sendKeys("a").keyUp(Keys.CONTROL).sendKeys(hexColor)
+            .perform();
+        DiagramEditor.clickDialogButton(colorDialog, "Apply");
+        getDriver().waitUntilCondition(driver -> getVisibleDialogs().size() == dialogCount);
+    }
+
+    private List<WebElement> getVisibleDialogs()
+    {
+        return getDriver().findElementsWithoutWaiting(By.cssSelector(".geDialog")).stream()
+            .filter(WebElement::isDisplayed).collect(Collectors.toList());
     }
 
     private void setValue(WebElement input, int value)

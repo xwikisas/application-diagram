@@ -1296,6 +1296,9 @@ define('diagram-editor', [
       // We need this CSS class on the body element in order to have proper styling for the UI elements (menus, dialogs,
       // tooltips) that are added directly under the body element.
       $(document.body).addClass('geEditor');
+      // The draw.io editor layout is a CSS grid defined on the .geEditor container (drawio uses the body
+      // element as container).
+      $(this).addClass('geEditor');
       createDiagramEditor($.extend(getDiagramEditorConfig(this), options));
       $(this).removeClass('loading');
     });

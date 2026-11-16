@@ -317,28 +317,37 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
   require.config({
     paths: {
       'base64': drawIOBasePath + 'js/deflate/base64.min',
-      'jscolor': drawIOBasePath + 'js/jscolor/jscolor.min',
       'pako': drawIOBasePath + 'js/deflate/pako.min',
       'sanitizer': drawIOBasePath + 'js/sanitizer/purify.min',
       'spin': drawIOBasePath + 'js/spin/spin.min',
       'jszip': drawIOBasePath + 'js/jszip/jszip.min',
-      'mermaid': drawIOBasePath + 'js/mermaid/mermaid.min',
       'freehand': drawIOBasePath + 'js/freehand/perfect-freehand',
       'rough': drawIOBasePath + 'js/rough/rough.min',
       'mxgraph-init': drawIOBasePath + 'js/draw.io.init.min',
       'mxgraph-client': drawIOBasePath + 'mxgraph/mxClient',
       'mxgraph-editor': drawIOBasePath + 'js/draw.io.grapheditor.min',
       'mxgraph-viewer': drawIOBasePath + 'js/draw.io.graphviewer.min',
-      'draw.io': drawIOBasePath + 'js/draw.io.min',
-      'draw.io.viewer': drawIOBasePath + 'js/draw.io.viewer.min',
+      'draw.io-core': drawIOBasePath + 'js/draw.io.min',
+      // Optional features loaded by draw.io's App.main() at startup (ELK layouts, orthogonal edge routing, Mermaid,
+      // VSDX import, etc.). Required since draw.io replaced the mxGraph layouts (tree, flow, etc.) with ELK.
+      'draw.io-extensions': drawIOBasePath + 'js/extensions.min',
+      // The stencil (XML) shapes used by the shape libraries (e.g. Signs, Cisco, Electrical). draw.io doesn't provide
+      // the stencil XML files anymore, they are bundled in this file which overwrites mxStencilRegistry.loadStencil(),
+      // so it must be loaded after the editor / viewer code. We use two module ids because the dependencies differ.
+      'draw.io-stencils': drawIOBasePath + 'js/stencils.min',
+      'draw.io.viewer-stencils': drawIOBasePath + 'js/stencils.min',
+      'draw.io.viewer-core': drawIOBasePath + 'js/draw.io.viewer.min',
       'resourceSelector': new XWiki.Document('WebHome', 'Diagram.ResourceSelector').getURL('jsx', 'minify=' + !diagramConfig.debug)
     },
     shim: {
       'mxgraph-client': ['mxgraph-init'],
-      'mxgraph-editor': ['noDocWrite!mxgraph-client', 'jscolor', 'sanitizer-global'],
+      'mxgraph-editor': ['noDocWrite!mxgraph-client', 'sanitizer-global'],
       'mxgraph-viewer': ['noDocWrite!mxgraph-client', 'sanitizer-global'],
-      'draw.io': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'mermaid-global', 'freehand', 'rough'],
-      'draw.io.viewer': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough']
+      'draw.io-core': ['mxgraph-editor', 'base64', 'pako-global', 'spin-global', 'jszip-global', 'freehand', 'rough'],
+      'draw.io-extensions': ['draw.io-core'],
+      'draw.io-stencils': ['mxgraph-editor'],
+      'draw.io.viewer-core': ['mxgraph-viewer', 'pako-global', 'spin-global', 'rough'],
+      'draw.io.viewer-stencils': ['mxgraph-viewer']
     }
   });
 
@@ -362,9 +371,31 @@ define('diagram-setup', ['diagram-config'], function(diagramConfig) {
     window.DOMPurify = sanitizer;
   });
 
-  define('mermaid-global', ['mermaid'], function(mermaid) {
-    // draw.io expects a global variable.
-    window.mermaid = mermaid;
+  // The draw.io editor, including the extensions and the stencils.
+  define('draw.io', ['draw.io-core', 'noAMD!draw.io-extensions', 'draw.io-stencils'], function() {});
+
+  // The draw.io viewer, including the stencils.
+  define('draw.io.viewer', ['draw.io.viewer-core', 'draw.io.viewer-stencils'], function() {});
+
+  // Hide the AMD support while loading scripts that bundle UMD modules (e.g. JSZip) which draw.io expects to expose
+  // global variables. The shim dependencies are loaded first, with the AMD support enabled, because some of them are
+  // loaded as AMD modules.
+  define('noAMD', {
+    load: function (name, req, onload, config) {
+      var shim = config.shim &amp;&amp; config.shim[name];
+      var deps = (shim &amp;&amp; (Array.isArray(shim) ? shim : shim.deps)) || [];
+      req(deps, function() {
+        var amd = window.define.amd;
+        delete window.define.amd;
+        req([name], function (value) {
+          window.define.amd = amd;
+          onload(value);
+        }, function (error) {
+          window.define.amd = amd;
+          onload.error(error);
+        });
+      }, onload.error);
+    }
   });
 
   // Disable document.write() while loading modules that call this API in order to prevent warning messages in the
@@ -1015,12 +1046,14 @@ define('diagram-utils', ['jquery', 'diagram-link-handler'], function($, diagramL
 
 /**
  * Overwrite XWiki skin styles
- */
-.diagram-editor *,
+ Revert the box sizing set by the skin (Bootstrap) for all elements, without overwriting the box sizing set by the
+  draw.io styles (hence the zero specificity).
+*/
+:where(.diagram-editor *,
 .mxPopupMenu *,
 .mxWindow *,
 .geDialog,
-.geDialog * {
+.geDialog *) {
   box-sizing: content-box;
 }
 
@@ -1294,11 +1327,67 @@ input[name="geBackgroundImageDialogOption"] {
 body.geEditor {
   font-family: @font-family-base;
   font-size: @font-size-base;
+  /* The body is not the editor container (see .diagram-editor.geEditor below) so we need to revert the editor layout
+    styles, otherwise the whole page uses the draw.io grid layout. We keep the position and size though, because the
+    dialog backgrounds rely on them. */
+  overflow: visible;
+  display: block;
+  grid-template-rows: none;
+  grid-template-columns: none;
+  background-color: @body-bg;
+  color-scheme: normal;
+}
+
+/* Keep the editor container in the page flow (draw.io expects it to fill the window). */
+.diagram-editor.geEditor {
+  position: relative;
+  width: auto;
+}
+
+/* These bars span the whole editor grid and have width 100% and padding. */
+.diagram-editor.geEditor &gt; .geToolbarContainer,
+.diagram-editor.geEditor &gt; .geTabContainer {
+  box-sizing: border-box;
 }
 
 /* Overwrite the .geEditor button to make all the primary buttons and the drawer button the right color. */
 .geEditor button.btn-primary, .geEditor #tmDrawerActivator {
   background-color: @btn-primary-bg;
+}
+
+/* The draw.io styles set the background and border colors of all the input elements inside .geEditor (including the
+  body element, see above) with a higher specificity than the skin, which breaks the form action buttons (e.g. Save &amp;
+  View). We restore the skin styles (see Bootstrap's buttons.less and Flamingo's buttons.less). */
+body.geEditor input.btn-default {
+  background-color: lighten(@btn-default-bg, 5%);
+  border: 1px solid darken(@btn-default-bg, 10%);
+}
+body.geEditor input.btn-default:hover, body.geEditor input.btn-default:focus {
+  background-color: lighten(@btn-default-bg, 5%);
+  border: 1px solid darken(@btn-default-bg, 20%);
+}
+body.geEditor input.btn-primary {
+  background-color: @btn-primary-bg;
+  border: 1px solid @btn-primary-bg;
+}
+body.geEditor input.btn-primary:focus {
+  background-color: darken(@btn-primary-bg, 10%);
+  border-color: darken(@btn-primary-border, 25%);
+}
+body.geEditor input.btn-primary:hover {
+  background-color: darken(@btn-primary-bg, 5%);
+  border: 1px solid darken(@btn-primary-bg, 5%);
+}
+
+/* Primary buttons added to the draw.io menu bar (e.g. the Save button of the inline diagram editor). The draw.io styles
+  for the menu bar items (.geItem) overwrite the skin styles, especially on hover. */
+.geEditor .geItem.btn-primary {
+  border: 1px solid @btn-primary-bg;
+}
+.geEditor .geItem.btn-primary:hover:not([disabled]) {
+  color: @btn-primary-color;
+  background-color: darken(@btn-primary-bg, 5%);
+  border: 1px solid darken(@btn-primary-bg, 5%);
 }
 </code>
     </property>

@@ -91,6 +91,7 @@
               &lt;input
                   id="inline-diagram-content"
                   class="diagram-content"
+                  data-title="$escapetool.xml($request.diagramName)"
                   type="hidden"
                   name="content"
                   value="$escapetool.xml($content)" /&gt;

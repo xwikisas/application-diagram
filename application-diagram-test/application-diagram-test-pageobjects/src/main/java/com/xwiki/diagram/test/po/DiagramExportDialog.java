@@ -107,6 +107,13 @@ public class DiagramExportDialog extends BaseElement
             throw new IllegalArgumentException(String.format("Unknown export option [%s]: %s", label, getOptions()));
         }
         WebElement checkbox = this.container.findElements(By.cssSelector("input[type='checkbox']")).get(index);
+        if (!checkbox.isDisplayed()) {
+            // Some of the options are inside a collapsible section (e.g. "Advanced") that is collapsed by default.
+            WebElement section = checkbox.findElement(By.xpath("ancestor::div[contains(@class, 'geCollapsibleContent')]"
+                + "/preceding-sibling::*[contains(@class, 'geCollapsibleTitle')][1]"));
+            DiagramEditor.click(section);
+            getDriver().waitUntilCondition(driver -> checkbox.isDisplayed());
+        }
         if (checkbox.isSelected() != checked) {
             DiagramEditor.click(checkbox);
         }

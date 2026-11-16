@@ -108,7 +108,7 @@ class DiagramEditorIT
         Map.entry("Clipart", "Clipart / Computer"),
         Map.entry("Electrical", "Electrical / Logic Gates"),
         Map.entry("Mockups", "Mockup Containers"),
-        Map.entry("Proc. Eng.", "Proc. Eng. / Valves"),
+        Map.entry("Process Engineering", "Process Engineering / Valves"),
         Map.entry("Signs", "Signs / Animals"),
         Map.entry("iOS", "iOS UI"),
         Map.entry("Value Stream Mapping", "Value Stream Mapping"));
@@ -377,7 +377,8 @@ class DiagramEditorIT
         assertMenuContains(editor, "Edit", "Cut", "Copy", "Duplicate", "Delete", "Select All", "Lock/Unlock");
         assertMenuContains(editor, "View", "Format", "Outline", "Layers", "Grid", "Reset View", "Zoom In",
             "Zoom Out");
-        assertMenuContains(editor, "Arrange", "To Front", "To Back", "Rotate shape only by 90° / Reverse", "Group");
+        assertMenuContains(editor, "Arrange", "To Front", "To Back", "Rotate Shape Only by 90° / Reverse",
+            "Group");
         assertMenuContains(editor, "Extras", "Edit Diagram...", "Configuration...");
         assertMenuContains(editor, "Help", "Keyboard Shortcuts...");
 
@@ -452,22 +453,23 @@ class DiagramEditorIT
         // Background color, from the Diagram tab of the format panel.
         editor.selectNone();
         DiagramFormatPanel formatPanel = editor.getFormatPanel();
-        formatPanel.setChecked("Background Color", true);
-        formatPanel.setColor("Background Color", "FFFFCC");
+        BackgroundImageDialog backgroundDialog = formatPanel.openBackgroundDialog();
+        backgroundDialog.setFillColor("FFFFCC");
+        backgroundDialog.apply();
 
         DiagramModel model = editor.getModel();
         // A4 landscape.
         assertEquals("1169", model.getAttribute("pageWidth"));
         assertEquals("827", model.getAttribute("pageHeight"));
         assertEquals("20", model.getAttribute("gridSize"));
-        assertEquals("#FFFFCC", model.getAttribute("background").toUpperCase());
+        assertBackgroundColor("#FFFFCC", model);
         assertBackgroundImage(model);
 
         model = editPage.clickSaveAndView().getDiagram().getModel();
         assertEquals("1169", model.getAttribute("pageWidth"));
         assertEquals("827", model.getAttribute("pageHeight"));
         assertEquals("20", model.getAttribute("gridSize"));
-        assertEquals("#FFFFCC", model.getAttribute("background").toUpperCase());
+        assertBackgroundColor("#FFFFCC", model);
         assertBackgroundImage(model);
     }
 
@@ -503,6 +505,14 @@ class DiagramEditorIT
         assertEquals(2, getImages(diagram.getModel()).size());
         assertBackgroundImage(diagram.getModel());
         assertTrue(diagram.getImageCount() >= 2, "The images are not displayed.");
+    }
+
+    private void assertBackgroundColor(String expectedColor, DiagramModel model)
+    {
+        // The background color can have a different value for the dark mode, e.g. light-dark(#FFFFCC,#121212).
+        String background = model.getAttribute("background").toUpperCase();
+        assertTrue(background.equals(expectedColor) || background.startsWith("LIGHT-DARK(" + expectedColor + ","),
+            background);
     }
 
     private void assertBackgroundImage(DiagramModel model)
