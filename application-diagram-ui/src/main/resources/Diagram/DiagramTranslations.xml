@@ -71,6 +71,7 @@ diagram.macro.loadFailed.externalDiagramUrl=Failed to load the diagram. Please c
 diagram.macro.loadFailed.externalDiagramUrl.guestUser=Diagram preview from external URLs is not available for unregistered users.
 diagram.macro.create=Create diagram
 diagram.macro.createNotAllowed=You are not allowed to create this diagram.
+diagram.macro.createHint=The diagram doesn''t exist yet. Save the page, then click "{0}" to start editing your diagram.
 diagram.macro.edit=Edit diagram
 diagram.macro.externalServicesDisabled=External services are disabled for the Diagram Application (Pro), and this diagram has an external source. This setting can be changed in the Administration section.
 diagram.macro.invalidPageIndex=There is no diagram page corresponding to this index.

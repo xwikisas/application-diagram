@@ -55,5 +55,15 @@
   ## we don't use &lt;img&gt; because we want links to be clickable
   ## see https://github.com/xwikisas/application-diagram/issues/311
   #stripXMLPreludeAndDoctype($diagramDoc.getAttachment($svgAttachmentFilename).getContentAsString())
+#end
+##
+## Sets $isInEditMode to true when the current request is for editing the page.
+## For some reason XWiki changes the context when a macro is inserted in the editor, so we need to check for multiple
+## conditions: the first 2 clauses are for the normal edit action, while the rest handles the update of the context when
+## a macro is updated or inserted in the editor.
+#macro (checkEditMode)
+  #set ($isInEditMode = $xcontext.action == 'edit' || $request.outputSyntax == 'annotatedhtml'
+    || ($xcontext.action == 'get' &amp;&amp; $request.outputSyntax == 'plain'
+      &amp;&amp; $request.sheet == 'CKEditor.HTMLConverter'))
 #end</content>
 </xwikidoc>
