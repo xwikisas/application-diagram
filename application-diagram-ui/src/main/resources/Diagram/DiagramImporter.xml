@@ -74,6 +74,11 @@
   #end
   #if ($format == 'xml')
     #set ($discard = $response.setContentType('application/xml'))
+    ## The returned XML is (or contains) the content provided in the request, so make sure the browser doesn't display
+    ## it as a page of the wiki (the XML is meant to be read by the diagram editor using JavaScript).
+    #set ($discard = $response.setHeader('Content-Disposition', 'attachment'))
+    #set ($discard = $response.setHeader('X-Content-Type-Options', 'nosniff'))
+    #set ($discard = $response.setHeader('Content-Security-Policy', 'sandbox'))
     $xml
   #elseif ("$!xml" == '')
     #define($code)
