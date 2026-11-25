@@ -35,6 +35,7 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  * @version $Id$
  * @since 2.1.4
+ * @since 1.22.12
  */
 public final class SafeXMLParsers
 {

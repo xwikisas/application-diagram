@@ -98,6 +98,7 @@ public class DiagramScriptService implements ScriptService
      * @param svg the SVG image of a diagram
      * @return the cleaned SVG image, or an empty string if the given image is not valid
      * @since 2.1.4
+     * @since 1.22.12
      */
     @Unstable
     public String sanitizeSVG(String svg)

@@ -47,6 +47,7 @@ import org.xwiki.xml.html.HTMLElementSanitizer;
  *
  * @version $Id$
  * @since 2.1.4
+ * @since 1.22.12
  */
 @Component(roles = DiagramSVGSanitizer.class)
 @Singleton
