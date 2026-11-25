@@ -39,14 +39,72 @@
   <content>{{groovy output="false"}}
 import com.xwiki.diagram.internal.DiagramImporter;
 
+// Only public web resources can be fetched through this proxy.
+def isAllowedURL(URL url) {
+    if (!(url.getProtocol() in ['http', 'https']) || !url.getHost()) {
+        return false;
+    }
+    for (InetAddress address : InetAddress.getAllByName(url.getHost())) {
+        if (address.isLoopbackAddress()
+            || address.isAnyLocalAddress()
+            || address.isLinkLocalAddress()
+            || address.isSiteLocalAddress()
+            || address.isMulticastAddress()
+            // IPv6 unique local addresses and IPv4-compatible IPv6 addresses.
+            || (address instanceof Inet6Address &amp;&amp; ((address.getAddress()[0] &amp; 0xfe) == 0xfc || ((Inet6Address) address).isIPv4CompatibleAddress()))
+            // Carrier-grade NAT
+            || (address instanceof Inet4Address &amp;&amp; ((address.getAddress()[0] == 100 &amp;&amp; (address.getAddress()[1] &amp; 0xc0) == 64)
+            || address.getAddress()[0] == 0))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+def sendError(int status, String message) {
+    def data = message.getBytes('UTF-8');
+    response.setStatus(status);
+    response.setContentType('text/plain');
+    response.setContentLength(data.length);
+    response.getOutputStream().write(data);
+}
+
 def url = request.getParameter("url");
 def importDiagramParam = new Boolean(request.getParameter("importDiagram"));
 // Prevent guest users from using this proxy.
 if (url &amp;&amp; xcontext.getUserReference()) {
+    // The fetched content is not trusted so make sure the browser never displays it as a page of the wiki.
+    response.setHeader('Content-Disposition', 'attachment');
+    response.setHeader('X-Content-Type-Options', 'nosniff');
+    response.setHeader('Content-Security-Policy', 'sandbox');
     try {
-        def connection = new URL(url).openConnection();
-        // We get 403 response without the User-Agent header specified.
-        connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
+        def target = new URL(url);
+        def connection = null;
+        // Follow the redirects ourselves in order to check each URL. We also cap the nb of redirects at 5.
+        for (int redirects = 0; redirects &lt;= 5; redirects++) {
+            if (!isAllowedURL(target)) {
+                connection = null;
+                break;
+            }
+            connection = target.openConnection();
+            connection.setInstanceFollowRedirects(false);
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(30000);
+            // We get 403 response without the User-Agent header specified.
+            connection.setRequestProperty('User-Agent', "XWiki's Diagram Application");
+            def status = connection.getResponseCode();
+            if (status &gt;= 300 &amp;&amp; status &lt; 400 &amp;&amp; connection.getHeaderField('Location')) {
+                target = new URL(target, connection.getHeaderField('Location'));
+                connection.disconnect();
+                connection = null;
+            } else {
+                break;
+            }
+        }
+        if (connection == null) {
+            sendError(403, 'The requested URL is not allowed.');
+            return;
+        }
         response.setStatus(connection.getResponseCode());
         response.setContentType(connection.getContentType());
         def data = connection.getInputStream().readAllBytes();
@@ -60,11 +118,9 @@ if (url &amp;&amp; xcontext.getUserReference()) {
         response.getOutputStream().write(data);
 
     } catch (MalformedURLException e) {
-        response.setStatus(400);
-        response.getOutputStream().write(e.toString().getBytes('UTF-8'));
+        sendError(400, 'The requested URL is not valid.');
     } catch (Exception e) {
-        response.setStatus(500);
-        response.getOutputStream().write(e.toString().getBytes('UTF-8'));
+        sendError(500, 'Failed to retrieve the requested URL.');
     }
 }
 {{/groovy}}</content>
