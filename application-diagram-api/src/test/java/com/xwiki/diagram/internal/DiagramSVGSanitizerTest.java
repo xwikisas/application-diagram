@@ -46,9 +46,14 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class DiagramSVGSanitizerTest
 {
-    private static final Set<String> ALLOWED_ELEMENTS = Set.of("svg", "g", "rect", "a", "text", "switch", "div");
+    /**
+     * Like the platform sanitizer, the SVG filter primitives are only known by their camel case name.
+     */
+    private static final Set<String> ALLOWED_ELEMENTS =
+        Set.of("svg", "g", "rect", "a", "text", "switch", "div", "defs", "filter", "feGaussianBlur", "feOffset");
 
-    private static final Set<String> ALLOWED_ATTRIBUTES = Set.of("width", "height", "x", "y", "xlink:href", "style");
+    private static final Set<String> ALLOWED_ATTRIBUTES =
+        Set.of("width", "height", "x", "y", "xlink:href", "style", "id", "filter", "in", "stddeviation", "dx");
 
     @InjectMockComponents
     private DiagramSVGSanitizer sanitizer;
@@ -83,6 +88,18 @@ class DiagramSVGSanitizerTest
             + "xmlns:xlink=\"http://www.w3.org/1999/xlink\"><g><a xlink:href=\"/xwiki/bin/view/Main/\"><rect x=\"1\" y=\"2\"/></a>"
             + "<switch><foreignObject requiredFeatures=\"f\" width=\"5\"><div style=\"color: red\">Label</div>"
             + "</foreignObject><text>Label</text></switch></g></svg>", this.sanitizer.sanitize(svg));
+    }
+
+    @Test
+    void sanitizeKeepsShadowFilter()
+    {
+        String svg = "<svg><defs><filter id=\"dropShadow\"><feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"1.7\"/>"
+            + "<feOffset dx=\"3\"/><feImage onload=\"alert(1)\"/></filter></defs>"
+            + "<g filter=\"url(#dropShadow)\"><rect x=\"1\"/></g><SCRIPT>alert(2)</SCRIPT></svg>";
+
+        assertEquals("<svg><defs><filter id=\"dropShadow\"><feGaussianBlur in=\"SourceAlpha\" stdDeviation=\"1.7\"/>"
+            + "<feOffset dx=\"3\"/></filter></defs><g filter=\"url(#dropShadow)\"><rect x=\"1\"/></g></svg>",
+            this.sanitizer.sanitize(svg));
     }
 
     @Test

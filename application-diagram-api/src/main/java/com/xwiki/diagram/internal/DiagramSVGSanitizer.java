@@ -127,8 +127,13 @@ public class DiagramSVGSanitizer
 
     private boolean isElementAllowed(Element element)
     {
-        String name = element.getTagName().toLowerCase(Locale.ROOT);
-        return FOREIGN_OBJECT.equals(name) || this.htmlElementSanitizer.isElementAllowed(name);
+        String tagName = element.getTagName();
+        String name = tagName.toLowerCase(Locale.ROOT);
+        // The platform sanitizer knows the SVG filter primitives (e.g. feGaussianBlur, used by the shadows of older
+        // diagrams) only by their camel case name. Removing them leaves an empty filter, which hides the shapes that
+        // use it.
+        return FOREIGN_OBJECT.equals(name) || this.htmlElementSanitizer.isElementAllowed(name)
+            || (!name.equals(tagName) && this.htmlElementSanitizer.isElementAllowed(tagName));
     }
 
     private void sanitizeAttributes(Element element)
