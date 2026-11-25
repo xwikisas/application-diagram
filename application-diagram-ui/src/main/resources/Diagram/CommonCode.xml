@@ -38,22 +38,15 @@
   <hidden>true</hidden>
   <content>{{velocity output="false"}}
 
-## When putting the code of an SVG image directly in an HTML document,
-## we need to remove the XML prelude:
-##  &lt;?xml version="1.0" encoding="UTF-8"?&gt;)
-## and the doctype:
-## &lt;!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"&gt;
-## because they are forbidden and they confuse either the browser or pagedjs
-## and completely break the rendering on exports.
-#macro (stripXMLPreludeAndDoctype $xmlCode)
-  $xmlCode.replaceFirst('&lt;\?[^&gt;]+&gt;', '').replaceFirst('&lt;!DOCTYPE[^&gt;]+&gt;', '').trim()
-#end
-
 ## Show a diagram using the SVG attachment given by its filename.
 ## Must be called inside a {{html clean=false}} macro (cleaning breaks the SVG code)
 #macro (showDiagramSVGInHTML $diagramDoc $svgAttachmentFilename)
   ## we don't use &lt;img&gt; because we want links to be clickable
   ## see https://github.com/xwikisas/application-diagram/issues/311
-  #stripXMLPreludeAndDoctype($diagramDoc.getAttachment($svgAttachmentFilename).getContentAsString())
-#end</content>
+  ## The SVG image is cleaned (and the XML prelude and doctype removed) before being included in the page because it
+  ## is provided by the user that edited the diagram.
+  $services.diagram.sanitizeSVG($diagramDoc.getAttachment($svgAttachmentFilename).getContentAsString())
+#end
+
+{{/velocity}}</content>
 </xwikidoc>

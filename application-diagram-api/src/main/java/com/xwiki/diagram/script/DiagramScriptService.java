@@ -30,10 +30,11 @@ import org.xwiki.script.service.ScriptServiceManager;
 import org.xwiki.stability.Unstable;
 
 import com.xwiki.diagram.internal.DiagramImporter;
+import com.xwiki.diagram.internal.DiagramSVGSanitizer;
 
 /**
  * Script services for the Diagram application.
- * 
+ *
  * @version $Id$
  * @since 1.14
  */
@@ -53,6 +54,9 @@ public class DiagramScriptService implements ScriptService
 
     @Inject
     private DiagramImporter diagramImporter;
+
+    @Inject
+    private DiagramSVGSanitizer svgSanitizer;
 
     @Inject
     private Logger logger;
@@ -85,5 +89,19 @@ public class DiagramScriptService implements ScriptService
             logger.error("Cannot import diagram.", e);
             return null;
         }
+    }
+
+    /**
+     * Cleans the given diagram SVG so that it can be included in the HTML of a wiki page: the elements and
+     * attributes that are not safe are removed and the result can't be interpreted as wiki syntax.
+     *
+     * @param svg the SVG image of a diagram
+     * @return the cleaned SVG image, or an empty string if the given image is not valid
+     * @since 2.1.4
+     */
+    @Unstable
+    public String sanitizeSVG(String svg)
+    {
+        return this.svgSanitizer.sanitize(svg);
     }
 }
