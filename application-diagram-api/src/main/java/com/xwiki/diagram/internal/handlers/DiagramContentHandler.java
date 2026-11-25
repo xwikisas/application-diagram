@@ -28,9 +28,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -47,10 +45,11 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xwiki.diagram.internal.SafeXMLParsers;
 
 /**
  * Handler for diagram content operations.
- * 
+ *
  * @version $Id$
  * @since 1.13
  */
@@ -84,7 +83,7 @@ public class DiagramContentHandler
 
     /**
      * Update the attachments content and save the new version.
-     * 
+     *
      * @param backlinkDoc document that has a backlink to diagram
      * @param oldDocRef reference of the page before rename
      * @param newDocRef reference of the page after rename
@@ -105,7 +104,7 @@ public class DiagramContentHandler
 
     /**
      * Migrate links inside diagram's attachment to the new name.
-     * 
+     *
      * @param attachment attachment to be processed
      * @param oldDocRef reference of the page before rename
      * @param newDocRef reference of the page after rename
@@ -137,7 +136,7 @@ public class DiagramContentHandler
 
     /**
      * Update content of the diagram with new links.
-     * 
+     *
      * @param backlinkDoc document that has a backlink to the diagram
      * @param originalDocRef reference of the document before rename
      * @param currentDocRef reference of the document after rename
@@ -151,7 +150,7 @@ public class DiagramContentHandler
         DocumentReference currentDocRef, XWikiContext context)
         throws ParserConfigurationException, SAXException, IOException, XWikiException
     {
-        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        Document document = SafeXMLParsers.newDocumentBuilder()
             .parse(new ByteArrayInputStream(backlinkDoc.getContent().getBytes()));
         boolean updated = maybeUpdateContent(document, originalDocRef, currentDocRef);
         // Since a document save is expensive we actually do the save only when are sure that a node was updated.
@@ -182,8 +181,7 @@ public class DiagramContentHandler
     {
         boolean updated = false;
         for (XWikiAttachment attachment : diagramAttachments) {
-            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                .parse(attachment.getContentInputStream(context));
+            Document document = SafeXMLParsers.newDocumentBuilder().parse(attachment.getContentInputStream(context));
 
             updated |= maybeUpdateContent(document, originalDocRef, currentDocRef);
 
@@ -215,7 +213,7 @@ public class DiagramContentHandler
     {
         try {
             GetDiagramLinksHandler getDiagramLinksHandler = getDiagramLinksHandlerProvider.get();
-            SAXParserFactory.newInstance().newSAXParser()
+            SafeXMLParsers.newSAXParser()
                 .parse(new ByteArrayInputStream(content.getBytes()), getDiagramLinksHandler);
 
             return getDiagramLinksHandler.getLinkedPages(diagramReference);
