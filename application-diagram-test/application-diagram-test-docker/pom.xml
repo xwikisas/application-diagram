@@ -64,11 +64,6 @@
       <version>${platform.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.xwiki.platform</groupId>
-      <artifactId>xwiki-platform-component-wiki</artifactId>
-      <version>${platform.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.xwiki.diagram</groupId>
       <artifactId>application-diagram-test-pageobjects</artifactId>
       <scope>test</scope>
