@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 
 import org.xwiki.bridge.DocumentAccessBridge;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.csrf.CSRFToken;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.rest.XWikiResource;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
@@ -69,11 +70,19 @@ public class DiagramResourcesImpl extends XWikiResource implements DiagramResour
     @Inject
     private Provider<XWikiContext> contextProvider;
 
+    @Inject
+    private CSRFToken csrfToken;
+
     @Override
     public Response deleteAttachments(String documentReference) throws Exception
     {
 
         XWikiContext context = contextProvider.get();
+        // This request modifies a document so make sure it was sent by the diagram editor and not by another web site.
+        if (context.getRequest() == null
+            || !this.csrfToken.isTokenValid(context.getRequest().getParameter("form_token"))) {
+            throw new WebApplicationException(Response.Status.FORBIDDEN);
+        }
         XWiki xwiki = context.getWiki();
         String decodedReference = URLDecoder.decode(documentReference, StandardCharsets.UTF_8);
         XWikiDocument diagramDocument = xwiki.getDocument(resolver.resolve(decodedReference), context);

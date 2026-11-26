@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.xwiki.bridge.DocumentAccessBridge;
+import org.xwiki.csrf.CSRFToken;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.rest.XWikiRestException;
@@ -45,12 +46,15 @@ import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiAttachment;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.web.XWikiRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -75,6 +79,12 @@ public class DiagramResourcesImplTest
 
     @MockComponent
     private DocumentAccessBridge documentAccessBridge;
+
+    @MockComponent
+    private CSRFToken csrfToken;
+
+    @Mock
+    private XWikiRequest request;
 
     @Mock
     private XWiki wiki;
@@ -108,6 +118,9 @@ public class DiagramResourcesImplTest
         when(xwikiDocument.clone()).thenReturn(clonedDocument);
         when(wiki.getDocument(documentReference, xWikiContext)).thenReturn(xwikiDocument);
         when(documentAccessBridge.exists((DocumentReference) any())).thenReturn(true);
+        when(xWikiContext.getRequest()).thenReturn(request);
+        when(request.getParameter("form_token")).thenReturn("validToken");
+        when(csrfToken.isTokenValid("validToken")).thenReturn(true);
     }
 
     @Test
@@ -138,6 +151,29 @@ public class DiagramResourcesImplTest
         });
         assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), exception.getResponse().getStatus());
         assertEquals(3, clonedDocument.getAttachmentList().size());
+    }
+
+    @Test
+    void deleteNoAttachmentsWithoutValidFormToken() throws Exception
+    {
+        List<XWikiAttachment> attachments = createAttachments("diagram.png", "diagram.svg");
+        when(this.authorizationManager.hasAccess(Right.EDIT, xwikiDocument.getDocumentReference())).thenReturn(true);
+        clonedDocument.setAttachmentList(attachments);
+
+        when(request.getParameter("form_token")).thenReturn("invalidToken");
+        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
+            diagramResources.deleteAttachments("test");
+        });
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), exception.getResponse().getStatus());
+
+        when(request.getParameter("form_token")).thenReturn(null);
+        exception = assertThrows(WebApplicationException.class, () -> {
+            diagramResources.deleteAttachments("test");
+        });
+        assertEquals(Response.Status.FORBIDDEN.getStatusCode(), exception.getResponse().getStatus());
+
+        assertEquals(2, clonedDocument.getAttachmentList().size());
+        verify(this.wiki, never()).saveDocument(any(), any(), any(Boolean.class), any());
     }
 
     /**
