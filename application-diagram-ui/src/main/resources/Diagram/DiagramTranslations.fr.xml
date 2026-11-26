@@ -71,6 +71,7 @@ diagram.macro.loadFailed.externalDiagramUrl=Échec de chargement du diagramme. M
 diagram.macro.loadFailed.externalDiagramUrl.guestUser=La prévisualisation des diagrammes d'une source externe n'est pas disponible pour les utilisateurs non enregistrés.
 diagram.macro.create=Créer un diagramme
 diagram.macro.createNotAllowed=Vous n'êtes pas autorisé(e) à créer ce diagramme.
+diagram.macro.createHint=Le diagramme n''existe pas encore. Sauvegardez la page, puis cliquez sur "{0}" pour commencer à éditer le diagramme.
 diagram.macro.edit=Modifier le diagramme
 diagram.macro.externalServicesDisabled=Les services externes sont désactivés pour Diagram Application (Pro), et ce diagramme a une source externe. Ce paramètre peut être modifié dans la section Administration.
 diagram.macro.invalidPageIndex=Il n'y a pas de page correspondant à ce numéro dans le diagramme.
